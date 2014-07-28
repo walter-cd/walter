@@ -29,6 +29,11 @@ func (self *CommandStage) Run() bool {
 	return true;
 }
 
+func (self *CommandStage) AddCommand(command string, arguments []string)  {
+	self.command = command
+	self.arguments = arguments
+}
+
 func NewCommandStage() *CommandStage {
 	return &CommandStage{}
 }
