@@ -1,7 +1,6 @@
 package plumber
 
 import (
-        "log"
         "os/exec"
 )
 
@@ -17,13 +16,11 @@ func (self *CommandStage) Run() bool {
 
         _, err := cmd.StdoutPipe()
         if err != nil {
-                log.Fatal("failed to retrieve pipe. %s", err)
                 return false
         }
  
 	err = cmd.Start()
         if err != nil {
-                log.Fatal("failed to execute external command. %s", err)
                 return false
         }
 	return true;
