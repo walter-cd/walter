@@ -1,0 +1,17 @@
+#!/bin/sh -e
+
+if [ ! -h gopath/src/github.com/takahi-i/plumber ]; then
+    mkdir -p gopath/src/github.com/takahi-i/
+    ln -s ../../../.. gopath/src/github.com/takahi-i/plumber
+fi
+
+export GOBIN=${PWD}/bin
+export GOPATH=${PWD}/gopath
+export GOFMTPATH="./pipeline ./plumber ./stage"
+
+# Don't surprise user by formatting their codes by stealth
+if [ "--fmt" = "$1" ]; then
+    gofmt -s -w -l $GOFMTPATH
+fi
+
+go install github.com/takahi-i/plumber

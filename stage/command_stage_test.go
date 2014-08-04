@@ -1,4 +1,4 @@
-package plumber
+package stage
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 
 func TestWIthSimpleCommand(t *testing.T) {
 	stage := NewCommandStage()
-	stage.AddCommand("ls", []string{"-l"})
+	stage.AddCommand("ls", "-l")
 	expected := true
 	actual := stage.Run()
 	if expected != actual {
@@ -16,7 +16,7 @@ func TestWIthSimpleCommand(t *testing.T) {
 
 func TestWithNoexistCommand(t *testing.T) {
 	stage := NewCommandStage()
-	stage.AddCommand("zzzz", []string{""})
+	stage.AddCommand("zzzz", "")
 	expected := false
 	actual := stage.Run()
 	if expected != actual {
