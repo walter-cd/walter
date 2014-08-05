@@ -1,19 +1,25 @@
-package plumber
+package pipeline
 
-import "container/list"
+import (
+	"container/list"
+	"fmt"
+
+	"github.com/takahi-i/plumber/stage"
+)
 
 type Pipeline struct {
 	stages list.List
 }
 
 func (self *Pipeline) Run() {
-	// TODO: apply dependency 
-	for stage := self.stages.Front(); stage != nil; stage = stage.Next() {
-		// do something with e.Value
+	// TODO: apply dependency
+	for stageItem := self.stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
+		fmt.Printf("Executing planned stage: %s\n", stageItem.Value)
+		stageItem.Value.(stage.Stage).Run()
 	}
 }
 
-func (self *Pipeline) AddStage(stage Stage) {
+func (self *Pipeline) AddStage(stage stage.Stage) {
 	self.stages.PushBack(stage)
 }
 
@@ -21,6 +27,6 @@ func (self *Pipeline) Size() int {
 	return self.stages.Len()
 }
 
-func  NewPipeline() *Pipeline {
+func NewPipeline() *Pipeline {
 	return &Pipeline{}
 }
