@@ -7,7 +7,7 @@ fi
 
 export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
-export GOFMTPATH="./pipeline ./plumber ./stage"
+export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./plumber"
 
 # Don't surprise user by formatting their codes by stealth
 if [ "--fmt" = "$1" ]; then

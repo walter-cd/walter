@@ -1,21 +1,21 @@
-package pipeline
+package pipelines
 
 import (
 	"testing"
 
-	"github.com/takahi-i/plumber/stage"
+	"github.com/takahi-i/plumber/stages"
 )
 
-func createCommandStage(command string, arguments ...string) *stage.CommandStage {
-	resultStage := stage.NewCommandStage()
+func createCommandStage(command string, arguments ...string) *stages.CommandStage {
+	resultStage := stages.NewCommandStage()
 	resultStage.AddCommand(command, arguments...)
 	return resultStage
 }
 
 func TestAddPipeline(t *testing.T) {
 	pipeline := NewPipeline()
-	pipeline.AddStage(stage.NewCommandStage())
-	pipeline.AddStage(stage.NewCommandStage())
+	pipeline.AddStage(stages.NewCommandStage())
+	pipeline.AddStage(stages.NewCommandStage())
 	expected := 2
 	actual := pipeline.Size()
 	if expected != actual {

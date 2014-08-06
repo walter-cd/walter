@@ -1,25 +1,27 @@
-package stage
+package stages
 
 import (
 	"bytes"
 	"io"
 	"log"
 	"os/exec"
+	"strings"
 )
 
 type CommandStage struct {
-	command   string
-	arguments []string
-	outResult string
+	Command   string   `config:"command"`
+	Arguments []string `config:"arguments"`
+	OutResult string
 }
 
 func (self *CommandStage) GetStdoutResult() string {
-	return self.outResult
+	return self.OutResult
 }
 
 func (self *CommandStage) Run() bool {
-	cmd := exec.Command(self.command)
-	cmd.Args = append([]string{self.command}, self.arguments...)
+	command := strings.Split(self.Command, " ")
+	cmd := exec.Command(command[0], command[1:]...)
+	cmd.Args = append(command, self.Arguments...)
 	cmd.Dir = "."
 	out, err := cmd.StdoutPipe()
 
@@ -30,7 +32,7 @@ func (self *CommandStage) Run() bool {
 	if err != nil {
 		return false
 	}
-	self.outResult = copyStream(out)
+	self.OutResult = copyStream(out)
 	err = cmd.Wait()
 	if err != nil {
 		return false
@@ -58,8 +60,8 @@ func copyStream(reader io.Reader) string {
 }
 
 func (self *CommandStage) AddCommand(command string, arguments ...string) {
-	self.command = command
-	self.arguments = arguments
+	self.Command = command
+	self.Arguments = arguments
 }
 
 func NewCommandStage() *CommandStage {
