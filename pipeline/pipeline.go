@@ -11,12 +11,13 @@ type Pipeline struct {
 	stages list.List
 }
 
-func (self *Pipeline) Run() {
+func (self *Pipeline) Run() bool {
 	// TODO: apply dependency
 	for stageItem := self.stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		fmt.Printf("Executing planned stage: %s\n", stageItem.Value)
 		stageItem.Value.(stage.Stage).Run()
 	}
+	return true
 }
 
 func (self *Pipeline) AddStage(stage stage.Stage) {
