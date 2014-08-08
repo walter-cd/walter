@@ -23,3 +23,14 @@ func TestWithNoexistCommand(t *testing.T) {
 		t.Errorf("got %v\nwant %v", actual, expected)
 	}
 }
+
+func TestStdoutRsultOfCommand(t *testing.T) {
+	stage := NewCommandStage()
+	stage.AddCommand("echo", "foobar")
+	expected := "foobar\n"
+	stage.Run()
+	actual := stage.GetStdoutResult()
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+}
