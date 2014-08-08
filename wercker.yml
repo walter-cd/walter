@@ -1,0 +1,7 @@
+box: wercker/golang@1.2.0
+build:
+    steps:
+        - script:
+            name: run test.sh
+            code: |-
+                sh ./test.sh
