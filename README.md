@@ -1,6 +1,8 @@
 Plumber
 ========
 
+[![wercker status](https://app.wercker.com/status/78634c0d52dccf6c239af6a4dc3acd5e/m/master "wercker status")](https://app.wercker.com/project/bykey/78634c0d52dccf6c239af6a4dc3acd5e)
+
 Plumber is a tiny deployment pipeline template.
 
 Overview
