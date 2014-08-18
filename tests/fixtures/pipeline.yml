@@ -1,0 +1,13 @@
+global:
+    dummyOpt: true
+
+pipeline:
+    command_stage_1:
+        stage_type: command
+        command: echo "hello, world"
+    command_stage_2:
+        stage_type: command
+        command: echo "hello, world, command_stage_2"
+    command_stage_3:
+        stage_type: command
+        command: echo "hello, world, command_stage_3"

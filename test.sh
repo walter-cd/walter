@@ -2,14 +2,17 @@
 
 . ./build
 
-go test -i ./pipeline
-go test -v ./pipeline -race
+go test -i ./config
+go test -v ./config -race
+
+go test -i ./pipelines
+go test -v ./pipelines -race
 
 go test -i ./plumber
 go test -v ./plumber -race
 
-go test -i ./stage
-go test -v ./stage -race
+go test -i ./stages
+go test -v ./stages -race
 
 #go test -i ./tests/functional
 #ETCD_BIN_PATH=$(pwd)/bin/plumber go test -v ./tests/functional -race

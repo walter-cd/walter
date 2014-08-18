@@ -1,25 +1,22 @@
 package plumber
 
 import (
-	"github.com/takahi-i/plumber/pipeline"
-	"github.com/takahi-i/plumber/stage"
+	"github.com/takahi-i/plumber/config"
+	"github.com/takahi-i/plumber/pipelines"
 )
 
 type Plumber struct {
-	Pipeline *pipeline.Pipeline
+	Pipeline *pipelines.Pipeline
 }
 
-func New() *Plumber {
-	var pipeline = pipeline.NewPipeline()
+func New(opts *config.Opts) *Plumber {
+	configData := config.ReadConfig(opts.PipelineFilePath)
+	pipeline := (config.Parse(configData))
 	return &Plumber{
 		Pipeline: pipeline,
 	}
 }
 
 func (e *Plumber) Run() {
-	var stage = stage.NewCommandStage()
-	stage.AddCommand("echo", "Hello, I'm command stage'")
-
-	e.Pipeline.AddStage(stage)
 	e.Pipeline.Run()
 }

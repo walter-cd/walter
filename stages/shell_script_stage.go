@@ -1,4 +1,4 @@
-package stage
+package stages
 
 type ShellScriptStage struct {
 	command CommandStage
