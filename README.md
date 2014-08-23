@@ -22,7 +22,7 @@ How to Build
 
 You can build plumber with the follwoing commands.
 
-    $git clone git@github.com:takahi-i/plumber.git
+    $git clone https://github.com/recruit-tech/plumber.git
     $cd plumber
     $./build
 
