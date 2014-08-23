@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/takahi-i/plumber/config"
-	"github.com/takahi-i/plumber/plumber"
+	"github.com/recruit-tech/plumber/config"
+	"github.com/recruit-tech/plumber/plumber"
 )
 
 func main() {

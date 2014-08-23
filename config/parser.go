@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/takahi-i/plumber/pipelines"
-	"github.com/takahi-i/plumber/stages"
+	"github.com/recruit-tech/plumber/pipelines"
+	"github.com/recruit-tech/plumber/stages"
 )
 
 func getStageTypeModuleName(stageType string) string {

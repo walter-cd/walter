@@ -3,7 +3,7 @@ package config
 import (
 	"testing"
 
-	"github.com/takahi-i/plumber/stages"
+	"github.com/recruit-tech/plumber/stages"
 )
 
 func TestParse(t *testing.T) {

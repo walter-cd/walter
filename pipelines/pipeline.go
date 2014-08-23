@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"fmt"
 
-	"github.com/takahi-i/plumber/stages"
+	"github.com/recruit-tech/plumber/stages"
 )
 
 type Pipeline struct {

@@ -3,7 +3,7 @@ package pipelines
 import (
 	"testing"
 
-	"github.com/takahi-i/plumber/stages"
+	"github.com/recruit-tech/plumber/stages"
 )
 
 func createCommandStage(command string, arguments ...string) *stages.CommandStage {

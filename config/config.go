@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/takahi-i/plumber/third_party/gopkg.in/yaml.v1"
+	"github.com/recruit-tech/plumber/third_party/gopkg.in/yaml.v1"
 )
 
 type Opts struct {
