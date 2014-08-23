@@ -1,5 +1,7 @@
 #!/bin/sh -e
 
+git submodule init && git submodule update
+
 if [ ! -h gopath/src/github.com/takahi-i/plumber ]; then
     mkdir -p gopath/src/github.com/takahi-i/
     ln -s ../../../.. gopath/src/github.com/takahi-i/plumber
