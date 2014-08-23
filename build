@@ -1,10 +1,10 @@
 #!/bin/sh -e
 
-git init submodule && git submodule update
+git submodule init && git submodule update
 
-if [ ! -h gopath/src/github.com/takahi-i/plumber ]; then
-    mkdir -p gopath/src/github.com/takahi-i/
-    ln -s ../../../.. gopath/src/github.com/takahi-i/plumber
+if [ ! -h gopath/src/github.com/recruit-tech/plumber ]; then
+    mkdir -p gopath/src/github.com/recruit-tech/
+    ln -s ../../../.. gopath/src/github.com/recruit-tech/plumber
 fi
 
 export GOBIN=${PWD}/bin
@@ -16,4 +16,4 @@ if [ "--fmt" = "$1" ]; then
     gofmt -s -w -l $GOFMTPATH
 fi
 
-go install github.com/takahi-i/plumber
+go install github.com/recruit-tech/plumber

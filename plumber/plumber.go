@@ -1,8 +1,8 @@
 package plumber
 
 import (
-	"github.com/takahi-i/plumber/config"
-	"github.com/takahi-i/plumber/pipelines"
+	"github.com/recruit-tech/plumber/config"
+	"github.com/recruit-tech/plumber/pipelines"
 )
 
 type Plumber struct {
