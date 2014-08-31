@@ -25,6 +25,7 @@ import (
 )
 
 type CommandStage struct {
+	BaseStage
 	Command   string   `config:"command"`
 	Arguments []string `config:"arguments"`
 	OutResult string

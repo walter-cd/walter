@@ -16,8 +16,23 @@
  */
 package stages
 
+import (
+	"container/list"
+)
+
 type Stage interface {
 	Run() bool
+	AddChildStage(Stage)
+}
+
+type Mediator struct {
+	States map[string]string
+}
+
+type BaseStage struct {
+	InputCh     *chan Mediator
+	OutputCh    *chan Mediator
+	ChildStages list.List
 }
 
 func InitStage(stageType string) Stage {
@@ -26,4 +41,8 @@ func InitStage(stageType string) Stage {
 		return new(CommandStage)
 	}
 	return nil
+}
+
+func (b *BaseStage) AddChildStage(stage Stage) {
+	b.ChildStages.PushBack(stage)
 }

@@ -44,6 +44,13 @@ func (self *Pipeline) Size() int {
 	return self.Stages.Len()
 }
 
+func (self *Pipeline) Build() {
+	self.build_deps(&self.Stages)
+}
+
+func (self *Pipeline) build_deps(stages *list.List) {
+}
+
 func NewPipeline() *Pipeline {
 	return &Pipeline{}
 }
