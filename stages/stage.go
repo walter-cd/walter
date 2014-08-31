@@ -86,16 +86,25 @@ func (b *BaseStage) getInputCh() *chan Mediator {
 	return b.InputCh
 }
 
-func ExecuteStage(stage Stage, outputChan chan Mediator) chan Mediator {
+func ExecuteStage(stage Stage, outputChan *chan Mediator) chan Mediator {
 	receiver := make(chan Mediator)
+	var mediator Mediator
+	for {
+		received, ok := <-*outputChan
+		if !ok {
+			break
+		}
+		mediator = received
+	}
+	fmt.Println("mediator received: %v", mediator)
 	fmt.Println("execute parent: %v", stage)
+
 	go func(stage Stage) {
-		result := stage.(Runner).Run()
-		resultStates := make(map[string]string)
-		resultStates[stage.GetStageName()] = fmt.Sprintf("%v", result)
 		fmt.Println("execute parent name %v", stage.GetStageName())
-		fmt.Println("execute parent resultState %v", resultStates)
-		receiver <- Mediator{States: resultStates}
+		result := stage.(Runner).Run()
+		fmt.Println("execute parent result %v", result)
+		mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)
+		receiver <- mediator
 		if childStages := stage.GetChildStages(); childStages.Len() > 0 {
 			fmt.Println("execute childstage: %v", childStages)
 			for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
@@ -108,15 +117,23 @@ func ExecuteStage(stage Stage, outputChan chan Mediator) chan Mediator {
 	return receiver
 }
 
-func Execute(stage Stage) bool {
+func Execute(stage Stage, mediator Mediator) Mediator {
 	outputChan := make(chan Mediator)
-	receiver := ExecuteStage(stage, outputChan)
+
+	go func(mediator Mediator) {
+		outputChan <- mediator
+		close(outputChan)
+	}(mediator)
+
+	receiver := ExecuteStage(stage, &outputChan)
+
+	var lastReceive Mediator
 	for {
 		receive, ok := <-receiver
 		if !ok {
 			fmt.Println("receiver closed")
-			return true
+			return lastReceive
 		}
-		fmt.Println("received: %v", receive)
+		lastReceive = receive
 	}
 }

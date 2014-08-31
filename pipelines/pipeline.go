@@ -29,9 +29,10 @@ type Pipeline struct {
 
 func (self *Pipeline) Run() bool {
 	// TODO: apply dependency
+	mediator := stages.Mediator{States: make(map[string]string)}
 	for stageItem := self.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		fmt.Printf("Executing planned stage: %s\n", stageItem.Value)
-		stages.Execute(stageItem.Value.(stages.Stage))
+		mediator = stages.Execute(stageItem.Value.(stages.Stage), mediator)
 	}
 	return true
 }
