@@ -14,4 +14,7 @@ pipeline:
              command: echo "hello, world, command_stage_3_group_1"
     - stage_name: command_stage_4
       stage_type: command
+      command: echo "hello, world"
+    - stage_name: command_stage_5
+      stage_type: command
       command: echo "hello, world, command_stage_3_group_1"

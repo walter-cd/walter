@@ -59,6 +59,10 @@ func mapStage(stageMap map[interface{}]interface{}) stages.Stage {
 	newStageValue := reflect.ValueOf(stage).Elem()
 	newStageType := reflect.TypeOf(stage).Elem()
 
+	if stageName := stageMap["stage_name"]; stageName != nil {
+		stage.SetStageName(stageMap["stage_name"].(string))
+	}
+
 	for i := 0; i < newStageType.NumField(); i++ {
 		tagName := newStageType.Field(i).Tag.Get("config")
 		for stageOptKey, stageOptVal := range stageMap {
@@ -70,6 +74,7 @@ func mapStage(stageMap map[interface{}]interface{}) stages.Stage {
 			}
 		}
 	}
+
 	if runAfters := stageMap["run_after"]; runAfters != nil {
 		for _, runAfter := range runAfters.([]interface{}) {
 			childStage := mapStage(runAfter.(map[interface{}]interface{}))

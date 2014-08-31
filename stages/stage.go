@@ -18,11 +18,18 @@ package stages
 
 import (
 	"container/list"
+	"fmt"
 )
 
 type Stage interface {
-	Run() bool
 	AddChildStage(Stage)
+	GetChildStages() list.List
+	GetStageName() string
+	SetStageName(string)
+}
+
+type Runner interface {
+	Run() bool
 }
 
 type Mediator struct {
@@ -30,9 +37,11 @@ type Mediator struct {
 }
 
 type BaseStage struct {
+	Runner
 	InputCh     *chan Mediator
 	OutputCh    *chan Mediator
 	ChildStages list.List
+	StageName   string `config:"stage_name"`
 }
 
 func InitStage(stageType string) Stage {
@@ -43,6 +52,71 @@ func InitStage(stageType string) Stage {
 	return nil
 }
 
+func (b *BaseStage) Run() bool {
+	fmt.Println("called BaseStage.Run")
+	if b.Runner == nil {
+		panic("Mast have a child class assigned")
+	}
+	return b.Runner.Run()
+}
+
 func (b *BaseStage) AddChildStage(stage Stage) {
+	fmt.Println("added childstage: %v", stage)
 	b.ChildStages.PushBack(stage)
+}
+
+func (b *BaseStage) GetChildStages() list.List {
+	return b.ChildStages
+}
+
+func (b *BaseStage) GetStageName() string {
+	return b.StageName
+}
+
+func (b *BaseStage) SetStageName(stageName string) {
+	b.StageName = stageName
+}
+
+func (b *BaseStage) setInputCh() {
+	inputCh := make(chan Mediator)
+	b.InputCh = &inputCh
+}
+
+func (b *BaseStage) getInputCh() *chan Mediator {
+	return b.InputCh
+}
+
+func ExecuteStage(stage Stage, outputChan chan Mediator) chan Mediator {
+	receiver := make(chan Mediator)
+	fmt.Println("execute parent: %v", stage)
+	go func(stage Stage) {
+		result := stage.(Runner).Run()
+		resultStates := make(map[string]string)
+		resultStates[stage.GetStageName()] = fmt.Sprintf("%v", result)
+		fmt.Println("execute parent name %v", stage.GetStageName())
+		fmt.Println("execute parent resultState %v", resultStates)
+		receiver <- Mediator{States: resultStates}
+		if childStages := stage.GetChildStages(); childStages.Len() > 0 {
+			fmt.Println("execute childstage: %v", childStages)
+			for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
+				//ExecuteStage(childStage.Value.(Stage))
+			}
+		}
+		close(receiver)
+	}(stage)
+
+	return receiver
+}
+
+func Execute(stage Stage) bool {
+	outputChan := make(chan Mediator)
+	receiver := ExecuteStage(stage, outputChan)
+	for {
+		receive, ok := <-receiver
+		if !ok {
+			fmt.Println("receiver closed")
+			return true
+		}
+		fmt.Println("received: %v", receive)
+	}
 }

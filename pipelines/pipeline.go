@@ -31,7 +31,7 @@ func (self *Pipeline) Run() bool {
 	// TODO: apply dependency
 	for stageItem := self.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		fmt.Printf("Executing planned stage: %s\n", stageItem.Value)
-		stageItem.Value.(stages.Stage).Run()
+		stages.Execute(stageItem.Value.(stages.Stage))
 	}
 	return true
 }
@@ -45,10 +45,10 @@ func (self *Pipeline) Size() int {
 }
 
 func (self *Pipeline) Build() {
-	self.build_deps(&self.Stages)
+	self.buildDeps(&self.Stages)
 }
 
-func (self *Pipeline) build_deps(stages *list.List) {
+func (self *Pipeline) buildDeps(stages *list.List) {
 }
 
 func NewPipeline() *Pipeline {

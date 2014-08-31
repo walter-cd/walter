@@ -79,8 +79,11 @@ func copyStream(reader io.Reader) string {
 func (self *CommandStage) AddCommand(command string, arguments ...string) {
 	self.Command = command
 	self.Arguments = arguments
+	self.BaseStage = BaseStage{}
+	self.BaseStage.Runner = self
 }
 
 func NewCommandStage() *CommandStage {
-	return &CommandStage{}
+	stage := CommandStage{}
+	return &stage
 }
