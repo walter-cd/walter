@@ -17,16 +17,17 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/recruit-tech/plumber/config"
 	"github.com/recruit-tech/plumber/plumber"
+	"github.com/recruit-tech/plumber/third_party/gopkg.in/glog.master"
 )
 
 func main() {
-	fmt.Printf("Running plumber\n")
 	opts := config.LoadOpts(os.Args[1:])
 	var plumber = plumber.New(opts)
+	glog.Info("running Plumber")
 	plumber.Run()
+	glog.Info("succeded to finish Plumber")
 }
