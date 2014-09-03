@@ -1,4 +1,0 @@
-[submodule "third_party/gopkg.in/yaml.v1"]
-     path = third_party/gopkg.in/yaml.v1
-     url = https://github.com/go-yaml/yaml.git
-    branch = v1
