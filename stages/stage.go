@@ -26,6 +26,10 @@ type Stage interface {
 	GetChildStages() list.List
 	GetStageName() string
 	SetStageName(string)
+	GetInputCh() *chan Mediator
+	SetInputCh(*chan Mediator)
+	GetOutputCh() *chan Mediator
+	SetOutputCh(*chan Mediator)
 }
 
 type Runner interface {
@@ -77,13 +81,20 @@ func (b *BaseStage) SetStageName(stageName string) {
 	b.StageName = stageName
 }
 
-func (b *BaseStage) setInputCh() {
-	inputCh := make(chan Mediator)
-	b.InputCh = &inputCh
+func (b *BaseStage) SetInputCh(inputCh *chan Mediator) {
+	b.InputCh = inputCh
 }
 
-func (b *BaseStage) getInputCh() *chan Mediator {
+func (b *BaseStage) GetInputCh() *chan Mediator {
 	return b.InputCh
+}
+
+func (b *BaseStage) SetOutputCh(outputCh *chan Mediator) {
+	b.OutputCh = outputCh
+}
+
+func (b *BaseStage) GetOutputCh() *chan Mediator {
+	return b.OutputCh
 }
 
 func ExecuteStage(stage Stage, inputChan *chan Mediator, outputChan *chan Mediator, monitorChan *chan Mediator) {
@@ -118,7 +129,9 @@ func ExecuteStage(stage Stage, inputChan *chan Mediator, outputChan *chan Mediat
 		for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
 			fmt.Printf("child name %+v\n", childStage.Value.(Stage).GetStageName())
 			childInputCh := make(chan Mediator)
-			childOutCh := make(chan Mediator)
+			childOutputCh := make(chan Mediator)
+			childStage.Value.(Stage).SetInputCh(&childInputCh)
+			childStage.Value.(Stage).SetOutputCh(&childOutputCh)
 
 			name := childStage.Value.(Stage).GetStageName()
 			mediator.States[name] = fmt.Sprintf("%v", "waiting")
@@ -129,12 +142,17 @@ func ExecuteStage(stage Stage, inputChan *chan Mediator, outputChan *chan Mediat
 			}(mediator)
 
 			go func(stage Stage) {
-				ExecuteStage(stage, &childInputCh, &childOutCh, monitorChan)
+				ExecuteStage(stage, &childInputCh, &childOutputCh, monitorChan)
 			}(childStage.Value.(Stage))
+		}
 
-			childReceived := <-childOutCh
-			fmt.Printf("child state %+v\n", childReceived.States[name])
-			mediator.States[name] = fmt.Sprintf("%v", childReceived.States[name])
+		for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
+			go func(stage Stage) {
+				childReceived := <-*stage.GetOutputCh()
+				name := stage.GetStageName()
+				fmt.Printf("child state %+v\n", childReceived.States[name])
+				mediator.States[name] = fmt.Sprintf("%v", childReceived.States[name])
+			}(childStage.Value.(Stage))
 		}
 	}
 
