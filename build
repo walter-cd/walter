@@ -25,7 +25,11 @@ export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
 export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./plumber"
 
-godep restore
+if ! [ -e $GOBIN/godep ]; then
+    go get github.com/tools/godep
+fi
+
+$GOBIN/godep restore
 
 # Don't surprise user by formatting their codes by stealth
 if [ "--fmt" = "$1" ]; then
