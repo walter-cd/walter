@@ -40,61 +40,12 @@ type Mediator struct {
 	States map[string]string
 }
 
-type BaseStage struct {
-	Runner
-	InputCh     *chan Mediator
-	OutputCh    *chan Mediator
-	ChildStages list.List
-	StageName   string `config:"stage_name"`
-}
-
 func InitStage(stageType string) Stage {
 	switch stageType {
 	case "command":
 		return new(CommandStage)
 	}
 	return nil
-}
-
-func (b *BaseStage) Run() bool {
-	fmt.Println("called BaseStage.Run")
-	if b.Runner == nil {
-		panic("Mast have a child class assigned")
-	}
-	return b.Runner.Run()
-}
-
-func (b *BaseStage) AddChildStage(stage Stage) {
-	fmt.Println("added childstage: %v", stage)
-	b.ChildStages.PushBack(stage)
-}
-
-func (b *BaseStage) GetChildStages() list.List {
-	return b.ChildStages
-}
-
-func (b *BaseStage) GetStageName() string {
-	return b.StageName
-}
-
-func (b *BaseStage) SetStageName(stageName string) {
-	b.StageName = stageName
-}
-
-func (b *BaseStage) SetInputCh(inputCh *chan Mediator) {
-	b.InputCh = inputCh
-}
-
-func (b *BaseStage) GetInputCh() *chan Mediator {
-	return b.InputCh
-}
-
-func (b *BaseStage) SetOutputCh(outputCh *chan Mediator) {
-	b.OutputCh = outputCh
-}
-
-func (b *BaseStage) GetOutputCh() *chan Mediator {
-	return b.OutputCh
 }
 
 func ExecuteStage(stage Stage, inputChan *chan Mediator, outputChan *chan Mediator, monitorChan *chan Mediator) {
