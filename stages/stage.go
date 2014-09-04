@@ -139,8 +139,6 @@ func Execute(stage Stage, mediator Mediator) Mediator {
 
 	go func(mediator Mediator) {
 		inputChan <- mediator
-		outputChan <- mediator
-		close(outputChan)
 		close(inputChan)
 	}(mediator)
 
