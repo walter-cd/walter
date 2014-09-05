@@ -16,8 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-git submodule init && git submodule update
-
 if [ ! -h gopath/src/github.com/recruit-tech/plumber ]; then
     mkdir -p gopath/src/github.com/recruit-tech/
     ln -s ../../../.. gopath/src/github.com/recruit-tech/plumber
@@ -26,6 +24,12 @@ fi
 export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
 export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./plumber"
+
+if ! [ -e $GOBIN/godep ]; then
+    go get github.com/tools/godep
+fi
+
+$GOBIN/godep restore
 
 # Don't surprise user by formatting their codes by stealth
 if [ "--fmt" = "$1" ]; then
