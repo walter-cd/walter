@@ -49,7 +49,7 @@ func InitStage(stageType string) Stage {
 }
 
 func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
-	mediator := <- *stage.GetInputCh()
+	mediator := <-*stage.GetInputCh()
 
 	fmt.Println("mediator received: %v", mediator)
 	fmt.Println("execute as parent: %v", stage)
