@@ -41,11 +41,21 @@ type Mediator struct {
 }
 
 func InitStage(stageType string) Stage {
+	var stage Stage
 	switch stageType {
 	case "command":
-		return new(CommandStage)
+		stage = new(CommandStage)
 	}
-	return nil
+
+	prepareCh(&stage)
+	return stage
+}
+
+func prepareCh(stage *Stage) {
+	in := make(chan Mediator)
+	out := make(chan Mediator)
+	(*stage).SetInputCh(&in)
+	(*stage).SetOutputCh(&out)
 }
 
 func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
@@ -67,10 +77,7 @@ func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
 
 		for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
 			fmt.Printf("child name %+v\n", childStage.Value.(Stage).GetStageName())
-			childInputCh := make(chan Mediator)
-			childOutputCh := make(chan Mediator)
-			childStage.Value.(Stage).SetInputCh(&childInputCh)
-			childStage.Value.(Stage).SetOutputCh(&childOutputCh)
+			childInputCh := *childStage.Value.(Stage).GetInputCh()
 
 			name := childStage.Value.(Stage).GetStageName()
 			mediator.States[name] = fmt.Sprintf("%v", "waiting")
@@ -128,19 +135,15 @@ func closeAfterExecute(mediator *Mediator, monitCh *chan Mediator) {
 }
 
 func Execute(stage Stage, mediator Mediator) Mediator {
-	inputCh := make(chan Mediator)
-	outputCh := make(chan Mediator)
 	monitorCh := make(chan Mediator)
-	stage.SetInputCh(&inputCh)
-	stage.SetOutputCh(&outputCh)
 	name := stage.GetStageName()
 	fmt.Printf("----- Execute %v start ------\n", name)
 
 	mediator.States[name] = fmt.Sprintf("%v", "waiting")
 
 	go func(mediator Mediator) {
-		inputCh <- mediator
-		close(inputCh)
+		*stage.GetInputCh() <- mediator
+		close(*stage.GetInputCh())
 	}(mediator)
 
 	var lastReceive Mediator
