@@ -48,8 +48,8 @@ func InitStage(stageType string) Stage {
 	return nil
 }
 
-func ExecuteStage(stage Stage, inputCh *chan Mediator, outputCh *chan Mediator, monitorCh *chan Mediator) {
-	mediator := <-*inputCh
+func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
+	mediator := <- *stage.GetInputCh()
 
 	fmt.Println("mediator received: %v", mediator)
 	fmt.Println("execute as parent: %v", stage)
@@ -81,7 +81,7 @@ func ExecuteStage(stage Stage, inputCh *chan Mediator, outputCh *chan Mediator, 
 			}(mediator)
 
 			go func(stage Stage) {
-				ExecuteStage(stage, &childInputCh, &childOutputCh, monitorCh)
+				ExecuteStage(stage, monitorCh)
 			}(childStage.Value.(Stage))
 		}
 
@@ -96,8 +96,8 @@ func ExecuteStage(stage Stage, inputCh *chan Mediator, outputCh *chan Mediator, 
 	}
 
 	go func() {
-		*outputCh <- mediator
-		close(*outputCh)
+		*stage.GetOutputCh() <- mediator
+		close(*stage.GetOutputCh())
 	}()
 	*monitorCh <- mediator
 
@@ -131,7 +131,8 @@ func Execute(stage Stage, mediator Mediator) Mediator {
 	inputCh := make(chan Mediator)
 	outputCh := make(chan Mediator)
 	monitorCh := make(chan Mediator)
-
+	stage.SetInputCh(&inputCh)
+	stage.SetOutputCh(&outputCh)
 	name := stage.GetStageName()
 	fmt.Printf("----- Execute %v start ------\n", name)
 
@@ -144,7 +145,7 @@ func Execute(stage Stage, mediator Mediator) Mediator {
 
 	var lastReceive Mediator
 
-	go ExecuteStage(stage, &inputCh, &outputCh, &monitorCh)
+	go ExecuteStage(stage, &monitorCh)
 
 	for {
 		receive, ok := <-monitorCh
