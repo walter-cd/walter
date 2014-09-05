@@ -17,6 +17,8 @@
 package config
 
 import (
+	"container/list"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -30,27 +32,54 @@ func getStageTypeModuleName(stageType string) string {
 
 func Parse(configData *map[interface{}]interface{}) *pipelines.Pipeline {
 	pipeline := pipelines.NewPipeline()
-	pipelineData := (*configData)["pipeline"].(map[interface{}]interface{})
+	pipelineData := (*configData)["pipeline"].([]interface{})
 
-	for _, stageDetail := range pipelineData {
-		stageType := stageDetail.(map[interface{}]interface{})["stage_type"].(string)
-		stageStruct := stages.InitStage(stageType)
-		newStageValue := reflect.ValueOf(stageStruct).Elem()
-		newStageType := reflect.TypeOf(stageStruct).Elem()
+	stageList := convertYamlMapToStages(pipelineData)
+	for stageItem := stageList.Front(); stageItem != nil; stageItem = stageItem.Next() {
+		pipeline.AddStage(stageItem.Value.(stages.Stage))
+	}
+	pipeline.Build()
 
-		for i := 0; i < newStageType.NumField(); i++ {
-			tagName := newStageType.Field(i).Tag.Get("config")
-			for stageOptKey, stageOptVal := range stageDetail.(map[interface{}]interface{}) {
-				if tagName == stageOptKey {
-					fieldVal := newStageValue.Field(i)
-					if fieldVal.Type() == reflect.ValueOf("string").Type() {
-						fieldVal.SetString(stageOptVal.(string))
-					}
+	return pipeline
+}
+
+func convertYamlMapToStages(yamlStageList []interface{}) *list.List {
+	stages := list.New()
+	for _, stageDetail := range yamlStageList {
+		stage := mapStage(stageDetail.(map[interface{}]interface{}))
+		stages.PushBack(stage)
+	}
+	return stages
+}
+
+func mapStage(stageMap map[interface{}]interface{}) stages.Stage {
+	fmt.Println("%v", stageMap["run_after"])
+	stageType := stageMap["stage_type"].(string)
+	stage := stages.InitStage(stageType)
+	newStageValue := reflect.ValueOf(stage).Elem()
+	newStageType := reflect.TypeOf(stage).Elem()
+
+	if stageName := stageMap["stage_name"]; stageName != nil {
+		stage.SetStageName(stageMap["stage_name"].(string))
+	}
+
+	for i := 0; i < newStageType.NumField(); i++ {
+		tagName := newStageType.Field(i).Tag.Get("config")
+		for stageOptKey, stageOptVal := range stageMap {
+			if tagName == stageOptKey {
+				fieldVal := newStageValue.Field(i)
+				if fieldVal.Type() == reflect.ValueOf("string").Type() {
+					fieldVal.SetString(stageOptVal.(string))
 				}
 			}
 		}
-		pipeline.AddStage(stageStruct)
 	}
 
-	return pipeline
+	if runAfters := stageMap["run_after"]; runAfters != nil {
+		for _, runAfter := range runAfters.([]interface{}) {
+			childStage := mapStage(runAfter.(map[interface{}]interface{}))
+			stage.AddChildStage(childStage)
+		}
+	}
+	return stage
 }
