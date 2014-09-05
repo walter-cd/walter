@@ -48,8 +48,8 @@ func InitStage(stageType string) Stage {
 	return nil
 }
 
-func ExecuteStage(stage Stage, inputChan *chan Mediator, outputChan *chan Mediator, monitorChan *chan Mediator) {
-	mediator := <-*inputChan
+func ExecuteStage(stage Stage, inputCh *chan Mediator, outputCh *chan Mediator, monitorCh *chan Mediator) {
+	mediator := <-*inputCh
 
 	fmt.Println("mediator received: %v", mediator)
 	fmt.Println("execute as parent: %v", stage)
@@ -81,7 +81,7 @@ func ExecuteStage(stage Stage, inputChan *chan Mediator, outputChan *chan Mediat
 			}(mediator)
 
 			go func(stage Stage) {
-				ExecuteStage(stage, &childInputCh, &childOutputCh, monitorChan)
+				ExecuteStage(stage, &childInputCh, &childOutputCh, monitorCh)
 			}(childStage.Value.(Stage))
 		}
 
@@ -96,12 +96,12 @@ func ExecuteStage(stage Stage, inputChan *chan Mediator, outputChan *chan Mediat
 	}
 
 	go func() {
-		*outputChan <- mediator
-		close(*outputChan)
+		*outputCh <- mediator
+		close(*outputCh)
 	}()
-	*monitorChan <- mediator
+	*monitorCh <- mediator
 
-	closeAfterExecute(&mediator, monitorChan)
+	closeAfterExecute(&mediator, monitorCh)
 }
 
 func setChildStatus(stage *Stage, mediator *Mediator, status string) {
@@ -128,9 +128,9 @@ func closeAfterExecute(mediator *Mediator, monitCh *chan Mediator) {
 }
 
 func Execute(stage Stage, mediator Mediator) Mediator {
-	inputChan := make(chan Mediator)
-	outputChan := make(chan Mediator)
-	monitorChan := make(chan Mediator)
+	inputCh := make(chan Mediator)
+	outputCh := make(chan Mediator)
+	monitorCh := make(chan Mediator)
 
 	name := stage.GetStageName()
 	fmt.Printf("----- Execute %v start ------\n", name)
@@ -138,22 +138,22 @@ func Execute(stage Stage, mediator Mediator) Mediator {
 	mediator.States[name] = fmt.Sprintf("%v", "waiting")
 
 	go func(mediator Mediator) {
-		inputChan <- mediator
-		close(inputChan)
+		inputCh <- mediator
+		close(inputCh)
 	}(mediator)
 
 	var lastReceive Mediator
 
-	go ExecuteStage(stage, &inputChan, &outputChan, &monitorChan)
+	go ExecuteStage(stage, &inputCh, &outputCh, &monitorCh)
 
 	for {
-		receive, ok := <-monitorChan
+		receive, ok := <-monitorCh
 		if !ok {
-			fmt.Println("monitorChan closed")
+			fmt.Println("monitorCh closed")
 			fmt.Printf("----- Execute %v done ------\n\n", name)
 			return lastReceive
 		}
-		fmt.Printf("monitorChan received  %+v\n", receive)
+		fmt.Printf("monitorCh received  %+v\n", receive)
 		lastReceive = receive
 	}
 }
