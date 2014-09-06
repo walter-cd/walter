@@ -2,7 +2,7 @@ package log
 
 import "fmt"
 
-var GlobalRecorder Recorder
+var GlobalRecorder Recorder = &GlogRecorder{}
 
 type Recorder interface {
 	Info(m string)
