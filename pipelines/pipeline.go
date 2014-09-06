@@ -18,8 +18,8 @@ package pipelines
 
 import (
 	"container/list"
-	"fmt"
 
+	"github.com/recruit-tech/plumber/log"
 	"github.com/recruit-tech/plumber/stages"
 )
 
@@ -29,12 +29,12 @@ type Pipeline struct {
 
 func (self *Pipeline) Run() bool {
 	mediator := stages.Mediator{States: make(map[string]string)}
-	glog.Info("getingt starting to run pipeline process...")
+	log.Info("geting starting to run pipeline process...")
 	for stageItem := self.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
-		fmt.Printf("Executing planned stage: %s\n", stageItem.Value)
+		log.Debugf("Executing planned stage: %s\n", stageItem.Value)
 		mediator = stages.Execute(stageItem.Value.(stages.Stage), mediator)
 	}
-	glog.Info("finished to run pipeline process...")
+	log.Info("finished to run pipeline process...")
 	return true
 }
 

@@ -20,14 +20,16 @@ import (
 	"os"
 
 	"github.com/recruit-tech/plumber/config"
+	"github.com/recruit-tech/plumber/log"
 	"github.com/recruit-tech/plumber/plumber"
-	"github.com/recruit-tech/plumber/third_party/gopkg.in/glog.master"
 )
 
 func main() {
+	log.Init(&log.GlogRecorder{})
+
 	opts := config.LoadOpts(os.Args[1:])
 	var plumber = plumber.New(opts)
-	glog.Info("running Plumber")
+	log.Info("running Plumber")
 	plumber.Run()
-	glog.Info("succeded to finish Plumber")
+	log.Info("succeded to finish Plumber")
 }

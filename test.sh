@@ -18,17 +18,17 @@
 
 . ./build
 
-go test -i ./config
-go test -v ./config -race
+go test -i ./config || exit 1
+go test -v ./config -race || exit 1
 
-go test -i ./pipelines
-go test -v ./pipelines -race
+go test -i ./pipelines || exit 1
+go test -v ./pipelines -race || exit 1
 
-go test -i ./plumber
-go test -v ./plumber -race
+go test -i ./plumber || exit 1
+go test -v ./plumber -race || exit 1
 
-go test -i ./stages
-go test -v ./stages -race
+go test -i ./stages || exit 1
+go test -v ./stages -race || exit 1
 
 #go test -i ./tests/functional
 #ETCD_BIN_PATH=$(pwd)/bin/plumber go test -v ./tests/functional -race
