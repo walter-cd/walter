@@ -18,7 +18,8 @@ package stages
 
 import (
 	"container/list"
-	"fmt"
+
+	"github.com/recruit-tech/plumber/log"
 )
 
 type BaseStage struct {
@@ -30,7 +31,6 @@ type BaseStage struct {
 }
 
 func (b *BaseStage) Run() bool {
-	fmt.Println("called BaseStage.Run")
 	if b.Runner == nil {
 		panic("Mast have a child class assigned")
 	}
@@ -38,7 +38,7 @@ func (b *BaseStage) Run() bool {
 }
 
 func (b *BaseStage) AddChildStage(stage Stage) {
-	fmt.Println("added childstage: %v", stage)
+	log.Debugf("added childstage: %v", stage)
 	b.ChildStages.PushBack(stage)
 }
 

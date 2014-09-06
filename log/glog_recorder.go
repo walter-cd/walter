@@ -1,19 +1,17 @@
 package log
 
-import "github.com/golang/glog"
+import "github.com/ainoya/glog"
 
 type GlogRecorder struct {
 	Recorder
 }
 
-func (l *GlogRecorder) Info(m string) {
-	glog.Info(m)
+func (l *GlogRecorder) Debug(m string) {
+	glog.Debug(m)
 }
 
-func (l *GlogRecorder) Debug(m string) {
-	if glog.V(4) {
-		glog.Info(m)
-	}
+func (l *GlogRecorder) Info(m string) {
+	glog.Info(m)
 }
 
 func (l *GlogRecorder) Error(m string) {

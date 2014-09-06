@@ -12,7 +12,7 @@ type Recorder interface {
 }
 
 func Debug(m string) {
-	GlobalRecorder.Info(m)
+	GlobalRecorder.Debug(m)
 }
 
 func Info(m string) {
@@ -29,7 +29,7 @@ func Error(m string) {
 
 func Debugf(m string, args ...interface{}) {
 	mf := fmt.Sprintf(m, args...)
-	GlobalRecorder.Info(mf)
+	GlobalRecorder.Debug(mf)
 }
 
 func Infof(m string, args ...interface{}) {
