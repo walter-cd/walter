@@ -19,6 +19,8 @@ package stages
 import (
 	"container/list"
 	"fmt"
+
+	"github.com/recruit-tech/plumber/log"
 )
 
 type Stage interface {
@@ -61,22 +63,22 @@ func prepareCh(stage *Stage) {
 func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
 	mediator := <-*stage.GetInputCh()
 
-	fmt.Println("mediator received: %v", mediator)
-	fmt.Println("execute as parent: %v", stage)
-	fmt.Println("execute as parent name %v", stage.GetStageName())
+	log.Debugf("mediator received: %v", mediator)
+	log.Debugf("execute as parent: %v", stage)
+	log.Debugf("execute as parent name %v", stage.GetStageName())
 
 	result := stage.(Runner).Run()
-	fmt.Println("execute as parent result %v", result)
+	log.Debugf("execute as parent result %v", result)
 
 	mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)
 
 	setChildStatus(&stage, &mediator, "waiting")
 
 	if childStages := stage.GetChildStages(); childStages.Len() > 0 {
-		fmt.Println("execute childstage: %v", childStages)
+		log.Debugf("execute childstage: %v", childStages)
 
 		for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
-			fmt.Printf("child name %+v\n", childStage.Value.(Stage).GetStageName())
+			log.Debugf("child name %+v\n", childStage.Value.(Stage).GetStageName())
 			childInputCh := *childStage.Value.(Stage).GetInputCh()
 
 			name := childStage.Value.(Stage).GetStageName()
@@ -96,7 +98,7 @@ func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
 			go func(stage Stage) {
 				childReceived := <-*stage.GetOutputCh()
 				name := stage.GetStageName()
-				fmt.Printf("child state %+v\n", childReceived.States[name])
+				log.Debugf("child state %+v\n", childReceived.States[name])
 				mediator.States[name] = fmt.Sprintf("%v", childReceived.States[name])
 			}(childStage.Value.(Stage))
 		}
@@ -129,7 +131,7 @@ func closeAfterExecute(mediator *Mediator, monitCh *chan Mediator) {
 	}
 
 	if allDone {
-		fmt.Printf("closing monitor channel.. %v\n", mediator)
+		log.Debugf("closing monitor channel.. %v\n", mediator)
 		close(*monitCh)
 	}
 }
@@ -137,7 +139,7 @@ func closeAfterExecute(mediator *Mediator, monitCh *chan Mediator) {
 func Execute(stage Stage, mediator Mediator) Mediator {
 	monitorCh := make(chan Mediator)
 	name := stage.GetStageName()
-	fmt.Printf("----- Execute %v start ------\n", name)
+	log.Debugf("----- Execute %v start ------\n", name)
 
 	mediator.States[name] = fmt.Sprintf("%v", "waiting")
 
@@ -153,11 +155,11 @@ func Execute(stage Stage, mediator Mediator) Mediator {
 	for {
 		receive, ok := <-monitorCh
 		if !ok {
-			fmt.Println("monitorCh closed")
-			fmt.Printf("----- Execute %v done ------\n\n", name)
+			log.Debugf("monitorCh closed")
+			log.Debugf("----- Execute %v done ------\n\n", name)
 			return lastReceive
 		}
-		fmt.Printf("monitorCh received  %+v\n", receive)
+		log.Debugf("monitorCh received  %+v\n", receive)
 		lastReceive = receive
 	}
 }

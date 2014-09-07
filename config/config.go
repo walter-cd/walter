@@ -18,10 +18,10 @@ package config
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/go-yaml/yaml"
+	"github.com/recruit-tech/plumber/log"
 )
 
 type Opts struct {
@@ -42,12 +42,12 @@ func ReadConfig(configFilePath string) *map[interface{}]interface{} {
 	configData := make(map[interface{}]interface{})
 	data, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		fmt.Printf("error :%v \n", err)
+		log.Errorf("error :%v \n", err)
 	}
 
 	err = yaml.Unmarshal([]byte(data), &configData)
 	if err != nil {
-		fmt.Printf("error :%v \n", err)
+		log.Errorf("error :%v \n", err)
 	}
 	return &configData
 }

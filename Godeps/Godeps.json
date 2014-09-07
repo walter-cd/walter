@@ -5,6 +5,10 @@
 		{
 			"ImportPath": "github.com/go-yaml/yaml",
 			"Rev": "1b9791953ba4027efaeb728c7355e542a203be5e"
+		},
+		{
+			"ImportPath": "github.com/ainoya/glog",
+			"Rev": "0413b07c5ce2b749cecefb812f861b6e81ad47a5"
 		}
 	]
 }

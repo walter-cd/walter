@@ -23,15 +23,22 @@ import (
 )
 
 func createCommandStage(command string, arguments ...string) *stages.CommandStage {
-	resultStage := stages.NewCommandStage()
-	resultStage.AddCommand(command, arguments...)
-	return resultStage
+	in := make(chan stages.Mediator)
+	out := make(chan stages.Mediator)
+	return &stages.CommandStage{
+		Command:   "echo",
+		Arguments: []string{"echo", "baz"},
+		BaseStage: stages.BaseStage{
+			InputCh:  &in,
+			OutputCh: &out,
+		},
+	}
 }
 
 func TestAddPipeline(t *testing.T) {
 	pipeline := NewPipeline()
-	pipeline.AddStage(stages.NewCommandStage())
-	pipeline.AddStage(stages.NewCommandStage())
+	pipeline.AddStage(stages.InitStage("command"))
+	pipeline.AddStage(stages.InitStage("command"))
 	expected := 2
 	actual := pipeline.Size()
 	if expected != actual {

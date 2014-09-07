@@ -18,10 +18,10 @@ package config
 
 import (
 	"container/list"
-	"fmt"
 	"reflect"
 	"strings"
 
+	"github.com/recruit-tech/plumber/log"
 	"github.com/recruit-tech/plumber/pipelines"
 	"github.com/recruit-tech/plumber/stages"
 )
@@ -53,7 +53,7 @@ func convertYamlMapToStages(yamlStageList []interface{}) *list.List {
 }
 
 func mapStage(stageMap map[interface{}]interface{}) stages.Stage {
-	fmt.Println("%v", stageMap["run_after"])
+	log.Debugf("%v", stageMap["run_after"])
 	stageType := stageMap["stage_type"].(string)
 	stage := stages.InitStage(stageType)
 	newStageValue := reflect.ValueOf(stage).Elem()
