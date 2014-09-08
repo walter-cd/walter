@@ -49,8 +49,8 @@ func (self *CommandStage) Run() bool {
 	}
 
 	if errE != nil {
-		log.Errorf("[command] err: %s", out)
-		log.Errorf("[command] err: %s", err)
+		log.Errorf("[command] err: %s", outE)
+		log.Errorf("[command] err: %s", errE)
 		return false
 	}
 
