@@ -1,3 +1,7 @@
+---
+layout: default
+title: Plumber Home
+---
 # What is Plumber?
 
 Plumber automates the deployment process of applications or service from the configuration, tests to the deployment.
@@ -15,6 +19,10 @@ You can build plumber with the following commands.
     $git clone https://github.com/recruit-tech/plumber.git
     $cd plumber
     $./build
+
+# Configuration
+
+See [Configration page](config.html)
 
 # How to contribute
 
