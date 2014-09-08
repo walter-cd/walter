@@ -22,12 +22,11 @@ import (
 	"github.com/recruit-tech/plumber/stages"
 )
 
-func createCommandStage(command string, arguments ...string) *stages.CommandStage {
+func createCommandStage(command string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
 	return &stages.CommandStage{
-		Command:   "echo",
-		Arguments: []string{"echo", "baz"},
+		Command: "echo",
 		BaseStage: stages.BaseStage{
 			InputCh:  &in,
 			OutputCh: &out,
@@ -48,8 +47,8 @@ func TestAddPipeline(t *testing.T) {
 
 func TestRunPipeline(t *testing.T) {
 	pipeline := NewPipeline()
-	pipeline.AddStage(createCommandStage("echo", "foobar"))
-	pipeline.AddStage(createCommandStage("echo", "baz"))
+	pipeline.AddStage(createCommandStage("echo foobar"))
+	pipeline.AddStage(createCommandStage("echo baz"))
 	expected := true
 	actual := pipeline.Run()
 	if expected != actual {
