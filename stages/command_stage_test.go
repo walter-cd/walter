@@ -20,9 +20,29 @@ import (
 	"testing"
 )
 
-func TestWIthSimpleCommand(t *testing.T) {
+func TestWithSimpleCommand(t *testing.T) {
 	stage := NewCommandStage()
-	stage.AddCommand("ls", "-l")
+	stage.AddCommand("ls -l")
+	expected := true
+	actual := stage.Run()
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+}
+
+func TestWithMultipleCommands(t *testing.T) {
+	stage := NewCommandStage()
+	stage.AddCommand("ls -l && echo 'foo'")
+	expected := true
+	actual := stage.Run()
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+}
+
+func TestCommandContainsConcatenationOperator(t *testing.T) {
+	stage := NewCommandStage()
+	stage.AddCommand("echo 'I am line 1' && \\ \necho 'I am line 2'")
 	expected := true
 	actual := stage.Run()
 	if expected != actual {
@@ -32,7 +52,7 @@ func TestWIthSimpleCommand(t *testing.T) {
 
 func TestWithNoexistCommand(t *testing.T) {
 	stage := NewCommandStage()
-	stage.AddCommand("zzzz", "")
+	stage.AddCommand("zzzz")
 	expected := false
 	actual := stage.Run()
 	if expected != actual {
@@ -42,7 +62,7 @@ func TestWithNoexistCommand(t *testing.T) {
 
 func TestStdoutRsultOfCommand(t *testing.T) {
 	stage := NewCommandStage()
-	stage.AddCommand("echo", "foobar")
+	stage.AddCommand("echo foobar")
 	expected := "foobar\n"
 	stage.Run()
 	actual := stage.GetStdoutResult()

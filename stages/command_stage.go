@@ -19,16 +19,16 @@ package stages
 import (
 	"bytes"
 	"io"
-	"log"
 	"os/exec"
-	"strings"
+
+	"github.com/recruit-tech/plumber/log"
 )
 
 type CommandStage struct {
 	BaseStage
-	Command   string   `config:"command"`
-	Arguments []string `config:"arguments"`
+	Command   string `config:"command"`
 	OutResult string
+	ErrResult string
 }
 
 func (self *CommandStage) GetStdoutResult() string {
@@ -36,22 +36,35 @@ func (self *CommandStage) GetStdoutResult() string {
 }
 
 func (self *CommandStage) Run() bool {
-	command := strings.Split(self.Command, " ")
-	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Args = append(command, self.Arguments...)
+	cmd := exec.Command("sh", "-c", self.Command)
+	log.Infof("[command] exec: %s", self.Command)
 	cmd.Dir = "."
 	out, err := cmd.StdoutPipe()
+	outE, errE := cmd.StderrPipe()
 
 	if err != nil {
+		log.Errorf("[command] err: %s", out)
+		log.Errorf("[command] err: %s", err)
 		return false
 	}
+
+	if errE != nil {
+		log.Errorf("[command] err: %s", outE)
+		log.Errorf("[command] err: %s", errE)
+		return false
+	}
+
 	err = cmd.Start()
 	if err != nil {
+		log.Errorf("[command] err: %s", err)
 		return false
 	}
 	self.OutResult = copyStream(out)
+	self.ErrResult = copyStream(outE)
+
 	err = cmd.Wait()
 	if err != nil {
+		log.Errorf("[command] err: %s", err)
 		return false
 	}
 	return true
@@ -67,18 +80,18 @@ func copyStream(reader io.Reader) string {
 			break
 		}
 		buffer.Write(tmpBuf[0:n])
+		log.Infof("[command] output: %s", tmpBuf[0:n])
 	}
 	if err == io.EOF {
 		err = nil
 	} else {
-		log.Println("ERROR: " + err.Error())
+		log.Error("ERROR: " + err.Error())
 	}
 	return buffer.String()
 }
 
-func (self *CommandStage) AddCommand(command string, arguments ...string) {
+func (self *CommandStage) AddCommand(command string) {
 	self.Command = command
-	self.Arguments = arguments
 	self.BaseStage = BaseStage{}
 	self.BaseStage.Runner = self
 }

@@ -27,7 +27,7 @@ func (self *ShellScriptStage) Run() bool {
 func (self *ShellScriptStage) AddScript(scriptFile string) {
 	// TODO: validate the existance of scriptFile
 	// and flush log when the file does not exist.
-	self.command.AddCommand("bash", scriptFile)
+	self.command.AddCommand("sh " + scriptFile)
 }
 
 func NewShellScriptStage() *ShellScriptStage {
