@@ -92,7 +92,6 @@ func copyStream(reader io.Reader) string {
 
 func (self *CommandStage) AddCommand(command string) {
 	self.Command = command
-	self.BaseStage = BaseStage{}
 	self.BaseStage.Runner = self
 }
 

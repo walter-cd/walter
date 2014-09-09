@@ -49,15 +49,15 @@ func InitStage(stageType string) Stage {
 		stage = new(CommandStage)
 	}
 
-	prepareCh(&stage)
+	prepareCh(stage)
 	return stage
 }
 
-func prepareCh(stage *Stage) {
+func prepareCh(stage Stage) {
 	in := make(chan Mediator)
 	out := make(chan Mediator)
-	(*stage).SetInputCh(&in)
-	(*stage).SetOutputCh(&out)
+	stage.SetInputCh(&in)
+	stage.SetOutputCh(&out)
 }
 
 func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
