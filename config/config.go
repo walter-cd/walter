@@ -39,13 +39,17 @@ func LoadOpts(arguments []string) *Opts {
 }
 
 func ReadConfig(configFilePath string) *map[interface{}]interface{} {
-	configData := make(map[interface{}]interface{})
 	data, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
 		log.Errorf("error :%v \n", err)
 	}
 
-	err = yaml.Unmarshal([]byte(data), &configData)
+	return ReadConfigBytes(data)
+}
+
+func ReadConfigBytes(configSetting []byte) *map[interface{}]interface{} {
+	configData := make(map[interface{}]interface{})
+	err := yaml.Unmarshal(configSetting, &configData)
 	if err != nil {
 		log.Errorf("error :%v \n", err)
 	}

@@ -29,3 +29,20 @@ func TestReadConfig(t *testing.T) {
 		t.Errorf("got %v\nwant %v", actual, expected)
 	}
 }
+
+func TestReadConfigBytes(t *testing.T) {
+	configStr :=
+		`pipeline:
+    - stage_name: command_stage_1
+      stage_type: command
+      command: echo "hello, world"
+`
+	configBytes := []byte(configStr)
+	configData := *ReadConfigBytes(configBytes)
+	actual := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})["command"]
+
+	expected := "echo \"hello, world\""
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+}
