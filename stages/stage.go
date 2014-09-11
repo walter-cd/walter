@@ -162,20 +162,6 @@ func setChildStatus(stage *Stage, mediator *Mediator, status string) {
 	}
 }
 
-func closeAfterExecute(mediator *Mediator, monitCh *chan Mediator) {
-	allDone := true
-	for _, v := range mediator.States {
-		if v == "waiting" {
-			allDone = false
-		}
-	}
-
-	if allDone {
-		log.Debugf("closing monitor channel.. %v\n", mediator)
-		close(*monitCh)
-	}
-}
-
 func Execute(stage Stage, mediator Mediator) Mediator {
 	monitorCh := make(chan Mediator)
 	mediator.Type = "start"
