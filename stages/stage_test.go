@@ -25,20 +25,38 @@ func TestExecuteWithSingleStage(t *testing.T) {
 	stage.StageName = "test_command_stage"
 	prepareCh(stage)
 
-	stage.AddCommand("ls -l")
+	stage.AddCommand("ls")
 	mon := make(chan Mediator)
 
 	go ExecuteStage(stage, &mon)
 
-	mediator := Mediator{States: make(map[string]string)}
-	*stage.GetInputCh() <- mediator
-	m := <-mon
+	mediator := Mediator{States: make(map[string]string), Type: "start"}
+	go func() {
+		*stage.GetInputCh() <- mediator
+		close(*stage.GetInputCh())
+	}()
 
-	actual := m.States[stage.StageName]
+	for {
+		_, ok := <-*stage.GetOutputCh()
+		if !ok {
+			break
+		}
+	}
+
+	var m Mediator
+	var actual Mediator
+	for {
+		m = <-mon
+		if m.Type == "end" {
+			break
+		}
+		actual = m
+	}
+
 	expected := "true"
 
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
+	if expected != actual.States[stage.StageName] {
+		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
 	}
 }
 
@@ -52,15 +70,33 @@ func TestExecuteWithSingleStageFailed(t *testing.T) {
 
 	go ExecuteStage(stage, &mon)
 
-	mediator := Mediator{States: make(map[string]string)}
-	*stage.GetInputCh() <- mediator
-	m := <-mon
+	mediator := Mediator{States: make(map[string]string), Type: "start"}
+	go func() {
+		*stage.GetInputCh() <- mediator
+		close(*stage.GetInputCh())
+	}()
 
-	actual := m.States[stage.StageName]
+	for {
+		_, ok := <-*stage.GetOutputCh()
+		if !ok {
+			break
+		}
+	}
+
+	var m Mediator
+	var actual Mediator
+	for {
+		m = <-mon
+		if m.Type == "end" {
+			break
+		}
+		actual = m
+	}
+
 	expected := "false"
 
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
+	if expected != actual.States[stage.StageName] {
+		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
 	}
 }
 
@@ -79,21 +115,97 @@ func TestExecuteWithSingleStageHasChild(t *testing.T) {
 	stage.AddChildStage(child)
 
 	mon := make(chan Mediator)
+	mediator := Mediator{States: make(map[string]string)}
+	mediator.Type = "start"
+
+	t.Logf("execute: %+v", stage)
+
+	go func() {
+		*stage.GetInputCh() <- mediator
+		close(*stage.GetInputCh())
+	}()
 
 	go ExecuteStage(stage, &mon)
 
-	mediator := Mediator{States: make(map[string]string)}
-	*stage.GetInputCh() <- mediator
-
-	var m Mediator
-	for i := 0; i < 2; i++ {
-		m = <-mon
+	for {
+		_, ok := <-*stage.GetOutputCh()
+		if !ok {
+			break
+		}
 	}
 
-	actual := m.States[stage.StageName]
+	var m Mediator
+	var actual Mediator
+	for {
+		m = <-mon
+		if m.Type == "end" {
+			break
+		}
+		actual = m
+	}
+
 	expected := "true"
 
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
+	if expected != actual.States[stage.StageName] {
+		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
+	}
+}
+
+func TestExecuteWithSingleStageHasErrChild(t *testing.T) {
+	stage := &CommandStage{}
+	stage.StageName = "test_command_stage"
+	prepareCh(stage)
+
+	child := &CommandStage{}
+	child.StageName = "test_child"
+	prepareCh(child)
+
+	stage.AddCommand("ls -l")
+	child.AddCommand("nothingcommand")
+
+	stage.AddChildStage(child)
+
+	mon := make(chan Mediator)
+	mediator := Mediator{States: make(map[string]string)}
+	mediator.Type = "start"
+
+	t.Logf("execute: %+v", stage)
+
+	go func() {
+		*stage.GetInputCh() <- mediator
+		close(*stage.GetInputCh())
+	}()
+
+	go ExecuteStage(stage, &mon)
+
+	for {
+		_, ok := <-*stage.GetOutputCh()
+		if !ok {
+			break
+		}
+	}
+
+	var m Mediator
+	acm := Mediator{States: make(map[string]string)}
+	for {
+		m = <-mon
+		for k, v := range m.States {
+			acm.States[k] = v
+		}
+		if m.Type == "end" {
+			break
+		}
+	}
+
+	t.Logf("accumulated output: %+v", acm)
+	expected := "true"
+
+	if expected != acm.States[stage.StageName] {
+		t.Errorf("got %v\nwant %v", acm.States[stage.StageName], expected)
+	}
+
+	expected = "false"
+	if expected != acm.States[child.StageName] {
+		t.Errorf("got %v\nwant %v", acm.States[child.StageName], expected)
 	}
 }

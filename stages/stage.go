@@ -40,6 +40,7 @@ type Runner interface {
 
 type Mediator struct {
 	States map[string]string
+	Type   string
 }
 
 func InitStage(stageType string) Stage {
@@ -61,18 +62,29 @@ func prepareCh(stage Stage) {
 }
 
 func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
-	mediator := <-*stage.GetInputCh()
+	log.Debug("receiveing input")
+	mediatorsReceived := make([]Mediator, 0)
 
-	log.Debugf("mediator received: %v", mediator)
-	log.Debugf("execute as parent: %v", stage)
-	log.Debugf("execute as parent name %v", stage.GetStageName())
+	for {
+		m, ok := <-*stage.GetInputCh()
+		if !ok {
+			log.Debugf("input closed: %+v", stage.GetStageName())
+			break
+		}
+		log.Debugf("received input: %+v", m)
+		mediatorsReceived = append(mediatorsReceived, m)
+	}
+	log.Debugf("received input size: %v", len(mediatorsReceived))
+
+	log.Debugf("mediator received: %+v", mediatorsReceived)
+	log.Debugf("execute as parent: %+v", stage)
+	log.Debugf("execute as parent name %+v", stage.GetStageName())
 
 	result := stage.(Runner).Run()
-	log.Debugf("execute as parent result %v", result)
+	log.Debugf("stage executution results: %+v, %+v", stage.GetStageName(), result)
 
+	mediator := Mediator{States: make(map[string]string)}
 	mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)
-
-	setChildStatus(&stage, &mediator, "waiting")
 
 	if childStages := stage.GetChildStages(); childStages.Len() > 0 {
 		log.Debugf("execute childstage: %v", childStages)
@@ -82,35 +94,54 @@ func ExecuteStage(stage Stage, monitorCh *chan Mediator) {
 			childInputCh := *childStage.Value.(Stage).GetInputCh()
 
 			name := childStage.Value.(Stage).GetStageName()
-			mediator.States[name] = fmt.Sprintf("%v", "waiting")
-
-			go func(m Mediator) {
-				childInputCh <- m
-				close(childInputCh)
-			}(mediator)
+			mediatorChild := Mediator{States: make(map[string]string)}
+			mediatorChild.States[name] = fmt.Sprintf("%v", "waiting")
 
 			go func(stage Stage) {
 				ExecuteStage(stage, monitorCh)
 			}(childStage.Value.(Stage))
+
+			log.Debugf("input child: %+v", mediator)
+			childInputCh <- mediator
+			childInputCh <- mediatorChild
+			log.Debugf("closing input: %+v", childStage.Value.(Stage).GetStageName())
+			close(childInputCh)
 		}
 
 		for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
-			go func(stage Stage) {
-				childReceived := <-*stage.GetOutputCh()
-				name := stage.GetStageName()
-				log.Debugf("child state %+v\n", childReceived.States[name])
-				mediator.States[name] = fmt.Sprintf("%v", childReceived.States[name])
-			}(childStage.Value.(Stage))
+			s := childStage.Value.(Stage)
+			for {
+				log.Debugf("receiving child: %v", s.GetStageName())
+				childReceived, ok := <-*s.GetOutputCh()
+				if !ok {
+					log.Debug("closing child output")
+					break
+				}
+				log.Debugf("sending child: %v", childReceived)
+				*stage.GetOutputCh() <- childReceived
+				log.Debugf("send child: %v", childReceived)
+			}
+			log.Debugf("finished executing child: %v", s.GetStageName())
 		}
 	}
 
-	go func() {
-		*stage.GetOutputCh() <- mediator
-		close(*stage.GetOutputCh())
-	}()
+	log.Debugf("sending output of stage: %+v %v", stage.GetStageName(), mediator)
+	*stage.GetOutputCh() <- mediator
+	log.Debugf("closing output of stage: %+v", stage.GetStageName())
+	close(*stage.GetOutputCh())
+
+	for _, m := range mediatorsReceived {
+		*monitorCh <- m
+	}
 	*monitorCh <- mediator
 
-	closeAfterExecute(&mediator, monitorCh)
+	if mediatorsReceived[0].Type == "start" {
+		log.Debug("finalize monitor channel..")
+		mediatorEnd := Mediator{States: make(map[string]string), Type: "end"}
+		*monitorCh <- mediatorEnd
+	} else {
+		log.Debugf("skipped finalizing %+v", stage.GetStageName())
+	}
 }
 
 func setChildStatus(stage *Stage, mediator *Mediator, status string) {
@@ -138,28 +169,34 @@ func closeAfterExecute(mediator *Mediator, monitCh *chan Mediator) {
 
 func Execute(stage Stage, mediator Mediator) Mediator {
 	monitorCh := make(chan Mediator)
+	mediator.Type = "start"
 	name := stage.GetStageName()
 	log.Debugf("----- Execute %v start ------\n", name)
-
-	mediator.States[name] = fmt.Sprintf("%v", "waiting")
 
 	go func(mediator Mediator) {
 		*stage.GetInputCh() <- mediator
 		close(*stage.GetInputCh())
 	}(mediator)
 
-	var lastReceive Mediator
-
 	go ExecuteStage(stage, &monitorCh)
 
 	for {
-		receive, ok := <-monitorCh
+		receive, ok := <-*stage.GetOutputCh()
 		if !ok {
+			log.Debugf("outputCh closed")
+			break
+		}
+		log.Debugf("outputCh received  %+v\n", receive)
+	}
+
+	for {
+		receive := <-monitorCh
+		if receive.Type == "end" {
 			log.Debugf("monitorCh closed")
+			log.Debugf("monitorCh last received:  %+v\n", receive)
 			log.Debugf("----- Execute %v done ------\n\n", name)
-			return lastReceive
+			return receive
 		}
 		log.Debugf("monitorCh received  %+v\n", receive)
-		lastReceive = receive
 	}
 }
