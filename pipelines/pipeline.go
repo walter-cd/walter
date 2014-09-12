@@ -19,23 +19,11 @@ package pipelines
 import (
 	"container/list"
 
-	"github.com/recruit-tech/plumber/log"
 	"github.com/recruit-tech/plumber/stages"
 )
 
 type Pipeline struct {
 	Stages list.List
-}
-
-func (self *Pipeline) Run() bool {
-	mediator := stages.Mediator{States: make(map[string]string)}
-	log.Info("geting starting to run pipeline process...")
-	for stageItem := self.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
-		log.Debugf("Executing planned stage: %s\n", stageItem.Value)
-		mediator = stages.Execute(stageItem.Value.(stages.Stage), mediator)
-	}
-	log.Info("finished to run pipeline process...")
-	return true
 }
 
 func (self *Pipeline) AddStage(stage stages.Stage) {

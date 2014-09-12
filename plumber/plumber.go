@@ -18,21 +18,30 @@ package plumber
 
 import (
 	"github.com/recruit-tech/plumber/config"
+	"github.com/recruit-tech/plumber/engine"
 	"github.com/recruit-tech/plumber/pipelines"
+	"github.com/recruit-tech/plumber/stages"
 )
 
 type Plumber struct {
 	Pipeline *pipelines.Pipeline
+	Engine   *engine.Engine
 }
 
 func New(opts *config.Opts) *Plumber {
 	configData := config.ReadConfig(opts.PipelineFilePath)
 	pipeline := (config.Parse(configData))
+	monitorCh := make(chan stages.Mediator)
+	engine := &engine.Engine{
+		Pipeline:  pipeline,
+		Opts:      opts,
+		MonitorCh: &monitorCh,
+	}
 	return &Plumber{
-		Pipeline: pipeline,
+		Engine: engine,
 	}
 }
 
 func (e *Plumber) Run() {
-	e.Pipeline.Run()
+	e.Engine.RunOnce()
 }
