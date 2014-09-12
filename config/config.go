@@ -26,15 +26,20 @@ import (
 
 type Opts struct {
 	PipelineFilePath string
+	StopOnAnyFailure bool
 }
 
 func LoadOpts(arguments []string) *Opts {
 	var pipelineFilePath string
+	var stopOnAnyFailure bool
+
 	flag.StringVar(&pipelineFilePath, "c", "./pipeline.yml", "pipeline.yml file")
+	flag.BoolVar(&stopOnAnyFailure, "f", false, "Skip execution of subsequent stage after failing to exec the upstream stage.")
 	flag.Parse()
 
 	return &Opts{
 		PipelineFilePath: pipelineFilePath,
+		StopOnAnyFailure: stopOnAnyFailure,
 	}
 }
 
