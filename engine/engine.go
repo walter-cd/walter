@@ -32,16 +32,16 @@ type Engine struct {
 	MonitorCh *chan stages.Mediator
 }
 
-func (e *Engine) RunOnce() bool {
+func (e *Engine) RunOnce() stages.Mediator {
 	p := e.Pipeline
-	mediator := stages.Mediator{States: make(map[string]string)}
+	var mediator stages.Mediator
 	log.Info("geting starting to run pipeline process...")
 	for stageItem := p.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		log.Debugf("Executing planned stage: %s\n", stageItem.Value)
 		mediator = e.Execute(stageItem.Value.(stages.Stage), mediator)
 	}
 	log.Info("finished to run pipeline process...")
-	return true
+	return mediator
 }
 
 func (e *Engine) receiveInputs(inputCh *chan stages.Mediator) []stages.Mediator {
@@ -67,7 +67,13 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debugf("execute as parent: %+v", stage)
 	log.Debugf("execute as parent name %+v", stage.GetStageName())
 
-	result := stage.(stages.Runner).Run()
+	var result bool
+	if !e.isUpstreamAnyFailure(mediatorsReceived) || e.Opts.StopOnAnyFailure {
+		result = stage.(stages.Runner).Run()
+	} else {
+		log.Warnf("execution is skipped: %v", stage.GetStageName())
+		result = false
+	}
 	log.Debugf("stage executution results: %+v, %+v", stage.GetStageName(), result)
 
 	mediator := stages.Mediator{States: make(map[string]string)}
@@ -90,6 +96,17 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	*e.MonitorCh <- mediator
 
 	e.finalizeMonitorChAfterExecute(mediatorsReceived)
+}
+
+func (e *Engine) isUpstreamAnyFailure(mediators []stages.Mediator) bool {
+	for _, m := range mediators {
+		for _, v := range m.States {
+			if v == "false" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (e *Engine) executeAllChildStages(childStages *list.List, mediator stages.Mediator) {
@@ -167,14 +184,26 @@ func (e *Engine) Execute(stage stages.Stage, mediator stages.Mediator) stages.Me
 		log.Debugf("outputCh received  %+v\n", receive)
 	}
 
+	receives := make([]stages.Mediator, 0)
 	for {
 		receive := <-*monitorCh
+		receives = append(receives, receive)
 		if receive.Type == "end" {
 			log.Debugf("monitorCh closed")
 			log.Debugf("monitorCh last received:  %+v\n", receive)
 			log.Debugf("----- Execute %v done ------\n\n", name)
-			return receive
+			return e.bindReceives(&receives)
 		}
 		log.Debugf("monitorCh received  %+v\n", receive)
 	}
+}
+
+func (e *Engine) bindReceives(rs *[]stages.Mediator) stages.Mediator {
+	ret := &stages.Mediator{States: make(map[string]string)}
+	for _, r := range *rs {
+		for k, v := range r.States {
+			ret.States[k] = v
+		}
+	}
+	return *ret
 }

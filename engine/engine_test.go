@@ -19,6 +19,7 @@ package engine
 import (
 	"testing"
 
+	"github.com/recruit-tech/plumber/config"
 	"github.com/recruit-tech/plumber/pipelines"
 	"github.com/recruit-tech/plumber/stages"
 )
@@ -27,10 +28,11 @@ func createCommandStage(command string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
 	return &stages.CommandStage{
-		Command: "echo",
+		Command: command,
 		BaseStage: stages.BaseStage{
-			InputCh:  &in,
-			OutputCh: &out,
+			StageName: command,
+			InputCh:   &in,
+			OutputCh:  &out,
 		},
 	}
 }
@@ -44,12 +46,59 @@ func TestRunOnce(t *testing.T) {
 		Pipeline:  pipeline,
 		MonitorCh: &monitorCh,
 	}
-	expected := true
-	actual := engine.RunOnce()
+	m := engine.RunOnce()
+
+	expected := "true"
+	actual := m.States["echo foobar"]
 	if expected != actual {
 		t.Errorf("got %v\nwant %v", actual, expected)
 	}
-	// TODO: check the output from stage
+}
+
+func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
+	pipeline := pipelines.NewPipeline()
+	pipeline.AddStage(createCommandStage("echo foobar"))
+	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
+	pipeline.AddStage(createCommandStage("echo foobar2"))
+	monitorCh := make(chan stages.Mediator)
+	o := &config.Opts{StopOnAnyFailure: false}
+	engine := &Engine{
+		Pipeline:  pipeline,
+		MonitorCh: &monitorCh,
+		Opts:      o,
+	}
+
+	m := engine.RunOnce()
+
+	expected := "false"
+	actual := m.States["echo foobar2"]
+
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+}
+
+func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
+	pipeline := pipelines.NewPipeline()
+	pipeline.AddStage(createCommandStage("echo foobar"))
+	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
+	pipeline.AddStage(createCommandStage("echo foobar2"))
+	monitorCh := make(chan stages.Mediator)
+	o := &config.Opts{StopOnAnyFailure: true}
+	engine := &Engine{
+		Pipeline:  pipeline,
+		MonitorCh: &monitorCh,
+		Opts:      o,
+	}
+
+	m := engine.RunOnce()
+
+	expected := "true"
+	actual := m.States["echo foobar2"]
+
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
 }
 
 func TestExecuteWithSingleStage(t *testing.T) {
