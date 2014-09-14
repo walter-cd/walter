@@ -47,7 +47,7 @@ func TestReadConfigBytes(t *testing.T) {
 	}
 }
 
-func TestReadConfigWithChildrends(t *testing.T) {
+func TestReadConfigWithChildren(t *testing.T) {
 	configStr :=
 		`pipeline:
     - stage_name: command_stage_1
