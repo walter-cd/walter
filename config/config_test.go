@@ -46,3 +46,49 @@ func TestReadConfigBytes(t *testing.T) {
 		t.Errorf("got %v\nwant %v", actual, expected)
 	}
 }
+
+func TestReadConfigWithChildrends(t *testing.T) {
+	configStr :=
+		`pipeline:
+    - stage_name: command_stage_1
+      stage_type: command
+      command: echo "hello, world"
+      run_after:
+          -  stage_name: command_stage_2_group_1
+             stage_type: command
+             command: echo "hello, world, command_stage_2_group_1"
+    - stage_name: command_stage_3
+      stage_type: command
+      command: echo "hello, world"1
+`
+	configBytes := []byte(configStr)
+	configData := *ReadConfigBytes(configBytes)
+	pipelineConf := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})
+	actual := pipelineConf["run_after"].([]interface{})[0].(map[interface{}]interface{})["command"]
+
+	expected := "echo \"hello, world, command_stage_2_group_1\""
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+}
+
+func TestReadPipelineWithoutStageConfig(t *testing.T) {
+	configStr := "pipeline:"
+	configBytes := []byte(configStr)
+	configData := *ReadConfigBytes(configBytes)
+	actual, _ := configData["pipeline"]
+	if nil != actual {
+		t.Errorf("got %v\nwant %v", actual, nil)
+	}
+}
+
+func TestReadVoidConfig(t *testing.T) {
+	configStr := ""
+	configBytes := []byte(configStr)
+	configData := *ReadConfigBytes(configBytes)
+	actual := len(configData)
+	expected := 0
+	if expected != actual {
+		t.Errorf("got %v\nwant %v", actual, expected)
+	}
+}
