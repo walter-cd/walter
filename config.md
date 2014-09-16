@@ -3,7 +3,7 @@ layout: default
 title: Configuration
 ---
 
-This page describe the settings of Plumber.
+This page describes the settings of Plumber.
 
 # Configuration setting
 
