@@ -41,6 +41,41 @@ func createCommandStage(command string) *stages.CommandStage {
 	return createCommandStageWithName(command, command)
 }
 
+func execute(stage stages.Stage) stages.Mediator {
+	mon := make(chan stages.Mediator)
+	e := &Engine{
+		MonitorCh: &mon,
+	}
+
+	go e.ExecuteStage(stage)
+
+	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
+	go func() {
+		*stage.GetInputCh() <- mediator
+		close(*stage.GetInputCh())
+	}()
+
+	for {
+		_, ok := <-*stage.GetOutputCh()
+		if !ok {
+			break
+		}
+	}
+
+	var m stages.Mediator
+	acm := stages.Mediator{States: make(map[string]string)}
+	for {
+		m = <-mon
+		for k, v := range m.States {
+			acm.States[k] = v
+		}
+		if m.Type == "end" {
+			break
+		}
+	}
+	return acm
+}
+
 func TestRunOnce(t *testing.T) {
 	pipeline := pipelines.NewPipeline()
 	pipeline.AddStage(createCommandStage("echo foobar"))
@@ -107,35 +142,7 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 
 func TestExecuteWithSingleStage(t *testing.T) {
 	stage := createCommandStageWithName("test_command_stage", "ls")
-	mon := make(chan stages.Mediator)
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-
-	go e.ExecuteStage(stage)
-
-	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	var actual stages.Mediator
-	for {
-		m = <-mon
-		if m.Type == "end" {
-			break
-		}
-		actual = m
-	}
+	actual := execute(stage)
 
 	expected := "true"
 
@@ -146,40 +153,8 @@ func TestExecuteWithSingleStage(t *testing.T) {
 
 func TestExecuteWithSingleStageFailed(t *testing.T) {
 	stage := createCommandStageWithName("test_command_stage", "nothingcommand")
-
-	mon := make(chan stages.Mediator)
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-
-	go e.ExecuteStage(stage)
-
-	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
-
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	var actual stages.Mediator
-	for {
-		m = <-mon
-		if m.Type == "end" {
-			break
-		}
-		actual = m
-	}
-
+	actual := execute(stage)
 	expected := "false"
-
 	if expected != actual.States[stage.StageName] {
 		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
 	}
@@ -189,39 +164,8 @@ func TestExecuteWithSingleStageHasChild(t *testing.T) {
 	stage := createCommandStageWithName("test_command_stage", "ls -l")
 	child := createCommandStageWithName("test_child", "ls -l")
 	stage.AddChildStage(child)
-
-	mon := make(chan stages.Mediator)
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-
-	go e.ExecuteStage(stage)
-
-	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	var actual stages.Mediator
-	for {
-		m = <-mon
-		if m.Type == "end" {
-			break
-		}
-		actual = m
-	}
-
+	actual := execute(stage)
 	expected := "true"
-
 	if expected != actual.States[stage.StageName] {
 		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
 	}
@@ -231,38 +175,7 @@ func TestExecuteWithSingleStageHasErrChild(t *testing.T) {
 	stage := createCommandStageWithName("test_command_stage", "ls -l")
 	child := createCommandStageWithName("test_child", "nothingcommand")
 	stage.AddChildStage(child)
-
-	mon := make(chan stages.Mediator)
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-	go e.ExecuteStage(stage)
-
-	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
-
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	acm := stages.Mediator{States: make(map[string]string)}
-	for {
-		m = <-mon
-		for k, v := range m.States {
-			acm.States[k] = v
-		}
-		if m.Type == "end" {
-			break
-		}
-	}
+	acm := execute(stage)
 
 	t.Logf("accumulated output: %+v", acm)
 	expected := "true"
