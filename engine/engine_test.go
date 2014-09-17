@@ -155,6 +155,7 @@ func TestExecuteWithSingleStageFailed(t *testing.T) {
 	go e.ExecuteStage(stage)
 
 	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
+
 	go func() {
 		*stage.GetInputCh() <- mediator
 		close(*stage.GetInputCh())
@@ -190,21 +191,17 @@ func TestExecuteWithSingleStageHasChild(t *testing.T) {
 	stage.AddChildStage(child)
 
 	mon := make(chan stages.Mediator)
-	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.Type = "start"
-
 	e := &Engine{
 		MonitorCh: &mon,
 	}
 
-	t.Logf("execute: %+v", stage)
+	go e.ExecuteStage(stage)
 
+	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
 	go func() {
 		*stage.GetInputCh() <- mediator
 		close(*stage.GetInputCh())
 	}()
-
-	go e.ExecuteStage(stage)
 
 	for {
 		_, ok := <-*stage.GetOutputCh()
@@ -236,21 +233,17 @@ func TestExecuteWithSingleStageHasErrChild(t *testing.T) {
 	stage.AddChildStage(child)
 
 	mon := make(chan stages.Mediator)
-	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.Type = "start"
-
 	e := &Engine{
 		MonitorCh: &mon,
 	}
+	go e.ExecuteStage(stage)
 
-	t.Logf("execute: %+v", stage)
+	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
 
 	go func() {
 		*stage.GetInputCh() <- mediator
 		close(*stage.GetInputCh())
 	}()
-
-	go e.ExecuteStage(stage)
 
 	for {
 		_, ok := <-*stage.GetOutputCh()
