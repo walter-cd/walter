@@ -24,7 +24,7 @@ import (
 	"github.com/recruit-tech/plumber/stages"
 )
 
-func createCommandStage(command string) *stages.CommandStage {
+func createCommandStageWithName(name string, command string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
 	return &stages.CommandStage{
@@ -35,6 +35,10 @@ func createCommandStage(command string) *stages.CommandStage {
 			OutputCh:  &out,
 		},
 	}
+}
+
+func createCommandStage(command string) *stages.CommandStage {
+	return createCommandStageWithName(command, command)
 }
 
 func TestRunOnce(t *testing.T) {
@@ -102,11 +106,7 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 }
 
 func TestExecuteWithSingleStage(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
-
-	stage.AddCommand("ls")
+	stage := createCommandStageWithName("test_command_stage", "ls")
 	mon := make(chan stages.Mediator)
 	e := &Engine{
 		MonitorCh: &mon,
@@ -145,11 +145,8 @@ func TestExecuteWithSingleStage(t *testing.T) {
 }
 
 func TestExecuteWithSingleStageFailed(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
+	stage := createCommandStageWithName("test_command_stage", "nothingcommand")
 
-	stage.AddCommand("nothingcommand")
 	mon := make(chan stages.Mediator)
 	e := &Engine{
 		MonitorCh: &mon,
@@ -188,17 +185,8 @@ func TestExecuteWithSingleStageFailed(t *testing.T) {
 }
 
 func TestExecuteWithSingleStageHasChild(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
-
-	child := &stages.CommandStage{}
-	child.StageName = "test_child"
-	stages.PrepareCh(child)
-
-	stage.AddCommand("ls -l")
-	child.AddCommand("ls -l")
-
+	stage := createCommandStageWithName("test_command_stage", "ls -l")
+	child := createCommandStageWithName("test_child", "ls -l")
 	stage.AddChildStage(child)
 
 	mon := make(chan stages.Mediator)
@@ -243,17 +231,8 @@ func TestExecuteWithSingleStageHasChild(t *testing.T) {
 }
 
 func TestExecuteWithSingleStageHasErrChild(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
-
-	child := &stages.CommandStage{}
-	child.StageName = "test_child"
-	stages.PrepareCh(child)
-
-	stage.AddCommand("ls -l")
-	child.AddCommand("nothingcommand")
-
+	stage := createCommandStageWithName("test_command_stage", "ls -l")
+	child := createCommandStageWithName("test_child", "nothingcommand")
 	stage.AddChildStage(child)
 
 	mon := make(chan stages.Mediator)
