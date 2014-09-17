@@ -24,7 +24,7 @@ import (
 	"github.com/recruit-tech/plumber/stages"
 )
 
-func createCommandStage(command string) *stages.CommandStage {
+func createCommandStageWithName(name string, command string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
 	return &stages.CommandStage{
@@ -35,6 +35,45 @@ func createCommandStage(command string) *stages.CommandStage {
 			OutputCh:  &out,
 		},
 	}
+}
+
+func createCommandStage(command string) *stages.CommandStage {
+	return createCommandStageWithName(command, command)
+}
+
+func execute(stage stages.Stage) stages.Mediator {
+	mon := make(chan stages.Mediator)
+	e := &Engine{
+		MonitorCh: &mon,
+	}
+
+	go e.ExecuteStage(stage)
+
+	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
+	go func() {
+		*stage.GetInputCh() <- mediator
+		close(*stage.GetInputCh())
+	}()
+
+	for {
+		_, ok := <-*stage.GetOutputCh()
+		if !ok {
+			break
+		}
+	}
+
+	var m stages.Mediator
+	acm := stages.Mediator{States: make(map[string]string)}
+	for {
+		m = <-mon
+		for k, v := range m.States {
+			acm.States[k] = v
+		}
+		if m.Type == "end" {
+			break
+		}
+	}
+	return acm
 }
 
 func TestRunOnce(t *testing.T) {
@@ -102,40 +141,8 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 }
 
 func TestExecuteWithSingleStage(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
-
-	stage.AddCommand("ls")
-	mon := make(chan stages.Mediator)
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-
-	go e.ExecuteStage(stage)
-
-	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	var actual stages.Mediator
-	for {
-		m = <-mon
-		if m.Type == "end" {
-			break
-		}
-		actual = m
-	}
+	stage := createCommandStageWithName("test_command_stage", "ls")
+	actual := execute(stage)
 
 	expected := "true"
 
@@ -145,152 +152,30 @@ func TestExecuteWithSingleStage(t *testing.T) {
 }
 
 func TestExecuteWithSingleStageFailed(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
-
-	stage.AddCommand("nothingcommand")
-	mon := make(chan stages.Mediator)
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-
-	go e.ExecuteStage(stage)
-
-	mediator := stages.Mediator{States: make(map[string]string), Type: "start"}
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	var actual stages.Mediator
-	for {
-		m = <-mon
-		if m.Type == "end" {
-			break
-		}
-		actual = m
-	}
-
+	stage := createCommandStageWithName("test_command_stage", "nothingcommand")
+	actual := execute(stage)
 	expected := "false"
-
 	if expected != actual.States[stage.StageName] {
 		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
 	}
 }
 
 func TestExecuteWithSingleStageHasChild(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
-
-	child := &stages.CommandStage{}
-	child.StageName = "test_child"
-	stages.PrepareCh(child)
-
-	stage.AddCommand("ls -l")
-	child.AddCommand("ls -l")
-
+	stage := createCommandStageWithName("test_command_stage", "ls -l")
+	child := createCommandStageWithName("test_child", "ls -l")
 	stage.AddChildStage(child)
-
-	mon := make(chan stages.Mediator)
-	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.Type = "start"
-
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-
-	t.Logf("execute: %+v", stage)
-
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	go e.ExecuteStage(stage)
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	var actual stages.Mediator
-	for {
-		m = <-mon
-		if m.Type == "end" {
-			break
-		}
-		actual = m
-	}
-
+	actual := execute(stage)
 	expected := "true"
-
 	if expected != actual.States[stage.StageName] {
 		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
 	}
 }
 
 func TestExecuteWithSingleStageHasErrChild(t *testing.T) {
-	stage := &stages.CommandStage{}
-	stage.StageName = "test_command_stage"
-	stages.PrepareCh(stage)
-
-	child := &stages.CommandStage{}
-	child.StageName = "test_child"
-	stages.PrepareCh(child)
-
-	stage.AddCommand("ls -l")
-	child.AddCommand("nothingcommand")
-
+	stage := createCommandStageWithName("test_command_stage", "ls -l")
+	child := createCommandStageWithName("test_child", "nothingcommand")
 	stage.AddChildStage(child)
-
-	mon := make(chan stages.Mediator)
-	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.Type = "start"
-
-	e := &Engine{
-		MonitorCh: &mon,
-	}
-
-	t.Logf("execute: %+v", stage)
-
-	go func() {
-		*stage.GetInputCh() <- mediator
-		close(*stage.GetInputCh())
-	}()
-
-	go e.ExecuteStage(stage)
-
-	for {
-		_, ok := <-*stage.GetOutputCh()
-		if !ok {
-			break
-		}
-	}
-
-	var m stages.Mediator
-	acm := stages.Mediator{States: make(map[string]string)}
-	for {
-		m = <-mon
-		for k, v := range m.States {
-			acm.States[k] = v
-		}
-		if m.Type == "end" {
-			break
-		}
-	}
+	acm := execute(stage)
 
 	t.Logf("accumulated output: %+v", acm)
 	expected := "true"
