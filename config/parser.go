@@ -32,14 +32,15 @@ func getStageTypeModuleName(stageType string) string {
 
 func Parse(configData *map[interface{}]interface{}) *pipelines.Pipeline {
 	pipeline := pipelines.NewPipeline()
-	pipelineData := (*configData)["pipeline"].([]interface{})
+	pipelineData, ok := (*configData)["pipeline"].([]interface{})
+	if ok == false {
+		return pipeline
+	}
 
 	stageList := convertYamlMapToStages(pipelineData)
 	for stageItem := stageList.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		pipeline.AddStage(stageItem.Value.(stages.Stage))
 	}
-	pipeline.Build()
-
 	return pipeline
 }
 
