@@ -44,10 +44,39 @@ func TestParseJustHeading(t *testing.T) {
 
 func TestParseVoid(t *testing.T) {
 	configData := ReadConfigBytes([]byte(""))
-	actual := Parse(configData)
+	actual := Parse(configData).Size()
 
 	expected := 0
-	if expected != actual.Size() {
+	if expected != actual {
 		t.Errorf("got %v\nwant %v", actual, expected)
 	}
+}
+
+func TestParseConfWithChildren(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      stage_type: command
+      command: echo "hello, world"
+      run_after:
+          -  stage_name: command_stage_2_group_1
+             stage_type: command
+             command: echo "hello, world, command_stage_2_group_1"
+          -  stage_name: command_stage_3_group_1
+             stage_type: command
+             command: echo "hello, world, command_stage_3_group_1"
+`))
+	result := Parse(configData)
+
+	expectedPipelineSize := 1
+	if expectedPipelineSize != result.Size() {
+		t.Errorf("got %v\nwant %v", result.Size(), expectedPipelineSize)
+	}
+
+	childStages := result.Stages.Front().Value.(stages.Stage).GetChildStages()
+
+	expectedChildStageSize := 2
+	if expectedChildStageSize != childStages.Len() {
+		t.Errorf("got %v\nwant %v", childStages.Len(), expectedChildStageSize)
+	}
+
 }
