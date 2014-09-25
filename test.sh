@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# plumber: a deployment pipeline template
+# walter: a deployment pipeline template
 # Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
 # (see CONTRIBUTORS.md)
 #
@@ -24,8 +24,8 @@ go test -v ./config -race || exit 1
 go test -i ./pipelines || exit 1
 go test -v ./pipelines -race || exit 1
 
-go test -i ./plumber || exit 1
-go test -v ./plumber -race || exit 1
+go test -i ./walter || exit 1
+go test -v ./walter -race || exit 1
 
 go test -i ./stages || exit 1
 go test -v ./stages -race || exit 1
@@ -34,7 +34,7 @@ go test -i ./engine || exit 1
 go test -v ./engine -race || exit 1
 
 #go test -i ./tests/functional
-#ETCD_BIN_PATH=$(pwd)/bin/plumber go test -v ./tests/functional -race
+#ETCD_BIN_PATH=$(pwd)/bin/walter go test -v ./tests/functional -race
 
 fmtRes=`gofmt -l $GOFMTPATH`
 if [ "$fmtRes" != "" ]; then

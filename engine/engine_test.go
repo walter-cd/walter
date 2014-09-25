@@ -1,4 +1,4 @@
-/* plumber: a deployment pipeline template
+/* walter: a deployment pipeline template
  * Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
  * (see CONTRIBUTORS.md)
  *
@@ -19,9 +19,9 @@ package engine
 import (
 	"testing"
 
-	"github.com/recruit-tech/plumber/config"
-	"github.com/recruit-tech/plumber/pipelines"
-	"github.com/recruit-tech/plumber/stages"
+	"github.com/recruit-tech/walter/config"
+	"github.com/recruit-tech/walter/pipelines"
+	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
 )
 

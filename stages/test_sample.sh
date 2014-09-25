@@ -1,4 +1,4 @@
-# plumber: a deployment pipeline template
+# walter: a deployment pipeline template
 # Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
 # (see CONTRIBUTORS.md)
 #
