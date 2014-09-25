@@ -18,55 +18,37 @@ package stages
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWithSimpleCommand(t *testing.T) {
 	stage := NewCommandStage()
 	stage.AddCommand("ls -l")
-	expected := true
-	actual := stage.Run()
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, true, stage.Run())
 }
 
 func TestWithMultipleCommands(t *testing.T) {
 	stage := NewCommandStage()
 	stage.AddCommand("ls -l && echo 'foo'")
-	expected := true
-	actual := stage.Run()
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, true, stage.Run())
 }
 
 func TestCommandContainsConcatenationOperator(t *testing.T) {
 	stage := NewCommandStage()
 	stage.AddCommand("echo 'I am line 1' && \\ \necho 'I am line 2'")
-	expected := true
-	actual := stage.Run()
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, true, stage.Run())
 }
 
 func TestWithNoexistCommand(t *testing.T) {
 	stage := NewCommandStage()
 	stage.AddCommand("zzzz")
-	expected := false
-	actual := stage.Run()
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, false, stage.Run())
 }
 
 func TestStdoutRsultOfCommand(t *testing.T) {
 	stage := NewCommandStage()
 	stage.AddCommand("echo foobar")
-	expected := "foobar\n"
 	stage.Run()
-	actual := stage.GetStdoutResult()
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "foobar\n", stage.GetStdoutResult())
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/recruit-tech/plumber/config"
 	"github.com/recruit-tech/plumber/pipelines"
 	"github.com/recruit-tech/plumber/stages"
+	"github.com/stretchr/testify/assert"
 )
 
 func createCommandStageWithName(name string, command string) *stages.CommandStage {
@@ -87,11 +88,8 @@ func TestRunOnce(t *testing.T) {
 	}
 	m := engine.RunOnce()
 
-	expected := "true"
 	actual := m.States["echo foobar"]
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "true", actual)
 }
 
 func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
@@ -106,15 +104,10 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
-
 	m := engine.RunOnce()
 
-	expected := "false"
 	actual := m.States["echo foobar2"]
-
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "false", actual)
 }
 
 func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
@@ -132,32 +125,20 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 
 	m := engine.RunOnce()
 
-	expected := "true"
 	actual := m.States["echo foobar2"]
-
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "true", actual)
 }
 
 func TestExecuteWithSingleStage(t *testing.T) {
 	stage := createCommandStageWithName("test_command_stage", "ls")
 	actual := execute(stage)
-
-	expected := "true"
-
-	if expected != actual.States[stage.StageName] {
-		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
-	}
+	assert.Equal(t, "true", actual.States[stage.StageName])
 }
 
 func TestExecuteWithSingleStageFailed(t *testing.T) {
 	stage := createCommandStageWithName("test_command_stage", "nothingcommand")
 	actual := execute(stage)
-	expected := "false"
-	if expected != actual.States[stage.StageName] {
-		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
-	}
+	assert.Equal(t, "false", actual.States[stage.StageName])
 }
 
 func TestExecuteWithSingleStageHasChild(t *testing.T) {
@@ -165,10 +146,7 @@ func TestExecuteWithSingleStageHasChild(t *testing.T) {
 	child := createCommandStageWithName("test_child", "ls -l")
 	stage.AddChildStage(child)
 	actual := execute(stage)
-	expected := "true"
-	if expected != actual.States[stage.StageName] {
-		t.Errorf("got %v\nwant %v", actual.States[stage.StageName], expected)
-	}
+	assert.Equal(t, "true", actual.States[stage.StageName])
 }
 
 func TestExecuteWithSingleStageHasErrChild(t *testing.T) {
@@ -178,14 +156,6 @@ func TestExecuteWithSingleStageHasErrChild(t *testing.T) {
 	acm := execute(stage)
 
 	t.Logf("accumulated output: %+v", acm)
-	expected := "true"
-
-	if expected != acm.States[stage.StageName] {
-		t.Errorf("got %v\nwant %v", acm.States[stage.StageName], expected)
-	}
-
-	expected = "false"
-	if expected != acm.States[child.StageName] {
-		t.Errorf("got %v\nwant %v", acm.States[child.StageName], expected)
-	}
+	assert.Equal(t, "true", acm.States[stage.StageName])
+	assert.Equal(t, "false", acm.States[child.StageName])
 }

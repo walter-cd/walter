@@ -18,6 +18,8 @@ package stages
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAddChildStage(t *testing.T) {
@@ -33,12 +35,6 @@ func TestAddChildStage(t *testing.T) {
 	child.AddCommand("ls -l")
 
 	stage.AddChildStage(child)
-
 	childStages := stage.GetChildStages()
-	actual := childStages.Len()
-	expected := 1
-
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, 1, childStages.Len())
 }
