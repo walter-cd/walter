@@ -20,36 +20,25 @@ import (
 	"testing"
 
 	"github.com/recruit-tech/plumber/stages"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseFromFile(t *testing.T) {
 	configData := ReadConfig("../tests/fixtures/pipeline.yml")
 	actual := (*Parse(configData)).Stages.Front().Value.(*stages.CommandStage).Command
-
-	expected := "echo \"hello, world\""
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "echo \"hello, world\"", actual)
 }
 
 func TestParseJustHeading(t *testing.T) {
 	configData := ReadConfigBytes([]byte("pipeline:"))
-	actual := Parse(configData)
-
-	expected := 0
-	if expected != actual.Size() {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	actual := Parse(configData).Size()
+	assert.Equal(t, 0, actual)
 }
 
 func TestParseVoid(t *testing.T) {
 	configData := ReadConfigBytes([]byte(""))
 	actual := Parse(configData).Size()
-
-	expected := 0
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, 0, actual)
 }
 
 func TestParseConfWithChildren(t *testing.T) {
@@ -63,20 +52,10 @@ func TestParseConfWithChildren(t *testing.T) {
              command: echo "hello, world, command_stage_2_group_1"
           -  stage_name: command_stage_3_group_1
              stage_type: command
-             command: echo "hello, world, command_stage_3_group_1"
-`))
+             command: echo "hello, world, command_stage_3_group_1"`))
 	result := Parse(configData)
-
-	expectedPipelineSize := 1
-	if expectedPipelineSize != result.Size() {
-		t.Errorf("got %v\nwant %v", result.Size(), expectedPipelineSize)
-	}
+	assert.Equal(t, 1, result.Size())
 
 	childStages := result.Stages.Front().Value.(stages.Stage).GetChildStages()
-
-	expectedChildStageSize := 2
-	if expectedChildStageSize != childStages.Len() {
-		t.Errorf("got %v\nwant %v", childStages.Len(), expectedChildStageSize)
-	}
-
+	assert.Equal(t, 2, childStages.Len())
 }
