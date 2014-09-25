@@ -18,16 +18,14 @@ package config
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadConfig(t *testing.T) {
 	configData := *ReadConfig("../tests/fixtures/pipeline.yml")
 	actual := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})["command"]
-
-	expected := "echo \"hello, world\""
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "echo \"hello, world\"", actual)
 }
 
 func TestReadConfigBytes(t *testing.T) {
@@ -41,10 +39,7 @@ func TestReadConfigBytes(t *testing.T) {
 	configData := *ReadConfigBytes(configBytes)
 	actual := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})["command"]
 
-	expected := "echo \"hello, world\""
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "echo \"hello, world\"", actual)
 }
 
 func TestReadConfigWithChildren(t *testing.T) {
@@ -65,11 +60,7 @@ func TestReadConfigWithChildren(t *testing.T) {
 	configData := *ReadConfigBytes(configBytes)
 	pipelineConf := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})
 	actual := pipelineConf["run_after"].([]interface{})[0].(map[interface{}]interface{})["command"]
-
-	expected := "echo \"hello, world, command_stage_2_group_1\""
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, "echo \"hello, world, command_stage_2_group_1\"", actual)
 }
 
 func TestReadPipelineWithoutStageConfig(t *testing.T) {
@@ -77,9 +68,7 @@ func TestReadPipelineWithoutStageConfig(t *testing.T) {
 	configBytes := []byte(configStr)
 	configData := *ReadConfigBytes(configBytes)
 	actual, _ := configData["pipeline"]
-	if nil != actual {
-		t.Errorf("got %v\nwant %v", actual, nil)
-	}
+	assert.Nil(t, actual)
 }
 
 func TestReadVoidConfig(t *testing.T) {
@@ -87,8 +76,5 @@ func TestReadVoidConfig(t *testing.T) {
 	configBytes := []byte(configStr)
 	configData := *ReadConfigBytes(configBytes)
 	actual := len(configData)
-	expected := 0
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, 0, actual)
 }

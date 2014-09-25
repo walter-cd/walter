@@ -9,6 +9,10 @@
 		{
 			"ImportPath": "github.com/ainoya/glog",
 			"Rev": "20260dceee553e514cce6bdaea44664cc4398759"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify",
+			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
 		}
 	]
 }

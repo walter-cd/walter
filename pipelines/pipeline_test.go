@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/recruit-tech/plumber/stages"
+	"github.com/stretchr/testify/assert"
 )
 
 func createCommandStage(command string) *stages.CommandStage {
@@ -38,9 +39,5 @@ func TestAddPipeline(t *testing.T) {
 	pipeline := NewPipeline()
 	pipeline.AddStage(stages.InitStage("command"))
 	pipeline.AddStage(stages.InitStage("command"))
-	expected := 2
-	actual := pipeline.Size()
-	if expected != actual {
-		t.Errorf("got %v\nwant %v", actual, expected)
-	}
+	assert.Equal(t, 2, pipeline.Size())
 }
