@@ -1,4 +1,4 @@
-/* plumber: a deployment pipeline template
+/* walter: a deployment pipeline template
  * Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
  * (see CONTRIBUTORS.md)
  *
@@ -14,21 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package plumber
+package walter
 
 import (
-	"github.com/recruit-tech/plumber/config"
-	"github.com/recruit-tech/plumber/engine"
-	"github.com/recruit-tech/plumber/pipelines"
-	"github.com/recruit-tech/plumber/stages"
+	"github.com/recruit-tech/walter/config"
+	"github.com/recruit-tech/walter/engine"
+	"github.com/recruit-tech/walter/pipelines"
+	"github.com/recruit-tech/walter/stages"
 )
 
-type Plumber struct {
+type Walter struct {
 	Pipeline *pipelines.Pipeline
 	Engine   *engine.Engine
 }
 
-func New(opts *config.Opts) *Plumber {
+func New(opts *config.Opts) *Walter {
 	configData := config.ReadConfig(opts.PipelineFilePath)
 	pipeline := (config.Parse(configData))
 	monitorCh := make(chan stages.Mediator)
@@ -37,11 +37,11 @@ func New(opts *config.Opts) *Plumber {
 		Opts:      opts,
 		MonitorCh: &monitorCh,
 	}
-	return &Plumber{
+	return &Walter{
 		Engine: engine,
 	}
 }
 
-func (e *Plumber) Run() {
+func (e *Walter) Run() {
 	e.Engine.RunOnce()
 }

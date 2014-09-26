@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/recruit-tech/plumber",
+	"ImportPath": "github.com/recruit-tech/walter",
 	"GoVersion": "go1.3",
 	"Deps": [
 		{

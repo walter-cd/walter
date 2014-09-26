@@ -1,4 +1,4 @@
-/* plumber: a deployment pipeline template
+/* walter: a deployment pipeline template
  * Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
  * (see CONTRIBUTORS.md)
  *
@@ -19,17 +19,17 @@ package main
 import (
 	"os"
 
-	"github.com/recruit-tech/plumber/config"
-	"github.com/recruit-tech/plumber/log"
-	"github.com/recruit-tech/plumber/plumber"
+	"github.com/recruit-tech/walter/config"
+	"github.com/recruit-tech/walter/log"
+	"github.com/recruit-tech/walter/walter"
 )
 
 func main() {
 	log.Init(&log.GlogRecorder{})
 
 	opts := config.LoadOpts(os.Args[1:])
-	var plumber = plumber.New(opts)
-	log.Info("running Plumber")
-	plumber.Run()
-	log.Info("succeded to finish Plumber")
+	var walter = walter.New(opts)
+	log.Info("running Walter")
+	walter.Run()
+	log.Info("succeded to finish Walter")
 }

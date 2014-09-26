@@ -1,4 +1,4 @@
-/* plumber: a deployment pipeline template
+/* walter: a deployment pipeline template
  * Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
  * (see CONTRIBUTORS.md)
  *
@@ -21,9 +21,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/recruit-tech/plumber/log"
-	"github.com/recruit-tech/plumber/pipelines"
-	"github.com/recruit-tech/plumber/stages"
+	"github.com/recruit-tech/walter/log"
+	"github.com/recruit-tech/walter/pipelines"
+	"github.com/recruit-tech/walter/stages"
 )
 
 func getStageTypeModuleName(stageType string) string {

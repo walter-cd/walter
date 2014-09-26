@@ -1,14 +1,14 @@
-Plumber
+Walter
 ========
 
 [![wercker status](https://app.wercker.com/status/9b663fe6a4c4eace9a0a3be1fe71757e/m/master "wercker status")](https://app.wercker.com/project/bykey/9b663fe6a4c4eace9a0a3be1fe71757e)
 
-Plumber is a tiny deployment pipeline template.
+Walter is a tiny deployment pipeline template.
 
 Overview
 ==========
 
-Plumber automates the deployment process of appllications or servers from configuration to sofware deployment.
+Walter automates the deployment process of appllications or servers from configuration to sofware deployment.
 
 Getting Started
 ===============
@@ -20,10 +20,10 @@ Requirements
 How to Build
 -------------
 
-You can build plumber with the follwoing commands.
+You can build Walter with the follwoing commands.
 
-    $git clone https://github.com/recruit-tech/plumber.git
-    $cd plumber
+    $git clone https://github.com/recruit-tech/walter.git
+    $cd walter
     $./build
 
 How to contribute

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# plumber: a deployment pipeline template
+# walter: a deployment pipeline template
 # Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
 # (see CONTRIBUTORS.md)
 #
@@ -16,14 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ ! -h gopath/src/github.com/recruit-tech/plumber ]; then
+if [ ! -h gopath/src/github.com/recruit-tech/walter ]; then
     mkdir -p gopath/src/github.com/recruit-tech/
-    ln -s ../../../.. gopath/src/github.com/recruit-tech/plumber
+    ln -s ../../../.. gopath/src/github.com/recruit-tech/walter
 fi
 
 export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
-export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./plumber"
+export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./walter"
 
 if ! [ -e $GOBIN/godep ]; then
     go get github.com/tools/godep
@@ -36,4 +36,4 @@ if [ "--fmt" = "$1" ]; then
     gofmt -s -w -l $GOFMTPATH
 fi
 
-go install github.com/recruit-tech/plumber
+go install github.com/recruit-tech/walter
