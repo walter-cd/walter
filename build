@@ -23,7 +23,7 @@ fi
 
 export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
-export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./plumber"
+export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./walter"
 
 if ! [ -e $GOBIN/godep ]; then
     go get github.com/tools/godep
