@@ -42,6 +42,21 @@ func TestReadConfigBytes(t *testing.T) {
 	assert.Equal(t, "echo \"hello, world\"", actual)
 }
 
+func TestReadConfigWithDirectory(t *testing.T) {
+	configStr :=
+		`pipeline:
+    - stage_name: command_stage_1
+      stage_type: command
+      command: echo "hello, world"
+      directory: /user/local/bin
+`
+	configBytes := []byte(configStr)
+	configData := *ReadConfigBytes(configBytes)
+	actual := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})["directory"]
+
+	assert.Equal(t, "/user/local/bin", actual)
+}
+
 func TestReadConfigWithChildren(t *testing.T) {
 	configStr :=
 		`pipeline:

@@ -59,3 +59,15 @@ func TestParseConfWithChildren(t *testing.T) {
 	childStages := result.Stages.Front().Value.(stages.Stage).GetChildStages()
 	assert.Equal(t, 2, childStages.Len())
 }
+
+func TestParseConfWithDirectory(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      stage_type: command
+      command: ls -l
+      directory: /usr/local
+`))
+	result := Parse(configData)
+	actual := result.Stages.Front().Value.(*stages.CommandStage).Directory
+	assert.Equal(t, "/usr/local", actual)
+}
