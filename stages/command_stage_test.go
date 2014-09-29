@@ -52,3 +52,11 @@ func TestStdoutRsultOfCommand(t *testing.T) {
 	stage.Run()
 	assert.Equal(t, "foobar\n", stage.GetStdoutResult())
 }
+
+func TestStdoutRsultOfCommandFromSpecifiedDirectory(t *testing.T) {
+	stage := NewCommandStage()
+	stage.SetDirectory("..")
+	stage.AddCommand("ls")
+	stage.Run()
+	assert.Contains(t, stage.GetStdoutResult(), "README.md")
+}

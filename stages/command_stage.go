@@ -27,6 +27,7 @@ import (
 type CommandStage struct {
 	BaseStage
 	Command   string `config:"command"`
+	Directory string `config:"directory"`
 	OutResult string
 	ErrResult string
 }
@@ -38,7 +39,7 @@ func (self *CommandStage) GetStdoutResult() string {
 func (self *CommandStage) Run() bool {
 	cmd := exec.Command("sh", "-c", self.Command)
 	log.Infof("[command] exec: %s", self.Command)
-	cmd.Dir = "."
+	cmd.Dir = self.Directory
 	out, err := cmd.StdoutPipe()
 	outE, errE := cmd.StderrPipe()
 
@@ -95,7 +96,11 @@ func (self *CommandStage) AddCommand(command string) {
 	self.BaseStage.Runner = self
 }
 
+func (self *CommandStage) SetDirectory(directory string) {
+	self.Directory = directory
+}
+
 func NewCommandStage() *CommandStage {
-	stage := CommandStage{}
+	stage := CommandStage{Directory: "."}
 	return &stage
 }
