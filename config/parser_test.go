@@ -71,3 +71,14 @@ func TestParseConfWithDirectory(t *testing.T) {
 	actual := result.Stages.Front().Value.(*stages.CommandStage).Directory
 	assert.Equal(t, "/usr/local", actual)
 }
+
+func TestParseConfWithShellScriptStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      stage_type: shell
+      file: ../stages/test_sample.sh
+`))
+	result := Parse(configData)
+	actual := result.Stages.Front().Value.(*stages.ShellScriptStage).File
+	assert.Equal(t, "../stages/test_sample.sh", actual)
+}

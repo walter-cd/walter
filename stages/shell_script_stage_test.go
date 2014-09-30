@@ -24,12 +24,12 @@ import (
 
 func TestWithSimpleScript(t *testing.T) {
 	stage := NewShellScriptStage()
-	stage.AddScript("test_sample.sh")
+	stage.File = "test_sample.sh"
 	assert.Equal(t, true, stage.Run())
 }
 
 func TestWithNonExistScript(t *testing.T) {
 	stage := NewShellScriptStage()
-	stage.AddScript("non_exist_sample.sh")
+	stage.File = "non_exist_sample.sh"
 	assert.Equal(t, false, stage.Run())
 }

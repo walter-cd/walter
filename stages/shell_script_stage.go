@@ -17,17 +17,15 @@
 package stages
 
 type ShellScriptStage struct {
-	command CommandStage
+	CommandStage
+	File string `config:"file"`
 }
 
 func (self *ShellScriptStage) Run() bool {
-	return self.command.Run()
-}
-
-func (self *ShellScriptStage) AddScript(scriptFile string) {
 	// TODO: validate the existance of scriptFile
 	// and flush log when the file does not exist.
-	self.command.AddCommand("sh " + scriptFile)
+	self.AddCommand("sh " + self.File)
+	return self.CommandStage.Run()
 }
 
 func NewShellScriptStage() *ShellScriptStage {
