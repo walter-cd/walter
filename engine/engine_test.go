@@ -25,13 +25,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func createShellScriptStage(name string, fileName string) *stages.ShellScriptStage {
+	in := make(chan stages.Mediator)
+	out := make(chan stages.Mediator)
+	return &stages.ShellScriptStage{
+		CommandStage: stages.CommandStage{
+			BaseStage: stages.BaseStage{
+				StageName: name,
+				InputCh:   &in,
+				OutputCh:  &out,
+			},
+		},
+		File: fileName,
+	}
+}
+
 func createCommandStageWithName(name string, command string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
 	return &stages.CommandStage{
 		Command: command,
 		BaseStage: stages.BaseStage{
-			StageName: command,
+			StageName: name,
 			InputCh:   &in,
 			OutputCh:  &out,
 		},
@@ -89,6 +104,20 @@ func TestRunOnce(t *testing.T) {
 	m := engine.RunOnce()
 
 	actual := m.States["echo foobar"]
+	assert.Equal(t, "true", actual)
+}
+
+func TestRunOnceWithShellScriptStage(t *testing.T) {
+	pipeline := pipelines.NewPipeline()
+	pipeline.AddStage(createShellScriptStage("foobar-shell", "../stages/test_sample.sh"))
+	monitorCh := make(chan stages.Mediator)
+	engine := &Engine{
+		Pipeline:  pipeline,
+		MonitorCh: &monitorCh,
+	}
+	m := engine.RunOnce()
+
+	actual := m.States["foobar-shell"]
 	assert.Equal(t, "true", actual)
 }
 

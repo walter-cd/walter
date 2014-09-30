@@ -43,8 +43,9 @@ func InitStage(stageType string) Stage {
 	switch stageType {
 	case "command":
 		stage = new(CommandStage)
+	case "shell":
+		stage = new(ShellScriptStage)
 	}
-
 	PrepareCh(stage)
 	return stage
 }
