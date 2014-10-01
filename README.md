@@ -16,6 +16,7 @@ Getting Started
 Requirements
 -------------
 - Go 1.3 or greater
+- Mercurial 2.9 or greater
 
 How to Build
 -------------
