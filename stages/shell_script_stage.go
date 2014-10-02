@@ -16,14 +16,28 @@
  */
 package stages
 
+import (
+	"github.com/recruit-tech/walter/log"
+)
+
 type ShellScriptStage struct {
+	ResourceValidator
 	CommandStage
 	File string `config:"file"`
 }
 
+func (self *ShellScriptStage) preCheck() bool {
+	self.AddCommandName("sh")
+	self.AddFile(self.File)
+	return self.Validate()
+}
+
 func (self *ShellScriptStage) Run() bool {
-	// TODO: validate the existance of scriptFile
-	// and flush log when the file does not exist.
+	log.Infof("[shell] %s", self.File)
+	if self.preCheck() == false {
+		log.Infof("failed preCheck before running script...")
+		return false
+	}
 	self.AddCommand("sh " + self.File)
 	return self.CommandStage.Run()
 }
