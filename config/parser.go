@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/recruit-tech/walter/log"
+	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/pipelines"
 	"github.com/recruit-tech/walter/stages"
 )
@@ -31,17 +32,36 @@ func getStageTypeModuleName(stageType string) string {
 }
 
 func Parse(configData *map[interface{}]interface{}) *pipelines.Pipeline {
-	pipeline := pipelines.NewPipeline()
+	var pipeline *pipelines.Pipeline
+
+	messengerOps, ok := (*configData)["messenger"].(map[interface{}]interface{})
+	var messenger messengers.Messenger
+	if ok == true {
+		messenger = mapMessenger(messengerOps)
+	} else {
+		messenger = messengers.InitMessenger("fake")
+	}
+	pipeline = &pipelines.Pipeline{
+		Reporter: messenger,
+	}
+
 	pipelineData, ok := (*configData)["pipeline"].([]interface{})
 	if ok == false {
 		return pipeline
 	}
-
 	stageList := convertYamlMapToStages(pipelineData)
 	for stageItem := stageList.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		pipeline.AddStage(stageItem.Value.(stages.Stage))
 	}
+
 	return pipeline
+}
+
+func mapMessenger(messengerMap map[interface{}]interface{}) messengers.Messenger {
+	messengerType := messengerMap["type"].(string)
+	log.Info("type of reporter is " + messengerType)
+	messenger := messengers.InitMessenger(messengerType) // TODO set misc properties
+	return messenger
 }
 
 func convertYamlMapToStages(yamlStageList []interface{}) *list.List {

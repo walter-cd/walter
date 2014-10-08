@@ -19,6 +19,7 @@ package config
 import (
 	"testing"
 
+	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
 )
@@ -81,4 +82,21 @@ func TestParseConfWithShellScriptStage(t *testing.T) {
 	result := Parse(configData)
 	actual := result.Stages.Front().Value.(*stages.ShellScriptStage).File
 	assert.Equal(t, "../stages/test_sample.sh", actual)
+}
+
+func TestParseConfWithMessengerBlock(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+    messenger:
+           type: hipchat
+           room_id: foobar
+           token: xxxxxxxxxxxx
+           from: yyyyyyyyy
+    pipeline:
+        - stage_name: command_stage_1
+          stage_type: shell
+          file: ../stages/test_sample.sh
+`))
+	result := Parse(configData)
+	_, actual := result.Reporter.(*messengers.HipChat)
+	assert.Equal(t, true, actual)
 }
