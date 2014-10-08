@@ -28,9 +28,12 @@ type Walter struct {
 	Engine   *engine.Engine
 }
 
-func New(opts *config.Opts) *Walter {
+func New(opts *config.Opts) (*Walter, error) {
 	configData := config.ReadConfig(opts.PipelineFilePath)
-	pipeline := (config.Parse(configData))
+	pipeline, err := config.Parse(configData)
+	if err != nil {
+		return nil, err
+	}
 	monitorCh := make(chan stages.Mediator)
 	engine := &engine.Engine{
 		Pipeline:  pipeline,
@@ -39,7 +42,7 @@ func New(opts *config.Opts) *Walter {
 	}
 	return &Walter{
 		Engine: engine,
-	}
+	}, nil
 }
 
 func (e *Walter) Run() {

@@ -28,7 +28,12 @@ func main() {
 	log.Init(&log.GlogRecorder{})
 
 	opts := config.LoadOpts(os.Args[1:])
-	var walter = walter.New(opts)
+	walter, err := walter.New(opts)
+	if err != nil {
+		log.Error(err.Error())
+		log.Error("failed to create Walter")
+		return
+	}
 	log.Info("running Walter")
 	walter.Run()
 	log.Info("succeded to finish Walter")

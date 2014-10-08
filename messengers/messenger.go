@@ -16,17 +16,24 @@
  */
 package messengers
 
+import (
+	"fmt"
+)
+
 type Messenger interface {
 	Post(string) bool
 }
 
-func InitMessenger(mtype string) Messenger {
+func InitMessenger(mtype string) (Messenger, error) {
 	var messenger Messenger
 	switch mtype {
 	case "hipchat":
 		messenger = new(HipChat)
 	case "fake":
 		messenger = new(FakeMessenger)
+	default:
+		err := fmt.Errorf("no messenger type: %s", mtype)
+		return nil, err
 	}
-	return messenger
+	return messenger, nil
 }
