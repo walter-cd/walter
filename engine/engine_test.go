@@ -63,7 +63,7 @@ func execute(stage stages.Stage) stages.Mediator {
 	e := &Engine{
 		MonitorCh: &mon,
 		Pipeline: &pipelines.Pipeline{
-			Reporter: &messengers.LocalMessenger{},
+			Reporter: &messengers.FakeMessenger{},
 		},
 	}
 
@@ -98,7 +98,7 @@ func execute(stage stages.Stage) stages.Mediator {
 
 func TestRunOnce(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
-		Reporter: &messengers.LocalMessenger{},
+		Reporter: &messengers.FakeMessenger{},
 	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("echo baz"))
@@ -115,7 +115,7 @@ func TestRunOnce(t *testing.T) {
 
 func TestRunOnceWithShellScriptStage(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
-		Reporter: &messengers.LocalMessenger{},
+		Reporter: &messengers.FakeMessenger{},
 	}
 	pipeline.AddStage(createShellScriptStage("foobar-shell", "../stages/test_sample.sh"))
 	monitorCh := make(chan stages.Mediator)
@@ -131,7 +131,7 @@ func TestRunOnceWithShellScriptStage(t *testing.T) {
 
 func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
-		Reporter: &messengers.LocalMessenger{},
+		Reporter: &messengers.FakeMessenger{},
 	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
@@ -151,7 +151,7 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 
 func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
-		Reporter: &messengers.LocalMessenger{},
+		Reporter: &messengers.FakeMessenger{},
 	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("thisiserrorcommand"))

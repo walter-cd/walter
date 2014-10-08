@@ -16,9 +16,9 @@
  */
 package messengers
 
-type LocalMessenger struct {
+type FakeMessenger struct {
 }
 
-func (self *LocalMessenger) Post(messege string) bool {
+func (self *FakeMessenger) Post(messege string) bool {
 	return true
 }
