@@ -28,7 +28,7 @@ type Pipeline struct {
 	Reporter messengers.Messenger
 }
 
-func (self *Pipeline) Report(stage stages.Stage, message string) {
+func (self *Pipeline) Report(message string) {
 	self.Reporter.Post(message)
 }
 
@@ -49,8 +49,4 @@ func (self *Pipeline) buildDeps(stages *list.List) {
 
 func NewPipeline() *Pipeline {
 	return &Pipeline{}
-}
-
-func NewPipelineWithMessenger(messenger messengers.Messenger) *Pipeline {
-	return &Pipeline{Reporter: messenger}
 }

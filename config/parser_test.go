@@ -89,14 +89,17 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
     messenger:
            type: hipchat
            room_id: foobar
-           token: xxxxxxxxxxxx
-           from: yyyyyyyyy
+           token: xxxx
+           from: yyyy
     pipeline:
         - stage_name: command_stage_1
           stage_type: shell
           file: ../stages/test_sample.sh
 `))
 	result := Parse(configData)
-	_, actual := result.Reporter.(*messengers.HipChat)
-	assert.Equal(t, true, actual)
+	messenger, ok := result.Reporter.(*messengers.HipChat)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "foobar", messenger.RoomId)
+	assert.Equal(t, "xxxx", messenger.Token)
+	assert.Equal(t, "yyyy", messenger.From)
 }

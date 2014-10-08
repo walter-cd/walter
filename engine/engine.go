@@ -75,6 +75,7 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 		result = false
 	}
 	log.Debugf("stage executution results: %+v, %+v", stage.GetStageName(), result)
+	e.Pipeline.Report(fmt.Sprintf("stage executution results: %+v, %+v", stage.GetStageName(), result))
 
 	mediator := stages.Mediator{States: make(map[string]string)}
 	mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)

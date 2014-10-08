@@ -16,12 +16,30 @@
  */
 package messengers
 
+import (
+	"github.com/andybons/hipchat"
+	"github.com/recruit-tech/walter/log"
+)
+
 type HipChat struct {
-	RoomId string
-	Token  string
-	From   string
+	RoomId string `config:"room_id"`
+	Token  string `config:"token"`
+	From   string `config:"from"`
 }
 
-func (self *HipChat) Post(messege string) bool {
+func (self *HipChat) Post(message string) bool {
+	client := hipchat.Client{AuthToken: self.Token}
+	req := hipchat.MessageRequest{
+		RoomId:        self.RoomId,
+		From:          self.From,
+		Message:       message,
+		Color:         hipchat.ColorPurple,
+		MessageFormat: hipchat.FormatText,
+		Notify:        true,
+	}
+	if err := client.PostMessage(req); err != nil {
+		log.Errorf("Failed post message...: %s", message)
+		return false
+	}
 	return true
 }

@@ -37,8 +37,10 @@ func Parse(configData *map[interface{}]interface{}) *pipelines.Pipeline {
 	messengerOps, ok := (*configData)["messenger"].(map[interface{}]interface{})
 	var messenger messengers.Messenger
 	if ok == true {
+		log.Info("Found messenger block")
 		messenger = mapMessenger(messengerOps)
 	} else {
+		log.Info("Not found messenger block")
 		messenger = messengers.InitMessenger("fake")
 	}
 	pipeline = &pipelines.Pipeline{
@@ -60,7 +62,21 @@ func Parse(configData *map[interface{}]interface{}) *pipelines.Pipeline {
 func mapMessenger(messengerMap map[interface{}]interface{}) messengers.Messenger {
 	messengerType := messengerMap["type"].(string)
 	log.Info("type of reporter is " + messengerType)
-	messenger := messengers.InitMessenger(messengerType) // TODO set misc properties
+	messenger := messengers.InitMessenger(messengerType)
+	newMessengerValue := reflect.ValueOf(messenger).Elem()
+	newMessengerType := reflect.TypeOf(messenger).Elem()
+	for i := 0; i < newMessengerType.NumField(); i++ {
+		tagName := newMessengerType.Field(i).Tag.Get("config")
+		for messengerOptKey, messengerOptVal := range messengerMap {
+			if tagName == messengerOptKey {
+				fieldVal := newMessengerValue.Field(i)
+				if fieldVal.Type() == reflect.ValueOf("string").Type() {
+					fieldVal.SetString(messengerOptVal.(string))
+				}
+			}
+		}
+	}
+
 	return messenger
 }
 
