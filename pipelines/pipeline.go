@@ -19,11 +19,17 @@ package pipelines
 import (
 	"container/list"
 
+	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/stages"
 )
 
 type Pipeline struct {
-	Stages list.List
+	Stages   list.List
+	Reporter messengers.Messenger
+}
+
+func (self *Pipeline) Report(message string) {
+	self.Reporter.Post(message)
 }
 
 func (self *Pipeline) AddStage(stage stages.Stage) {

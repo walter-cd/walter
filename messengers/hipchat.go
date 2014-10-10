@@ -14,27 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package main
+package messengers
 
 import (
-	"os"
-
-	"github.com/recruit-tech/walter/config"
+	"github.com/andybons/hipchat"
 	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/walter"
 )
 
-func main() {
-	log.Init(&log.GlogRecorder{})
+type HipChat struct {
+	RoomId string `config:"room_id"`
+	Token  string `config:"token"`
+	From   string `config:"from"`
+}
 
-	opts := config.LoadOpts(os.Args[1:])
-	walter, err := walter.New(opts)
-	if err != nil {
-		log.Error(err.Error())
-		log.Error("failed to create Walter")
-		return
+// TODO: make hipchat api endpoint configurable for on-premises servers
+func (self *HipChat) Post(message string) bool {
+	client := hipchat.Client{AuthToken: self.Token}
+	req := hipchat.MessageRequest{
+		RoomId:        self.RoomId,
+		From:          self.From,
+		Message:       message,
+		Color:         hipchat.ColorPurple,
+		MessageFormat: hipchat.FormatText,
+		Notify:        true,
 	}
-	log.Info("running Walter")
-	walter.Run()
-	log.Info("succeded to finish Walter")
+	if err := client.PostMessage(req); err != nil {
+		log.Errorf("Failed post message...: %s", message)
+		return false
+	}
+	return true
 }

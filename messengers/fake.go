@@ -14,27 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package main
+package messengers
 
-import (
-	"os"
+type FakeMessenger struct {
+}
 
-	"github.com/recruit-tech/walter/config"
-	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/walter"
-)
-
-func main() {
-	log.Init(&log.GlogRecorder{})
-
-	opts := config.LoadOpts(os.Args[1:])
-	walter, err := walter.New(opts)
-	if err != nil {
-		log.Error(err.Error())
-		log.Error("failed to create Walter")
-		return
-	}
-	log.Info("running Walter")
-	walter.Run()
-	log.Info("succeded to finish Walter")
+func (self *FakeMessenger) Post(messege string) bool {
+	return true
 }

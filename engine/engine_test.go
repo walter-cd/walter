@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/recruit-tech/walter/config"
+	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/pipelines"
 	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
@@ -61,6 +62,9 @@ func execute(stage stages.Stage) stages.Mediator {
 	mon := make(chan stages.Mediator)
 	e := &Engine{
 		MonitorCh: &mon,
+		Pipeline: &pipelines.Pipeline{
+			Reporter: &messengers.FakeMessenger{},
+		},
 	}
 
 	go e.ExecuteStage(stage)
@@ -93,7 +97,9 @@ func execute(stage stages.Stage) stages.Mediator {
 }
 
 func TestRunOnce(t *testing.T) {
-	pipeline := pipelines.NewPipeline()
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("echo baz"))
 	monitorCh := make(chan stages.Mediator)
@@ -108,7 +114,9 @@ func TestRunOnce(t *testing.T) {
 }
 
 func TestRunOnceWithShellScriptStage(t *testing.T) {
-	pipeline := pipelines.NewPipeline()
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+	}
 	pipeline.AddStage(createShellScriptStage("foobar-shell", "../stages/test_sample.sh"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
@@ -122,7 +130,9 @@ func TestRunOnceWithShellScriptStage(t *testing.T) {
 }
 
 func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
-	pipeline := pipelines.NewPipeline()
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
 	pipeline.AddStage(createCommandStage("echo foobar2"))
@@ -140,7 +150,9 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 }
 
 func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
-	pipeline := pipelines.NewPipeline()
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
 	pipeline.AddStage(createCommandStage("echo foobar2"))

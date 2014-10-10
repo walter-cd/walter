@@ -14,27 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package main
+package messengers
 
 import (
-	"os"
-
-	"github.com/recruit-tech/walter/config"
-	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/walter"
+	"fmt"
 )
 
-func main() {
-	log.Init(&log.GlogRecorder{})
+type Messenger interface {
+	Post(string) bool
+}
 
-	opts := config.LoadOpts(os.Args[1:])
-	walter, err := walter.New(opts)
-	if err != nil {
-		log.Error(err.Error())
-		log.Error("failed to create Walter")
-		return
+func InitMessenger(mtype string) (Messenger, error) {
+	var messenger Messenger
+	switch mtype {
+	case "hipchat":
+		messenger = new(HipChat)
+	case "fake":
+		messenger = new(FakeMessenger)
+	default:
+		err := fmt.Errorf("no messenger type: %s", mtype)
+		return nil, err
 	}
-	log.Info("running Walter")
-	walter.Run()
-	log.Info("succeded to finish Walter")
+	return messenger, nil
 }

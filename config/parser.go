@@ -18,10 +18,12 @@ package config
 
 import (
 	"container/list"
+	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/recruit-tech/walter/log"
+	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/pipelines"
 	"github.com/recruit-tech/walter/stages"
 )
@@ -30,18 +32,62 @@ func getStageTypeModuleName(stageType string) string {
 	return strings.ToLower(stageType)
 }
 
-func Parse(configData *map[interface{}]interface{}) *pipelines.Pipeline {
-	pipeline := pipelines.NewPipeline()
-	pipelineData, ok := (*configData)["pipeline"].([]interface{})
-	if ok == false {
-		return pipeline
+func Parse(configData *map[interface{}]interface{}) (*pipelines.Pipeline, error) {
+	var pipeline *pipelines.Pipeline
+
+	messengerOps, ok := (*configData)["messenger"].(map[interface{}]interface{})
+	var messenger messengers.Messenger
+	var err error
+	if ok == true {
+		log.Info("Found messenger block")
+		messenger, err = mapMessenger(messengerOps)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Info("Not found messenger block")
+		messenger, err = messengers.InitMessenger("fake")
+		if err != nil {
+			return nil, err
+		}
+	}
+	pipeline = &pipelines.Pipeline{
+		Reporter: messenger,
 	}
 
+	pipelineData, ok := (*configData)["pipeline"].([]interface{})
+	if ok == false {
+		return nil, fmt.Errorf("No pipeline block in the input file")
+	}
 	stageList := convertYamlMapToStages(pipelineData)
 	for stageItem := stageList.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		pipeline.AddStage(stageItem.Value.(stages.Stage))
 	}
-	return pipeline
+	return pipeline, nil
+}
+
+func mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenger, error) {
+	messengerType := messengerMap["type"].(string)
+	log.Info("type of reporter is " + messengerType)
+	messenger, err := messengers.InitMessenger(messengerType)
+	if err != nil {
+		return nil, err
+	}
+	newMessengerValue := reflect.ValueOf(messenger).Elem()
+	newMessengerType := reflect.TypeOf(messenger).Elem()
+	for i := 0; i < newMessengerType.NumField(); i++ {
+		tagName := newMessengerType.Field(i).Tag.Get("config")
+		for messengerOptKey, messengerOptVal := range messengerMap {
+			if tagName == messengerOptKey {
+				fieldVal := newMessengerValue.Field(i)
+				if fieldVal.Type() == reflect.ValueOf("string").Type() {
+					fieldVal.SetString(messengerOptVal.(string))
+				}
+			}
+		}
+	}
+
+	return messenger, nil
 }
 
 func convertYamlMapToStages(yamlStageList []interface{}) *list.List {

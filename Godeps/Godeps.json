@@ -13,6 +13,10 @@
 		{
 			"ImportPath": "github.com/stretchr/testify",
 			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
+		},
+		{
+			"ImportPath": "github.com/andybons/hipchat",
+			"Rev": "08bf65eade11bf8d584e933d01a35c2799c36ff4"
 		}
 	]
 }
