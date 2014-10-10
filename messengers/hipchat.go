@@ -27,6 +27,7 @@ type HipChat struct {
 	From   string `config:"from"`
 }
 
+// TODO: make hipchat api endpoint configurable for on-premises servers
 func (self *HipChat) Post(message string) bool {
 	client := hipchat.Client{AuthToken: self.Token}
 	req := hipchat.MessageRequest{
