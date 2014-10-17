@@ -111,3 +111,13 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
 	assert.Equal(t, "xxxx", messenger.Token)
 	assert.Equal(t, "yyyy", messenger.From)
 }
+
+func TestParseConfWithInvalidStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      stage_type: xxxxx
+`))
+	result, err := Parse(configData)
+	assert.Nil(t, result)
+	assert.NotNil(t, err)
+}

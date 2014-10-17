@@ -59,7 +59,10 @@ func Parse(configData *map[interface{}]interface{}) (*pipelines.Pipeline, error)
 	if ok == false {
 		return nil, fmt.Errorf("No pipeline block in the input file")
 	}
-	stageList := convertYamlMapToStages(pipelineData)
+	stageList, err := convertYamlMapToStages(pipelineData)
+	if err != nil {
+		return nil, err
+	}
 	for stageItem := stageList.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		pipeline.AddStage(stageItem.Value.(stages.Stage))
 	}
@@ -90,19 +93,25 @@ func mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenge
 	return messenger, nil
 }
 
-func convertYamlMapToStages(yamlStageList []interface{}) *list.List {
+func convertYamlMapToStages(yamlStageList []interface{}) (*list.List, error) {
 	stages := list.New()
 	for _, stageDetail := range yamlStageList {
-		stage := mapStage(stageDetail.(map[interface{}]interface{}))
+		stage, err := mapStage(stageDetail.(map[interface{}]interface{}))
+		if err != nil {
+			return nil, err
+		}
 		stages.PushBack(stage)
 	}
-	return stages
+	return stages, nil
 }
 
-func mapStage(stageMap map[interface{}]interface{}) stages.Stage {
+func mapStage(stageMap map[interface{}]interface{}) (stages.Stage, error) {
 	log.Debugf("%v", stageMap["run_after"])
 	stageType := stageMap["stage_type"].(string)
-	stage, _ := stages.InitStage(stageType) // TODO: add error handling
+	stage, err := stages.InitStage(stageType)
+	if err != nil {
+		return nil, err
+	}
 	newStageValue := reflect.ValueOf(stage).Elem()
 	newStageType := reflect.TypeOf(stage).Elem()
 
@@ -124,9 +133,12 @@ func mapStage(stageMap map[interface{}]interface{}) stages.Stage {
 
 	if runAfters := stageMap["run_after"]; runAfters != nil {
 		for _, runAfter := range runAfters.([]interface{}) {
-			childStage := mapStage(runAfter.(map[interface{}]interface{}))
+			childStage, err := mapStage(runAfter.(map[interface{}]interface{}))
+			if err != nil {
+				return nil, err
+			}
 			stage.AddChildStage(childStage)
 		}
 	}
-	return stage
+	return stage, nil
 }
