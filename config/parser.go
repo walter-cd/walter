@@ -102,7 +102,7 @@ func convertYamlMapToStages(yamlStageList []interface{}) *list.List {
 func mapStage(stageMap map[interface{}]interface{}) stages.Stage {
 	log.Debugf("%v", stageMap["run_after"])
 	stageType := stageMap["stage_type"].(string)
-	stage := stages.InitStage(stageType)
+	stage, _ := stages.InitStage(stageType) // TODO: add error handling
 	newStageValue := reflect.ValueOf(stage).Elem()
 	newStageType := reflect.TypeOf(stage).Elem()
 

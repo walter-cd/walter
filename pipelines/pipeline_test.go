@@ -23,6 +23,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func createStage(stageType string) stages.Stage {
+	stage, _ := stages.InitStage(stageType)
+	return stage
+}
+
 func createCommandStage(command string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
@@ -37,7 +42,7 @@ func createCommandStage(command string) *stages.CommandStage {
 
 func TestAddPipeline(t *testing.T) {
 	pipeline := NewPipeline()
-	pipeline.AddStage(stages.InitStage("command"))
-	pipeline.AddStage(stages.InitStage("command"))
+	pipeline.AddStage(createStage("command"))
+	pipeline.AddStage(createStage("command"))
 	assert.Equal(t, 2, pipeline.Size())
 }
