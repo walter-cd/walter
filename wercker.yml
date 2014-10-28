@@ -1,7 +1,12 @@
-box: wercker/golang@1.2.0
+box: motemen/box-golang-goxc@0.1.0
 build:
     steps:
         - script:
             name: run test.sh
             code: |-
                 sh ./test.sh
+        - script:
+            name: build binary
+            code: |
+                . ./build
+                goxc -d . -resources-include='README*' -n walter
