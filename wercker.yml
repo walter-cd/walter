@@ -20,10 +20,10 @@ deploy:
     - script:
         name: restore release tag
         code: |
-          export RELEASE_TAG=$(cat .release_tag)
+          export RELEASE_TAG="v0.1.0"
     - wercker/github-create-release:
         token: $GITHUB_TOKEN
-        tag_name: $RELEASE_TAG
+        tag: $RELEASE_TAG
     - wercker/github-upload-asset:
         token: $GITHUB_TOKEN
         file: snapshot/walter_linux_386.tar.gz
