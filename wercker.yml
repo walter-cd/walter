@@ -9,4 +9,7 @@ build:
             name: build binary
             code: |
                 . ./build
-                goxc -d . -resources-include='README*' -n walter
+                goxc -tasks='xc archive' -n walter \
+                        -bc='linux,!arm windows darwin' \
+                        -main-dirs-exclude='gopath,Godeps,tests' \
+                        -d ${WERCKER_OUTPUT_DIR}
