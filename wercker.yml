@@ -1,4 +1,4 @@
-box: motemen/box-golang-goxc@0.1.0
+box: motemen/golang-goxc@0.1.0
 build:
     steps:
         - script:
