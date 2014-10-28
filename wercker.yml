@@ -20,7 +20,7 @@ deploy:
     - script:
         name: restore release tag
         code: |
-          export RELEASE_TAG="v0.1.0"
+          export RELEASE_TAG=$(cat .release_tag)
     - wercker/github-create-release:
         token: $GITHUB_TOKEN
         tag: $RELEASE_TAG
