@@ -66,6 +66,17 @@ func TestParseConfWithChildren(t *testing.T) {
 	assert.Equal(t, 2, childStages.Len())
 }
 
+func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      command: echo "hello, world"
+`))
+	result, err := Parse(configData)
+	actual := result.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello, world\"", actual)
+	assert.Nil(t, err)
+}
+
 func TestParseConfWithDirectory(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
     - stage_name: command_stage_1
@@ -116,6 +127,20 @@ func TestParseConfWithInvalidStage(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
     - stage_name: command_stage_1
       stage_type: xxxxx
+`))
+	result, err := Parse(configData)
+	assert.Nil(t, result)
+	assert.NotNil(t, err)
+}
+
+func TestParseConfWithInvalidChildStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      stage_type: command
+      command: echo "hello, world"
+      run_after:
+          -  stage_name: command_stage_2_group_1
+             stage_type: xxxxx
 `))
 	result, err := Parse(configData)
 	assert.Nil(t, result)
