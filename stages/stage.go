@@ -16,7 +16,10 @@
  */
 package stages
 
-import "container/list"
+import (
+	"container/list"
+	"fmt"
+)
 
 type Stage interface {
 	AddChildStage(Stage)
@@ -38,18 +41,18 @@ type Mediator struct {
 	Type   string
 }
 
-func InitStage(stageType string) Stage {
+func InitStage(stageType string) (Stage, error) {
 	var stage Stage
 	switch stageType {
-	default:
-		stage = new(CommandStage)
 	case "command":
 		stage = new(CommandStage)
 	case "shell":
 		stage = new(ShellScriptStage)
+	default:
+		return nil, fmt.Errorf("No specified stage type: '%s'", stageType)
 	}
 	PrepareCh(stage)
-	return stage
+	return stage, nil
 }
 
 func PrepareCh(stage Stage) {

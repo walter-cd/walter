@@ -22,6 +22,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestInitStage(t *testing.T) {
+	stage, err := InitStage("command")
+	assert.NotNil(t, stage)
+	assert.Nil(t, err)
+}
+
+func TestInitNonExistStage(t *testing.T) {
+	stage, err := InitStage("xxxx")
+	assert.Nil(t, stage)
+	assert.NotNil(t, err)
+}
+
+// TODO: simplify the test case
 func TestAddChildStage(t *testing.T) {
 	stage := &CommandStage{}
 	stage.StageName = "test_command_stage"
