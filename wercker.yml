@@ -14,6 +14,7 @@ build:
             name: output release tag
             code: |
                 git describe --tags --exact --match 'v*' > $WERCKER_OUTPUT_DIR/.release_tag || true
+                export RELEASE_TAG=$(git describe --tags --exact --match 'v*')
 deploy:
   steps:
     # reference: https://github.com/motemen/ghq/blob/beee539aead9c3940a0c4706357c5753999f6c85/wercker.yml
@@ -26,19 +27,19 @@ deploy:
         tag: $RELEASE_TAG
     - wercker/github-upload-asset:
         token: $GITHUB_TOKEN
-        file: snapshot/ghq_linux_386.tar.gz
+        file: snapshot/walter_linux_386.tar.gz
     - wercker/github-upload-asset:
         token: $GITHUB_TOKEN
-        file: snapshot/ghq_linux_amd64.tar.gz
+        file: snapshot/walter_linux_amd64.tar.gz
     - wercker/github-upload-asset:
         token: $GITHUB_TOKEN
-        file: snapshot/ghq_darwin_386.zip
+        file: snapshot/walter_darwin_386.zip
     - wercker/github-upload-asset:
         token: $GITHUB_TOKEN
-        file: snapshot/ghq_darwin_amd64.zip
+        file: snapshot/walter_darwin_amd64.zip
     - wercker/github-upload-asset:
         token: $GITHUB_TOKEN
-        file: snapshot/ghq_windows_386.zip
+        file: snapshot/walter_windows_386.zip
     - wercker/github-upload-asset:
         token: $GITHUB_TOKEN
-        file: snapshot/ghq_windows_amd64.zip
+        file: snapshot/walter_windows_amd64.zip
