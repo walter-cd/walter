@@ -66,6 +66,17 @@ func TestParseConfWithChildren(t *testing.T) {
 	assert.Equal(t, 2, childStages.Len())
 }
 
+func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      command: echo "hello, world"
+`))
+	result, err := Parse(configData)
+	actual := result.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello, world\"", actual)
+	assert.Nil(t, err)
+}
+
 func TestParseConfWithDirectory(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
     - stage_name: command_stage_1

@@ -41,6 +41,8 @@ type Mediator struct {
 func InitStage(stageType string) Stage {
 	var stage Stage
 	switch stageType {
+	default:
+		stage = new(CommandStage)
 	case "command":
 		stage = new(CommandStage)
 	case "shell":
