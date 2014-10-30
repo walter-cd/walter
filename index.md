@@ -1,10 +1,10 @@
 ---
 layout: default
-title: Plumber Home
+title: Walter Home
 ---
-# What is Plumber?
+# What is Walter?
 
-Plumber automates the deployment process of applications or service from the configuration, tests to the deployment.
+Walter automates the deployment process of applications or service from the configuration, tests to the deployment.
 
 # How to build
 

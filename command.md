@@ -3,8 +3,8 @@ layout: default
 title: Command
 ---
 
-This page describes the Plumber command usage.
-Plumber provides the **plumber** command, which run the build or deployment process definded in the input configuration file.
+This page describes the Walter command usage.
+Walter provides the **plumber** command, which run the build or deployment process definded in the input configuration file.
 
 quick start
 -------------

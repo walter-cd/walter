@@ -3,18 +3,18 @@ layout: default
 title: Configuration
 ---
 
-This page describes the settings of Plumber.
+This page describes the settings of Walter.
 
 # Configuration setting
 
-Plumber has one configuration file, which specifies a set of tasks needed to build or deploy target applicaion or service. 
+Walter has one configuration file, which specifies a set of tasks needed to build or deploy target applicaion or service. 
 More specifically, users specify the order of the tasks for the deployment. Each task in the flow is called as **stage**,
-and the flow is called **pipeline** in Plumber.
+and the flow is called **pipeline** in Walter.
 
-The configuration format of Plumber is Yaml. The yaml configuration file need to have one pipeline block, which has more
+The configuration format of Walter is Yaml. The yaml configuration file need to have one pipeline block, which has more
 than one stage element.
 
-The following is a sample configuration of Plumber.
+The following is a sample configuration of Walter.
 
      pipeline:
           command_stage_1:
