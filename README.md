@@ -1,7 +1,7 @@
 Walter
 ========
 
-[![wercker status](https://app.wercker.com/status/9b663fe6a4c4eace9a0a3be1fe71757e/m/master "wercker status")](https://app.wercker.com/project/bykey/9b663fe6a4c4eace9a0a3be1fe71757e)
+[![wercker status](https://app.wercker.com/status/4fcb4b110909fc45775d12641f5cf037/m "wercker status")](https://app.wercker.com/project/bykey/4fcb4b110909fc45775d12641f5cf037)
 
 Walter is a tiny deployment pipeline template.
 
