@@ -24,23 +24,34 @@ import (
 	"github.com/recruit-tech/walter/log"
 )
 
+var (
+	fs = flag.NewFlagSet("walter", flag.ExitOnError)
+)
+
 type Opts struct {
 	PipelineFilePath string
 	StopOnAnyFailure bool
+	PrintVersion     bool
 }
 
-func LoadOpts(arguments []string) *Opts {
+func LoadOpts(arguments []string) (*Opts, error) {
 	var pipelineFilePath string
 	var stopOnAnyFailure bool
+	var printVersion bool
 
-	flag.StringVar(&pipelineFilePath, "c", "./pipeline.yml", "pipeline.yml file")
-	flag.BoolVar(&stopOnAnyFailure, "f", false, "Skip execution of subsequent stage after failing to exec the upstream stage.")
-	flag.Parse()
+	fs.StringVar(&pipelineFilePath, "c", "./pipeline.yml", "pipeline.yml file")
+	fs.BoolVar(&stopOnAnyFailure, "f", false, "Skip execution of subsequent stage after failing to exec the upstream stage.")
+	fs.BoolVar(&printVersion, "v", false, "Print the version information and exit.")
+
+	if err := fs.Parse(arguments); err != nil {
+		return nil, err
+	}
 
 	return &Opts{
 		PipelineFilePath: pipelineFilePath,
 		StopOnAnyFailure: stopOnAnyFailure,
-	}
+		PrintVersion:     printVersion,
+	}, nil
 }
 
 func ReadConfig(configFilePath string) *map[interface{}]interface{} {

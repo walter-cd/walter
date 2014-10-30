@@ -14,44 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package main
+package version
 
-import (
-	"flag"
-	"fmt"
-	"os"
-
-	"github.com/recruit-tech/walter/config"
-	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/version"
-	"github.com/recruit-tech/walter/walter"
+var (
+	Version = "HEAD"
 )
-
-func main() {
-	log.Init(&log.GlogRecorder{})
-
-	opts, err := config.LoadOpts(os.Args[1:])
-
-	switch err {
-	case nil:
-	case flag.ErrHelp:
-		os.Exit(0)
-	default:
-		os.Exit(2)
-	}
-
-	if opts.PrintVersion {
-		fmt.Printf("Walter version %s\n", version.Version)
-		os.Exit(0)
-	}
-
-	walter, err := walter.New(opts)
-	if err != nil {
-		log.Error(err.Error())
-		log.Error("failed to create Walter")
-		return
-	}
-	log.Info("running Walter")
-	walter.Run()
-	log.Info("succeded to finish Walter")
-}

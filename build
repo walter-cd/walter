@@ -16,14 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ ! -h gopath/src/github.com/recruit-tech/walter ]; then
-    mkdir -p gopath/src/github.com/recruit-tech/
-    ln -s ../../../.. gopath/src/github.com/recruit-tech/walter
-fi
+ORG_PATH="github.com/recruit-tech"
+REPO_PATH="${ORG_PATH}/walter"
 
 export GOBIN=${PWD}/bin
 export GOPATH=${PWD}/gopath
-export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./walter"
+export GOFMTPATH=" ./stages ./engine ./config ./pipelines ./walter ./version"
+
+rm -f ${GOPATH}/src/${REPO_PATH}
+mkdir -p ${GOPATH}/src/${ORG_PATH}
+ln -s ${PWD} ${GOPATH}/src/${REPO_PATH}
+
+eval $(go env)
 
 if ! [ -e $GOBIN/godep ]; then
     go get github.com/tools/godep
@@ -36,4 +40,5 @@ if [ "--fmt" = "$1" ]; then
     gofmt -s -w -l $GOFMTPATH
 fi
 
-go install github.com/recruit-tech/walter
+#go install github.com/recruit-tech/walter
+go build -ldflags "-X ${REPO_PATH}/version.Version \"$(git describe --tags --always --dirty)\" -X ${REPO_PATH}/version.Build \"$(git --no-pager log -1 --pretty=format:%h)\"" -o bin/walter ${REPO_PATH}
