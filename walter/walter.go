@@ -42,7 +42,7 @@ func New(opts *config.Opts) (*Walter, error) {
 	}
 	return &Walter{
 		Engine: engine,
-	}, nil
+	}, err
 }
 
 func (e *Walter) Run() {

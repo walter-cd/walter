@@ -9,7 +9,7 @@ build:
             name: build binary
             code: |
                 . ./build
-                goxc -tasks='xc archive' -n walter -bc='linux,!arm windows darwin' -main-dirs-exclude='gopath,Godeps,tests' -d ${WERCKER_OUTPUT_DIR}
+                goxc -tasks='xc archive' -n walter -bc='linux,!arm windows darwin' -main-dirs-exclude='gopath,Godeps,tests' -d ${WERCKER_OUTPUT_DIR} -build-ldflags "-X ${REPO_PATH}/version.Version \"$(git describe --tags --always --dirty)\""
         - script:
             name: output release tag
             code: |
