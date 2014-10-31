@@ -1,6 +1,10 @@
 Walter
 ========
 
+<p align="center">
+<img src="https://dl.dropboxusercontent.com/u/10177896/walter-logo-readme.png"/>
+</p>
+
 [![wercker status](https://app.wercker.com/status/4fcb4b110909fc45775d12641f5cf037/m "wercker status")](https://app.wercker.com/project/bykey/4fcb4b110909fc45775d12641f5cf037)
 
 Walter is a tiny deployment pipeline template.
