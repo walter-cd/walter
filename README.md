@@ -27,7 +27,7 @@ How to Build
 
 You can build Walter with the follwoing commands.
 
-    $git clone https://github.com/recruit-tech/walter.git
+    $git clone git@github.com:walter-cd/walter.git
     $cd walter
     $./build
 
