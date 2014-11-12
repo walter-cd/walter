@@ -101,10 +101,8 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 
 func (e *Engine) isUpstreamAnyFailure(mediators []stages.Mediator) bool {
 	for _, m := range mediators {
-		for _, v := range m.States {
-			if v == "false" {
-				return true
-			}
+		if m.IsAnyFailure() == true {
+			return true
 		}
 	}
 	return false
@@ -151,15 +149,6 @@ func (e *Engine) finalizeMonitorChAfterExecute(mediators []stages.Mediator) {
 		*e.MonitorCh <- mediatorEnd
 	} else {
 		log.Debugf("skipped finalizing")
-	}
-}
-
-func (e *Engine) setChildStatus(stage *stages.Stage, mediator *stages.Mediator, status string) {
-	if childStages := (*stage).GetChildStages(); childStages.Len() > 0 {
-		for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
-			name := childStage.Value.(stages.Stage).GetStageName()
-			mediator.States[name] = fmt.Sprintf("%v", status)
-		}
 	}
 }
 

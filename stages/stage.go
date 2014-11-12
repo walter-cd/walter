@@ -41,6 +41,15 @@ type Mediator struct {
 	Type   string
 }
 
+func (m *Mediator) IsAnyFailure() bool {
+	for _, v := range m.States {
+		if v == "false" {
+			return true
+		}
+	}
+	return false
+}
+
 func InitStage(stageType string) (Stage, error) {
 	var stage Stage
 	switch stageType {
