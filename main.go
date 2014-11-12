@@ -52,6 +52,10 @@ func main() {
 		return
 	}
 	log.Info("running Walter")
-	walter.Run()
+	result := walter.Run()
+	if result == false {
+		log.Info("more than one failures were detected running Walter")
+		os.Exit(1)
+	}
 	log.Info("succeded to finish Walter")
 }

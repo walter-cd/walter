@@ -109,8 +109,8 @@ func TestRunOnce(t *testing.T) {
 	}
 	m := engine.RunOnce()
 
-	actual := m.States["echo foobar"]
-	assert.Equal(t, "true", actual)
+	assert.Equal(t, "true", m.States["echo foobar"])
+	assert.Equal(t, false, m.IsAnyFailure())
 }
 
 func TestRunOnceWithShellScriptStage(t *testing.T) {
@@ -125,8 +125,8 @@ func TestRunOnceWithShellScriptStage(t *testing.T) {
 	}
 	m := engine.RunOnce()
 
-	actual := m.States["foobar-shell"]
-	assert.Equal(t, "true", actual)
+	assert.Equal(t, "true", m.States["foobar-shell"])
+	assert.Equal(t, false, m.IsAnyFailure())
 }
 
 func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
@@ -145,8 +145,8 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 	}
 	m := engine.RunOnce()
 
-	actual := m.States["echo foobar2"]
-	assert.Equal(t, "false", actual)
+	assert.Equal(t, "false", m.States["echo foobar2"])
+	assert.Equal(t, true, m.IsAnyFailure())
 }
 
 func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
@@ -166,8 +166,8 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 
 	m := engine.RunOnce()
 
-	actual := m.States["echo foobar2"]
-	assert.Equal(t, "true", actual)
+	assert.Equal(t, "true", m.States["echo foobar2"])
+	assert.Equal(t, true, m.IsAnyFailure())
 }
 
 func TestExecuteWithSingleStage(t *testing.T) {
