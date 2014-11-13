@@ -38,13 +38,23 @@ func LoadOpts(arguments []string) (*Opts, error) {
 	var pipelineFilePath string
 	var stopOnAnyFailure bool
 	var printVersion bool
+	var threshold string
+	var log_dir string
 
 	fs.StringVar(&pipelineFilePath, "c", "./pipeline.yml", "pipeline.yml file")
 	fs.BoolVar(&stopOnAnyFailure, "f", false, "Skip execution of subsequent stage after failing to exec the upstream stage.")
 	fs.BoolVar(&printVersion, "v", false, "Print the version information and exit.")
+	fs.StringVar(&threshold, "threshold", "INFO", "Log events at or above this severity are logged.")
+	fs.StringVar(&log_dir, "log_dir", "", "Log files will be written to this directory.")
 
 	if err := fs.Parse(arguments); err != nil {
 		return nil, err
+	}
+
+	flag.CommandLine.Lookup("stderrthreshold").Value.Set(threshold)
+
+	if log_dir != "" {
+		flag.CommandLine.Lookup("log_dir").Value.Set(log_dir)
 	}
 
 	return &Opts{
