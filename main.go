@@ -55,7 +55,9 @@ func main() {
 	result := walter.Run()
 	if result == false {
 		log.Info("more than one failures were detected running Walter")
+		log.Flush()
 		os.Exit(1)
 	}
 	log.Info("succeded to finish Walter")
+	log.Flush()
 }

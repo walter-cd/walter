@@ -47,5 +47,9 @@ func New(opts *config.Opts) (*Walter, error) {
 
 func (e *Walter) Run() bool {
 	mediator := e.Engine.RunOnce()
-	return mediator.IsAnyFailure()
+	if mediator.IsAnyFailure() == true {
+		return false
+	} else {
+		return true
+	}
 }

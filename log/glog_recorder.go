@@ -17,6 +17,11 @@ func (l *GlogRecorder) Info(m string) {
 func (l *GlogRecorder) Error(m string) {
 	glog.Error(m)
 }
+
 func (l *GlogRecorder) Warn(m string) {
 	glog.Warning(m)
+}
+
+func (l *GlogRecorder) Flush() {
+	glog.Flush()
 }

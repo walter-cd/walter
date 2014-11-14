@@ -9,6 +9,7 @@ type Recorder interface {
 	Debug(m string)
 	Warn(m string)
 	Error(m string)
+	Flush()
 }
 
 func Debug(m string) {
@@ -49,4 +50,8 @@ func Errorf(m string, args ...interface{}) {
 
 func Init(recorder Recorder) {
 	GlobalRecorder = recorder
+}
+
+func Flush() {
+	GlobalRecorder.Flush()
 }
