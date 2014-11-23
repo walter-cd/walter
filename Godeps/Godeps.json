@@ -17,6 +17,10 @@
 		{
 			"ImportPath": "github.com/andybons/hipchat",
 			"Rev": "08bf65eade11bf8d584e933d01a35c2799c36ff4"
+		},
+		{
+			"ImportPath": "github.com/tbruyelle/hipchat-go/hipchat",
+			"Rev": "c2364b4acfdeb7bb4ce232fa53bc80b5d741d668"
 		}
 	]
 }
