@@ -29,6 +29,8 @@ func InitMessenger(mtype string) (Messenger, error) {
 	switch mtype {
 	case "hipchat":
 		messenger = new(HipChat)
+	case "hipchat2":
+		messenger = new(HipChat2)
 	case "fake":
 		messenger = new(FakeMessenger)
 	default:
