@@ -93,8 +93,11 @@ The follwoing is the parameter of Command stage.
 |   shell _script  | false      | shell script file run in the stage     |
 
 ## Report setting
-Walter supports to submits the messages to messeging service (currently only HipChat is supported). To submit a messege,
-users need to add a **messenger** block into the configuraiton file. Following is a sample of the yaml block.
+
+Walter supports to submits the messages to messeging services.
+
+### Report configuration
+To submit a messege, users need to add a **messenger** block into the configuraiton file. Following is a sample of the yaml block with HipChat.
 
     messenger:
         type: hipchat
@@ -102,7 +105,7 @@ users need to add a **messenger** block into the configuraiton file. Following i
 	    token: TOKEN
 		from: USER_NAME
 
-To report the result to the messenger service added with the above setting,
+To report the result to the specified messenger service added with the above setting,
 users add **messege** attribute with **true** into the stage they want to know the results.
 
      pipeline:
@@ -114,3 +117,11 @@ users add **messege** attribute with **true** into the stage they want to know t
              stage_type: command
              command: echo "hello, world, command_stage_2"
 			 message: true
+
+### Report types
+Walter supports HipChat API v1 and v2 as the messenger type.
+
+|  Messenger Type  | meaning                                                     |
+|:----------------:|:-----------------------------------------------------------:|
+|   hipchat        |  [HipChat (API v1)](https://www.hipchat.com/docs/api)       |
+|   hipchat2       |  [HipChat (API v2)](https://www.hipchat.com/docs/apiv2)     |
