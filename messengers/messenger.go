@@ -31,6 +31,8 @@ func InitMessenger(mtype string) (Messenger, error) {
 		messenger = new(HipChat)
 	case "hipchat2":
 		messenger = new(HipChat2)
+	case "slack":
+		messenger = new(Slack)
 	case "fake":
 		messenger = new(FakeMessenger)
 	default:
