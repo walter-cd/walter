@@ -37,6 +37,11 @@ type Slack struct {
 type FakeSlack Slack
 
 func (self *Slack) Post(message string) bool {
+	if self.Channel[0] != '#' {
+		log.Infof("Add # to channel name: %s", self.Channel)
+		self.Channel = "#" + self.Channel
+	}
+
 	params, _ := json.Marshal(struct {
 		FakeSlack
 		Text string `json:"text"`
@@ -52,14 +57,14 @@ func (self *Slack) Post(message string) bool {
 	defer resp.Body.Close()
 
 	if err != nil {
-		log.Errorf("Failed post message...: %s", message);
+		log.Errorf("Failed post message to Slack...: %s", message);
 		return false
 	}
 
 	if body, err := ioutil.ReadAll(resp.Body); err == nil {
-		log.Infof("Post result...: %s", body)
+		log.Infof("Slack post result...: %s", body)
 		return true
 	}
-	log.Errorf("Failed to read result...")
+	log.Errorf("Failed to read result from Slack...")
 	return false
 }
