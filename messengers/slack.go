@@ -45,14 +45,21 @@ func (self *Slack) Post(message string) bool {
 		Text:  message,
 	})
 
-	resp, _ := http.PostForm(
+	resp, err := http.PostForm(
 		self.IncomingUrl,
 		url.Values{"payload": {string(params)}},
 	)
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	log.Infof("Post result...: %s", body)
 	defer resp.Body.Close()
 
-	return true
+	if err != nil {
+		log.Errorf("Failed post message...: %s", message);
+		return false
+	}
+
+	if body, err := ioutil.ReadAll(resp.Body); err == nil {
+		log.Infof("Post result...: %s", body)
+		return true
+	}
+	log.Errorf("Failed to read result...")
+	return false
 }
