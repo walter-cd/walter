@@ -121,7 +121,8 @@ users add **messege** attribute with **true** into the stage they want to know t
 ### Report types
 Walter supports HipChat API v1 and v2 as the messenger type.
 
-|  Messenger Type  | meaning                                                     |
-|:----------------:|:-----------------------------------------------------------:|
-|   hipchat        |  [HipChat (API v1)](https://www.hipchat.com/docs/api)       |
-|   hipchat2       |  [HipChat (API v2)](https://www.hipchat.com/docs/apiv2)     |
+|  Messenger Type  | meaning                                                                                   |
+|:----------------:|:-----------------------------------------------------------------------------------------:|
+|   hipchat        |  [HipChat (API v1)](https://www.hipchat.com/docs/api)                                     |
+|   hipchat2       |  [HipChat (API v2)](https://www.hipchat.com/docs/apiv2)                                   |
+|   slack          |  [Slack Incoming Webhook integration](https://my.slack.com/services/new/incoming-webhook) |
