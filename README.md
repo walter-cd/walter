@@ -12,7 +12,7 @@ Walter is a tiny deployment pipeline template.
 Overview
 ==========
 
-Walter automates the deployment process of appllications or servers from configuration to sofware deployment.
+Walter automates the deployment process of applications or servers from configuration to software deployment.
 
 Getting Started
 ===============
@@ -25,7 +25,7 @@ Requirements
 How to Build
 -------------
 
-You can build Walter with the follwoing commands.
+You can build Walter with the following commands.
 
     $git clone git@github.com:walter-cd/walter.git
     $cd walter
@@ -35,7 +35,7 @@ How to contribute
 ====================
 
 We welcome any contributions through Github pull requests.
-When you make changes such as new features and the add the tests, please run test before throw the pull reqest.
+When you make changes such as new features and the add the tests, please run test before throw the pull request.
 You can run test with the test.sh script.
 
     $sh test.sh
@@ -43,7 +43,7 @@ You can run test with the test.sh script.
 Configuration setting
 ======================
 
-Walter has one configuration file, which specifies a set of tasks needed to build or deploy target applicaion or service. 
+Walter has one configuration file, which specifies a set of tasks needed to build or deploy target application or service.
 More specifically, users specify the order of the tasks for the deployment. Each task is called as **stage**, and the flow is called **pipeline** in Walter.
 
 ## Pipeline setting
@@ -65,7 +65,7 @@ The following is a sample configuration of Walter.
              command: echo "hello, world, command_stage_3"
 
 As we see, the pipeline block has three stages and the stage type is command, each of which run **echo** command and has the stage name
-(such as **command_stage_1**). User can name arbitary name of each stage. The commands are excuted with the same order as the pipeline configuration.
+(such as **command_stage_1**). User can name arbitrary name of each stage. The commands are executed with the same order as the pipeline configuration.
 
 ### Stage setting
 
@@ -77,16 +77,16 @@ The following is the table on the stage_type and the parameters.
 
 Command stage executes one command. Users specify Command stage adding **command** in stage_type.
 
-The follwoing is the parameter of Command stage.
+The following is the parameter of Command stage.
 
 |  Configuration | Optional   | meaning                                |
 |:--------------:|:----------:|:--------------------------------------:|
 |   command      | false      | shell command run in the stage         |
 
 #### Shell script stage
-Command stage executes specified shell scrpit file. Users specify Command stage adding **shell_script** in stage_type.
+Command stage executes specified shell script file. Users specify Command stage adding **shell_script** in stage_type.
 
-The follwoing is the parameter of Command stage.
+The following is the parameter of Command stage.
 
 |  Configuration   | Optional   | meaning                                |
 |:----------------:|:----------:|:--------------------------------------:|
@@ -94,10 +94,10 @@ The follwoing is the parameter of Command stage.
 
 ## Report setting
 
-Walter supports to submits the messages to messeging services.
+Walter supports to submits the messages to messaging services.
 
 ### Report configuration
-To submit a messege, users need to add a **messenger** block into the configuraiton file. Following is a sample of the yaml block with HipChat.
+To submit a message, users need to add a **messenger** block into the configuration file. Following is a sample of the yaml block with HipChat.
 
     messenger:
         type: hipchat
@@ -106,7 +106,7 @@ To submit a messege, users need to add a **messenger** block into the configurai
 		from: USER_NAME
 
 To report the result to the specified messenger service added with the above setting,
-users add **messege** attribute with **true** into the stage they want to know the results.
+users add **message** attribute with **true** into the stage they want to know the results.
 
      pipeline:
           command_stage_1:
