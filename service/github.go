@@ -48,10 +48,23 @@ func LoadLastUpdate(fname string) (Update, error) {
 	if err != nil {
 		return Update{}, err
 	}
-	log.Infof("Loading last update date form %s\n", string(file));
+	log.Infof("Loading last update form %s\n", string(file));
 	var update Update
 	if err:= json.Unmarshal(file, &update); err != nil {
 		return Update{}, err
 	}
 	return update, nil
+}
+
+func SaveUpdate(fname string, update Update) bool {
+	log.Infof("Writing new update form %s\n", string(fname));
+	bytes, err:= json.Marshal(update)
+	if err != nil {
+		log.Errorf("Failed to convert update to string...: %s\n", err.Error());
+		return false
+	}
+	if err:= ioutil.WriteFile(fname, bytes, 644); err != nil {
+		log.Errorf("Failed to write update to file...: %s\n", err.Error());
+	}
+	return false
 }
