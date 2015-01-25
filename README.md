@@ -84,13 +84,13 @@ The following is the parameter of Command stage.
 |   command      | false      | shell command run in the stage         |
 
 #### Shell script stage
-Command stage executes specified shell script file. Users specify Command stage adding **shell_script** in stage_type.
+Command stage executes specified shell script file. Users specify Command stage adding **shell** in stage_type.
 
 The following is the parameter of Command stage.
 
 |  Configuration   | Optional   | meaning                                |
 |:----------------:|:----------:|:--------------------------------------:|
-|   shell _script  | false      | shell script file run in the stage     |
+|   file           | false      | shell script file run in the stage     |
 
 ## Report setting
 
