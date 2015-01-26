@@ -17,8 +17,9 @@
 package service
 
 import (
-	"time"
 	"container/list"
+	"fmt"
+	"time"
 
 	"github.com/recruit-tech/walter/log"
 )
@@ -26,23 +27,25 @@ import (
 type Service interface {
 	//Run(list.List)
 	GetCommits() *list.List
-	LoadLastUpdate(fname string) bool
-	SaveLastUpdate(fname string) bool
 }
 
 type Result struct {
 	Message string
 	Success bool
-	Date time.Time
+	Date    time.Time
 }
 
 func InitService(stype string) (Service, error) {
 	var service Service
 	switch stype {
 	case "github":
+		log.Info("GitHub client was created")
 		service = new(GitHubClient)
+	case "local":
+		log.Info("Local client was created")
+		service = new(LocalClient)
 	default:
-		err := log.Errorf("no service type: %s", stype)
+		err := fmt.Errorf("no messenger type: %s", stype)
 		return nil, err
 	}
 	return service, nil

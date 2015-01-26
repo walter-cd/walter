@@ -20,12 +20,14 @@ import (
 	"container/list"
 
 	"github.com/recruit-tech/walter/messengers"
+	"github.com/recruit-tech/walter/service"
 	"github.com/recruit-tech/walter/stages"
 )
 
 type Pipeline struct {
-	Stages   list.List
-	Reporter messengers.Messenger
+	Stages      list.List
+	Reporter    messengers.Messenger
+	RepoService service.Service
 }
 
 func (self *Pipeline) Report(message string) {
