@@ -19,19 +19,15 @@ package service
 import (
 	"time"
 	"container/list"
+
+	"github.com/recruit-tech/walter/log"
 )
 
 type Service interface {
-	Run(Commit) Result
-	GetCommits() list.List
-	Load(fname string)
-}
-
-type Commit struct {
-	Updated bool
-	SHA1   string
-	Branch string
-	Date time.Time
+	//Run(list.List)
+	GetCommits() *list.List
+	LoadLastUpdate(fname string) bool
+	SaveLastUpdate(fname string) bool
 }
 
 type Result struct {
@@ -40,14 +36,14 @@ type Result struct {
 	Date time.Time
 }
 
-// func InitService(stype string) (Service, error) {
-// 	var service Service
-// 	switch stype {
-// 	case "github":
-// 		service = new(GitHub)
-// 	default:
-// 		err := fmt.Errorf("no service type: %s", stype)
-// 		return nil, err
-// 	}
-// 	return service, nil
-// }
+func InitService(stype string) (Service, error) {
+	var service Service
+	switch stype {
+	case "github":
+		service = new(GitHubClient)
+	default:
+		err := log.Errorf("no service type: %s", stype)
+		return nil, err
+	}
+	return service, nil
+}

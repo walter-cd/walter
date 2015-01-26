@@ -17,18 +17,19 @@
 package service
 
 import (
+	"container/list"
 	"time"
 	"io/ioutil"
 	"encoding/json"
 
 	"github.com/recruit-tech/walter/log"
-	//"github.com/google/go-github/github"
-	//"code.google.com/p/goauth2/oauth"
+	"github.com/google/go-github/github"
+	"code.google.com/p/goauth2/oauth"
 )
 
-type GitHub struct {
-	Repository string `config:"repository"`
-	From  string `config:"from"`
+type Repository struct {
+	Name string `config:"repository"`
+	From string `config:"from"`
 	Token string `config:"token"`
 }
 
@@ -38,9 +39,35 @@ type Update struct {
 	Status string  `json:"status"`
 }
 
-type Client struct {
-	github GitHub
-	update Update
+type GitHubClient struct {
+	Repository
+	Update
+}
+
+func (self *GitHubClient) GetCommits() (*list.List) {
+	commits := list.New()
+	t := &oauth.Transport{
+		Token: &oauth.Token{AccessToken: self.Token},
+	}
+	client := github.NewClient(t.Client())
+
+	// get a list of pull requests with Pull Request API
+	pullreqs, _, _ := client.PullRequests.List(self.From, self.Repository.Name,
+			&github.PullRequestListOptions{})
+
+	for _, pullreq := range pullreqs {
+		if *pullreq.State == "Open" && pullreq.UpdatedAt.After(self.Time) {
+			commits.PushBack(pullreq)
+		}
+	}
+
+	// get the latest commit with Commit API
+	master_commits, _, _ := client.Repositories.ListCommits(
+	self.From, self.Repository.Name, &github.CommitsListOptions{})
+	if master_commits[0].Commit.Author.Date.After(self.Time) {
+		commits.PushBack(master_commits[0])
+	}
+	return commits
 }
 
 func LoadLastUpdate(fname string) (Update, error) {

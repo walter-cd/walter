@@ -21,6 +21,14 @@
 		{
 			"ImportPath": "github.com/tbruyelle/hipchat-go/hipchat",
 			"Rev": "c2364b4acfdeb7bb4ce232fa53bc80b5d741d668"
+		},
+		{
+			"ImportPath": "github.com/google/go-github/github",
+			"Rev": "1e55bf6be814270d7cc31a60868c4bd89e4e68c0"
+		},
+		{
+			"ImportPath": "code.google.com/p/goauth2/oauth",
+			"Rev": "afe77d958c70"
 		}
 	]
 }
