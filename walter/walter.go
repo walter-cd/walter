@@ -22,13 +22,12 @@ import (
 	"github.com/recruit-tech/walter/config"
 	"github.com/recruit-tech/walter/engine"
 	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/pipelines"
+	"github.com/recruit-tech/walter/service"
 	"github.com/recruit-tech/walter/stages"
 )
 
 type Walter struct {
-	Pipeline *pipelines.Pipeline
-	Engine   *engine.Engine
+	Engine *engine.Engine
 }
 
 func New(opts *config.Opts) (*Walter, error) {
@@ -53,15 +52,31 @@ func (e *Walter) Run() bool {
 		mediator := e.Engine.RunOnce()
 		return !mediator.IsAnyFailure()
 	} else {
-		commits, err := e.Engine.Pipeline.RepoService.GetCommits()
+		// load .walter-update
+		log.Info("loading update file...")
+		update, err := service.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
 		if err != nil {
-			log.Errorf("Failed to get commits: %s", err)
+			log.Warnf("failed to load update: %s", err)
+		}
+
+		// get latest commti and pull requests
+		log.Info("downloading commits and pull requests...")
+		commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
+		if err != nil {
+			log.Errorf("failed to get commits: %s", err)
 			return false
 		}
 
-		log.Info("Suceeded to get commits")
+		log.Info("suceeded to get commits")
 		for e := commits.Front(); e != nil; e = e.Next() {
 			fmt.Println(e) // TODO implement Running walter with local mode
+		}
+
+		// save .walter-update
+		log.Info("saving update file...")
+		result := service.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
+		if result == false {
+			log.Warnf("failed to save update")
 		}
 		return true
 	}

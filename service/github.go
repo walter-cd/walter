@@ -18,30 +18,24 @@ package service
 
 import (
 	"container/list"
-	"time"
-	"io/ioutil"
-	"encoding/json"
 
 	"github.com/recruit-tech/walter/log"
 	"github.com/google/go-github/github"
 	"code.google.com/p/goauth2/oauth"
 )
 
-type Update struct {
-	Time time.Time `json:"time"`
-	Succeeded bool `json:"succeeded"`
-	Status string  `json:"status"`
-}
-
 type GitHubClient struct {
 	Repo string `config:"repo"`
 	From string `config:"from"`
 	Token string `config:"token"`
 	UpdateFile string `config:"update"`
-	Update
 }
 
-func (self *GitHubClient) GetCommits() (*list.List, error) {
+func (self *GitHubClient) GetUpdateFilePath() string {
+	return self.UpdateFile
+}
+
+func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 	log.Info("getting commits\n");
 	commits := list.New()
 	t := &oauth.Transport{
@@ -58,7 +52,7 @@ func (self *GitHubClient) GetCommits() (*list.List, error) {
 	}
 
 	for _, pullreq := range pullreqs {
-		if *pullreq.State == "Open" && pullreq.UpdatedAt.After(self.Time) {
+		if *pullreq.State == "Open" && pullreq.UpdatedAt.After(update.Time) {
 			commits.PushBack(pullreq)
 		}
 	}
@@ -66,34 +60,8 @@ func (self *GitHubClient) GetCommits() (*list.List, error) {
 	// get the latest commit with Commit API
 	master_commits, _, _ := client.Repositories.ListCommits(
 	self.From, self.Repo, &github.CommitsListOptions{})
-	if master_commits[0].Commit.Author.Date.After(self.Time) {
+	if master_commits[0].Commit.Author.Date.After(update.Time) {
 		commits.PushBack(master_commits[0])
 	}
 	return commits, nil
-}
-
-func LoadLastUpdate(fname string) (Update, error) {
-	file, err := ioutil.ReadFile(fname)
-	if err != nil {
-		return Update{}, err
-	}
-	log.Infof("loading last update form %s\n", string(file));
-	var update Update
-	if err:= json.Unmarshal(file, &update); err != nil {
-		return Update{}, err
-	}
-	return update, nil
-}
-
-func SaveUpdate(fname string, update Update) bool {
-	log.Infof("writing new update form %s\n", string(fname));
-	bytes, err:= json.Marshal(update)
-	if err != nil {
-		log.Errorf("failed to convert update to string...: %s\n", err.Error());
-		return false
-	}
-		if err:= ioutil.WriteFile(fname, bytes, 644); err != nil {
-		log.Errorf("failed to write update to file...: %s\n", err.Error());
-	}
-	return false
 }

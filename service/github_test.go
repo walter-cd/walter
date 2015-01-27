@@ -35,14 +35,22 @@ func TestLoadUpdate(t *testing.T) {
 	assert.Equal(t, expectedTime, update.Time)
 }
 
-func TestSaveUpdate(t *testing.T) {
+func TestNotExistPath(t *testing.T) {
+	update, err := LoadLastUpdate("nothing_such_file.json")
+	assert.NotNil(t, err)
+	assert.NotNil(t, update)
+	assert.Equal(t, true, update.Succeeded)
+	assert.Equal(t, "finished", update.Status)
+}
+
+func TestSaveLastUpdate(t *testing.T) {
 	// save update
 	time, _ := time.Parse(time.RFC3339, "2015-01-21T05:05:42Z")
 	updateSample := Update{time, true, "finished"}
 	tempFile, _ := ioutil.TempFile("", "update")
 	defer os.Remove(tempFile.Name())
 	defer tempFile.Close()
-	SaveUpdate(tempFile.Name(), updateSample)
+	SaveLastUpdate(tempFile.Name(), updateSample)
 
 	// load update
 	loadedUpdate, err := LoadLastUpdate(tempFile.Name())

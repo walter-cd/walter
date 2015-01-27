@@ -20,6 +20,10 @@ import "container/list"
 
 type LocalClient struct{}
 
-func (self *LocalClient) GetCommits() (*list.List, error) {
+func (self *LocalClient) GetCommits(update Update) (*list.List, error) {
 	return list.New(), nil
+}
+
+func (self *LocalClient) GetUpdateFilePath() string {
+	return ""
 }
