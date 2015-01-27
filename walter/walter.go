@@ -17,8 +17,11 @@
 package walter
 
 import (
+	"fmt"
+
 	"github.com/recruit-tech/walter/config"
 	"github.com/recruit-tech/walter/engine"
+	"github.com/recruit-tech/walter/log"
 	"github.com/recruit-tech/walter/pipelines"
 	"github.com/recruit-tech/walter/stages"
 )
@@ -46,6 +49,20 @@ func New(opts *config.Opts) (*Walter, error) {
 }
 
 func (e *Walter) Run() bool {
-	mediator := e.Engine.RunOnce()
-	return !mediator.IsAnyFailure()
+	if e.Engine.Opts.Mode == "local" {
+		mediator := e.Engine.RunOnce()
+		return !mediator.IsAnyFailure()
+	} else {
+		commits, err := e.Engine.Pipeline.RepoService.GetCommits()
+		if err != nil {
+			log.Errorf("Failed to get commits: %s", err)
+			return false
+		}
+
+		log.Info("Suceeded to get commits")
+		for e := commits.Front(); e != nil; e = e.Next() {
+			fmt.Println(e) // TODO implement Running walter with local mode
+		}
+		return true
+	}
 }

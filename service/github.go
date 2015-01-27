@@ -18,30 +18,31 @@ package service
 
 import (
 	"container/list"
-	"encoding/json"
-	"io/ioutil"
 	"time"
+	"io/ioutil"
+	"encoding/json"
 
-	"code.google.com/p/goauth2/oauth"
-	"github.com/google/go-github/github"
 	"github.com/recruit-tech/walter/log"
+	"github.com/google/go-github/github"
+	"code.google.com/p/goauth2/oauth"
 )
 
 type Update struct {
-	Time      time.Time `json:"time"`
-	Succeeded bool      `json:"succeeded"`
-	Status    string    `json:"status"`
+	Time time.Time `json:"time"`
+	Succeeded bool `json:"succeeded"`
+	Status string  `json:"status"`
 }
 
 type GitHubClient struct {
-	Repo       string `config:"repo"`
-	From       string `config:"from"`
-	Token      string `config:"token"`
+	Repo string `config:"repo"`
+	From string `config:"from"`
+	Token string `config:"token"`
 	UpdateFile string `config:"update"`
 	Update
 }
 
-func (self *GitHubClient) GetCommits() *list.List {
+func (self *GitHubClient) GetCommits() (*list.List, error) {
+	log.Info("getting commits\n");
 	commits := list.New()
 	t := &oauth.Transport{
 		Token: &oauth.Token{AccessToken: self.Token},
@@ -49,8 +50,12 @@ func (self *GitHubClient) GetCommits() *list.List {
 	client := github.NewClient(t.Client())
 
 	// get a list of pull requests with Pull Request API
-	pullreqs, _, _ := client.PullRequests.List(self.From, self.Repo,
-		&github.PullRequestListOptions{})
+	pullreqs, _, err := client.PullRequests.List(self.From, self.Repo,
+			&github.PullRequestListOptions{})
+	if err != nil {
+		log.Errorf("failed to get pull requests");
+		return list.New(), err
+	}
 
 	for _, pullreq := range pullreqs {
 		if *pullreq.State == "Open" && pullreq.UpdatedAt.After(self.Time) {
@@ -60,11 +65,11 @@ func (self *GitHubClient) GetCommits() *list.List {
 
 	// get the latest commit with Commit API
 	master_commits, _, _ := client.Repositories.ListCommits(
-		self.From, self.Repo, &github.CommitsListOptions{})
+	self.From, self.Repo, &github.CommitsListOptions{})
 	if master_commits[0].Commit.Author.Date.After(self.Time) {
 		commits.PushBack(master_commits[0])
 	}
-	return commits
+	return commits, nil
 }
 
 func LoadLastUpdate(fname string) (Update, error) {
@@ -72,23 +77,23 @@ func LoadLastUpdate(fname string) (Update, error) {
 	if err != nil {
 		return Update{}, err
 	}
-	log.Infof("Loading last update form %s\n", string(file))
+	log.Infof("loading last update form %s\n", string(file));
 	var update Update
-	if err := json.Unmarshal(file, &update); err != nil {
+	if err:= json.Unmarshal(file, &update); err != nil {
 		return Update{}, err
 	}
 	return update, nil
 }
 
 func SaveUpdate(fname string, update Update) bool {
-	log.Infof("Writing new update form %s\n", string(fname))
-	bytes, err := json.Marshal(update)
+	log.Infof("writing new update form %s\n", string(fname));
+	bytes, err:= json.Marshal(update)
 	if err != nil {
-		log.Errorf("Failed to convert update to string...: %s\n", err.Error())
+		log.Errorf("failed to convert update to string...: %s\n", err.Error());
 		return false
 	}
-	if err := ioutil.WriteFile(fname, bytes, 644); err != nil {
-		log.Errorf("Failed to write update to file...: %s\n", err.Error())
+		if err:= ioutil.WriteFile(fname, bytes, 644); err != nil {
+		log.Errorf("failed to write update to file...: %s\n", err.Error());
 	}
 	return false
 }

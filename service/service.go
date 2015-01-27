@@ -26,7 +26,7 @@ import (
 
 type Service interface {
 	//Run(list.List)
-	GetCommits() *list.List
+	GetCommits() (*list.List, error)
 }
 
 type Result struct {
