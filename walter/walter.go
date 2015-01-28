@@ -32,7 +32,7 @@ import (
 
 type Walter struct {
 	Engine *engine.Engine
-	Opts *config.Opts
+	Opts   *config.Opts
 }
 
 func New(opts *config.Opts) (*Walter, error) {
@@ -48,7 +48,7 @@ func New(opts *config.Opts) (*Walter, error) {
 		MonitorCh: &monitorCh,
 	}
 	return &Walter{
-		Opts: opts,
+		Opts:   opts,
 		Engine: engine,
 	}, err
 }
