@@ -17,6 +17,7 @@
 package service
 
 import (
+	"os"
 	"container/list"
 	"fmt"
 	"time"
@@ -47,25 +48,48 @@ type Result struct {
 func LoadLastUpdate(fname string) (Update, error) {
 	file, err := ioutil.ReadFile(fname)
 	if err != nil {
-		return Update{Time: time.Now(), Succeeded: true, Status: "finished" }, err
+		log.Warnf("no file named \"%s\" exist...", fname)
+		return Update{Time: time.Date(1970, time.November, 10, 15, 0, 0, 0, time.Local), Succeeded: true, Status: "finished" }, err
 	}
-	log.Infof("loading last update form %s\n", string(file));
+	log.Infof("loading last update form \"%s\"\n", string(file));
 	var update Update
 	if err:= json.Unmarshal(file, &update); err != nil {
+		log.Warnf("failed to load \"%s\" ...", fname)
 		return Update{Time: time.Now(), Succeeded: true, Status: "finished" }, err
 	}
 	return update, nil
 }
 
 func SaveLastUpdate(fname string, update Update) bool {
-	log.Infof("writing new update form %s\n", string(fname));
+	log.Infof("writing down new update: \"%s\"\n", string(fname));
 	bytes, err := json.Marshal(update)
 	if err != nil {
 		log.Errorf("failed to convert update to string...: %s\n", err);
 		return false
 	}
-	if err := ioutil.WriteFile(fname, bytes, 644); err != nil {
-		log.Errorf("failed to write update to file...: %s\n", err);
+
+	if exist := fileExists(fname); exist == true {
+		log.Infof("file exist: \"%s\"", fname)
+		if err := os.Remove(fname); err != nil {
+			log.Errorf("failed to remove \"%s\" with error: \"%s\"",fname, err)
+			return false
+		}
+		log.Infof("succeeded to remove: \"%s\"", fname)
+	}
+
+	if err := ioutil.WriteFile(fname, bytes, 0644); err != nil {
+		log.Errorf("failed to write update to file...: \"%s\"\n", err);
+		return false
+	}
+	log.Infof("succeeded to write update file: \"%s\"", fname);
+	return true
+}
+
+func fileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
 	}
 	return true
 }

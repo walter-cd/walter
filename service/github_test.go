@@ -17,10 +17,10 @@
 package service
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 	"time"
+	"io/ioutil"
+	"os"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -49,7 +49,6 @@ func TestSaveLastUpdate(t *testing.T) {
 	updateSample := Update{time, true, "finished"}
 	tempFile, _ := ioutil.TempFile("", "update")
 	defer os.Remove(tempFile.Name())
-	defer tempFile.Close()
 	SaveLastUpdate(tempFile.Name(), updateSample)
 
 	// load update

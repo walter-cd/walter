@@ -17,8 +17,12 @@
 package walter
 
 import (
-	"fmt"
+	"os/exec"
+	"reflect"
+	"strconv"
+	"time"
 
+	"github.com/google/go-github/github"
 	"github.com/recruit-tech/walter/config"
 	"github.com/recruit-tech/walter/engine"
 	"github.com/recruit-tech/walter/log"
@@ -52,32 +56,60 @@ func (e *Walter) Run() bool {
 		mediator := e.Engine.RunOnce()
 		return !mediator.IsAnyFailure()
 	} else {
-		// load .walter-update
-		log.Info("loading update file...")
-		update, err := service.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
-		if err != nil {
-			log.Warnf("failed to load update: %s", err)
-		}
-
-		// get latest commti and pull requests
-		log.Info("downloading commits and pull requests...")
-		commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
-		if err != nil {
-			log.Errorf("failed to get commits: %s", err)
-			return false
-		}
-
-		log.Info("suceeded to get commits")
-		for e := commits.Front(); e != nil; e = e.Next() {
-			fmt.Println(e) // TODO implement Running walter with local mode
-		}
-
-		// save .walter-update
-		log.Info("saving update file...")
-		result := service.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
-		if result == false {
-			log.Warnf("failed to save update")
-		}
-		return true
+		return e.runService()
 	}
+}
+
+func (e *Walter) runService() bool {
+	// load .walter-update
+	log.Info("loading update file...")
+	update, err := service.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
+	if err != nil {
+		log.Warnf("failed to load update: %s", err)
+	}
+	log.Infof("Update date is \"%s\"", update)
+	// get latest commti and pull requests
+	log.Info("downloading commits and pull requests...")
+	commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
+	if err != nil {
+		log.Errorf("failed to get commits: %s", err)
+		return false
+	}
+
+	log.Info("suceeded to get commits")
+	for commit := commits.Front(); commit != nil; commit = commit.Next() {
+		commitType := reflect.TypeOf(commit.Value)
+		if commitType.Name() == "RepositoryCommit" {
+			log.Info("found new repository commit")
+		} else if commitType.Name() == "PullRequest" {
+			log.Info("found new pull request commit")
+			pullreq := commit.Value.(github.PullRequest)
+			processPullRequest(pullreq)
+		} else {
+			log.Errorf("Nothing commit type: %s", commitType)
+		}
+	}
+
+	// save .walter-update
+	log.Info("saving update file...")
+	update.Time = time.Now()
+	result := service.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
+	if result == false {
+		log.Warnf("failed to save update")
+	}
+	return true
+}
+
+func processPullRequest(pullrequest github.PullRequest) bool {
+	// checkout pullrequest
+	num := *pullrequest.Number
+	_, err := exec.Command("git", "fetch", "origin", "refs/pull/"+strconv.Itoa(num)+"/head:pr_"+strconv.Itoa(num)).Output()
+
+	if err != nil {
+		log.Errorf("Failed to fetch pullrequest: %s", err)
+		return false
+	}
+
+	// run pipeline
+	return true
 }

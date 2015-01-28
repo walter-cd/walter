@@ -51,13 +51,15 @@ func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 		return list.New(), err
 	}
 
+	log.Infof("size of pull reqests: %d", len(pullreqs))
 	for _, pullreq := range pullreqs {
-		if *pullreq.State == "Open" && pullreq.UpdatedAt.After(update.Time) {
+		if *pullreq.State == "open" && pullreq.UpdatedAt.After(update.Time) {
+			log.Infof("Adding pullrequest %d", *pullreq.Number)
 			commits.PushBack(pullreq)
 		}
 	}
 
-	// get the latest commit with Commit API
+	// get the latest commit with Commit API if the commit is newer than last update
 	master_commits, _, _ := client.Repositories.ListCommits(
 	self.From, self.Repo, &github.CommitsListOptions{})
 	if master_commits[0].Commit.Author.Date.After(update.Time) {
