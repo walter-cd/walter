@@ -32,6 +32,7 @@ import (
 
 type Walter struct {
 	Engine *engine.Engine
+	Opts *config.Opts
 }
 
 func New(opts *config.Opts) (*Walter, error) {
@@ -47,6 +48,7 @@ func New(opts *config.Opts) (*Walter, error) {
 		MonitorCh: &monitorCh,
 	}
 	return &Walter{
+		Opts: opts,
 		Engine: engine,
 	}, err
 }
@@ -81,6 +83,8 @@ func (e *Walter) runService() bool {
 		commitType := reflect.TypeOf(commit.Value)
 		if commitType.Name() == "RepositoryCommit" {
 			log.Info("found new repository commit")
+			trunkCommit := commit.Value.(github.RepositoryCommit)
+			e.processTrunkCommit(trunkCommit)
 		} else if commitType.Name() == "PullRequest" {
 			log.Info("found new pull request commit")
 			pullreq := commit.Value.(github.PullRequest)
@@ -100,6 +104,25 @@ func (e *Walter) runService() bool {
 		log.Warnf("failed to save update")
 	}
 	return true
+}
+
+func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
+	log.Infof("checkout master branch")
+	_, err := exec.Command("git", "checkout", "master", "-f").Output()
+	if err != nil {
+		log.Errorf("failed to checkout master branch: %s", err)
+		return false
+	}
+	log.Infof("downloading new commit from master")
+	_, err = exec.Command("git", "pull", "origin", "master").Output()
+	if err != nil {
+		log.Errorf("failed to download new commit from master: %s", err)
+		return false
+	}
+	log.Infof("running new commit in master")
+	cloned, _ := New(e.Opts)
+	mediator := cloned.Engine.RunOnce()
+	return !mediator.IsAnyFailure()
 }
 
 func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
@@ -122,6 +145,7 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	}
 
 	// run pipeline
-	mediator := e.Engine.RunOnce()
+	w, _ := New(e.Opts)
+	mediator := w.Engine.RunOnce()
 	return !mediator.IsAnyFailure()
 }
