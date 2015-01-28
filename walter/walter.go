@@ -1,18 +1,18 @@
 /* walter: a deployment pipeline template
- * Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
- * (see CONTRIBUTORS.md)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+* Copyright (C) 2014 Recruit Technologies Co., Ltd. and contributors
+* (see CONTRIBUTORS.md)
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
  */
 package walter
 
@@ -68,7 +68,7 @@ func (e *Walter) runService() bool {
 		log.Warnf("failed to load update: %s", err)
 	}
 	log.Infof("Update date is \"%s\"", update)
-	// get latest commti and pull requests
+	// get latest commit and pull requests
 	log.Info("downloading commits and pull requests...")
 	commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
 	if err != nil {
@@ -84,7 +84,9 @@ func (e *Walter) runService() bool {
 		} else if commitType.Name() == "PullRequest" {
 			log.Info("found new pull request commit")
 			pullreq := commit.Value.(github.PullRequest)
-			processPullRequest(pullreq)
+			if result := e.processPullRequest(pullreq); result == false {
+				return false
+			}
 		} else {
 			log.Errorf("Nothing commit type: %s", commitType)
 		}
@@ -100,16 +102,26 @@ func (e *Walter) runService() bool {
 	return true
 }
 
-func processPullRequest(pullrequest github.PullRequest) bool {
+func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	// checkout pullrequest
 	num := *pullrequest.Number
 	_, err := exec.Command("git", "fetch", "origin", "refs/pull/"+strconv.Itoa(num)+"/head:pr_"+strconv.Itoa(num)).Output()
+
+	defer exec.Command("git", "checkout", "master", "-f").Output() // TODO: make trunk branch configurable
+	defer log.Info("returning master branch...")
 
 	if err != nil {
 		log.Errorf("Failed to fetch pullrequest: %s", err)
 		return false
 	}
 
+	_, err = exec.Command("git", "checkout", "pr_"+strconv.Itoa(num)).Output()
+	if err != nil {
+		log.Errorf("Failed to checkout pullrequest branch (\"%s\") : %s", "pr_"+strconv.Itoa(num), err)
+		return false
+	}
+
 	// run pipeline
-	return true
+	mediator := e.Engine.RunOnce()
+	return !mediator.IsAnyFailure()
 }
