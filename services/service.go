@@ -28,7 +28,7 @@ import (
 )
 
 type Service interface {
-	//Run(list.List)
+	RegisterResult(Result) error
 	GetCommits(update Update) (*list.List, error)
 	GetUpdateFilePath() string
 }
@@ -40,9 +40,9 @@ type Update struct {
 }
 
 type Result struct {
+	State   string
+	SHA     string
 	Message string
-	Success bool
-	Date    time.Time
 }
 
 func LoadLastUpdate(fname string) (Update, error) {

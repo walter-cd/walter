@@ -35,6 +35,30 @@ func (self *GitHubClient) GetUpdateFilePath() string {
 	return self.UpdateFile
 }
 
+func (self *GitHubClient) RegisterResult(result Result) error {
+	t := &oauth.Transport{
+		Token: &oauth.Token{AccessToken: self.Token},
+	}
+	client := github.NewClient(t.Client())
+
+	log.Info("submitting result")
+	repositories := &client.Repositories
+	status, _, err := repositories.CreateStatus(
+		self.From,
+		self.Repo,
+		result.SHA,
+		&github.RepoStatus{
+			State: github.String(result.State),
+			TargetURL: github.String(""),
+			Description: github.String(result.Message),
+	})
+	log.Infof("submit status: %s", status)
+	if err != nil {
+		log.Errorf("failed to register result: %s", err)
+	}
+	return err
+}
+
 func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 	log.Info("getting commits\n");
 	commits := list.New()

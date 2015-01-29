@@ -119,10 +119,29 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 		log.Errorf("failed to download new commit from master: %s", err)
 		return false
 	}
-	log.Infof("running new commit in master")
-	cloned, _ := New(e.Opts)
-	mediator := cloned.Engine.RunOnce()
-	return !mediator.IsAnyFailure()
+	log.Infof("running the latest commit in master")
+	w, _ := New(e.Opts)
+	mediator := w.Engine.RunOnce()
+
+	// register the result to hosting service
+	if mediator.IsAnyFailure() {
+		log.Error("error reported...")
+		e.Engine.Pipeline.RepoService.RegisterResult(
+			services.Result{
+				State:   "failure",
+				Message: "failed running pipleline ...",
+				SHA:     *commit.SHA})
+		return false
+	} else {
+		log.Info("succeeded.")
+		e.Engine.Pipeline.RepoService.RegisterResult(
+			services.Result{
+				State:   "success",
+				Message: "succeeded running pipeline...",
+				SHA:     *commit.SHA})
+		return true
+	}
+
 }
 
 func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
@@ -134,7 +153,7 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	defer log.Info("returning master branch...")
 
 	if err != nil {
-		log.Errorf("Failed to fetch pullrequest: %s", err)
+		log.Errorf("failed to fetch pullrequest: %s", err)
 		return false
 	}
 
@@ -145,7 +164,26 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	}
 
 	// run pipeline
+	log.Info("running pipeline...")
 	w, _ := New(e.Opts)
 	mediator := w.Engine.RunOnce()
-	return !mediator.IsAnyFailure()
+
+	// register the result to hosting service
+	if mediator.IsAnyFailure() {
+		log.Error("error reported...")
+		e.Engine.Pipeline.RepoService.RegisterResult(
+			services.Result{
+				State:   "failure",
+				Message: "failed running pipleline ...",
+				SHA:     *pullrequest.Head.SHA})
+		return false
+	} else {
+		log.Info("succeeded.")
+		e.Engine.Pipeline.RepoService.RegisterResult(
+			services.Result{
+				State:   "success",
+				Message: "succeeded running pipeline...",
+				SHA:     *pullrequest.Head.SHA})
+		return true
+	}
 }

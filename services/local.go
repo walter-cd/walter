@@ -20,6 +20,10 @@ import "container/list"
 
 type LocalClient struct{}
 
+func (self *LocalClient) RegisterResult(result Result) error {
+	return nil
+}
+
 func (self *LocalClient) GetCommits(update Update) (*list.List, error) {
 	return list.New(), nil
 }
