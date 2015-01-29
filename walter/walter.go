@@ -26,7 +26,7 @@ import (
 	"github.com/recruit-tech/walter/config"
 	"github.com/recruit-tech/walter/engine"
 	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/service"
+	"github.com/recruit-tech/walter/services"
 	"github.com/recruit-tech/walter/stages"
 )
 
@@ -65,7 +65,7 @@ func (e *Walter) Run() bool {
 func (e *Walter) runService() bool {
 	// load .walter-update
 	log.Info("loading update file...")
-	update, err := service.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
+	update, err := services.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
 	if err != nil {
 		log.Warnf("failed to load update: %s", err)
 	}
@@ -99,7 +99,7 @@ func (e *Walter) runService() bool {
 	// save .walter-update
 	log.Info("saving update file...")
 	update.Time = time.Now()
-	result := service.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
+	result := services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
 	if result == false {
 		log.Warnf("failed to save update")
 	}

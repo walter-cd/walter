@@ -25,7 +25,7 @@ import (
 	"github.com/recruit-tech/walter/log"
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/pipelines"
-	"github.com/recruit-tech/walter/service"
+	"github.com/recruit-tech/walter/services"
 	"github.com/recruit-tech/walter/stages"
 )
 
@@ -37,7 +37,7 @@ func getStageTypeModuleName(stageType string) string {
 func Parse(configData *map[interface{}]interface{}) (*pipelines.Pipeline, error) {
 	// parse service block
 	serviceOps, ok := (*configData)["service"].(map[interface{}]interface{})
-	var repoService service.Service
+	var repoService services.Service
 	var err error
 	if ok == true {
 		log.Info("Found \"service\" block")
@@ -47,7 +47,7 @@ func Parse(configData *map[interface{}]interface{}) (*pipelines.Pipeline, error)
 		}
 	} else {
 		log.Info("Not found \"service\" block")
-		repoService, err = service.InitService("local")
+		repoService, err = services.InitService("local")
 		if err != nil {
 			return nil, err
 		}
@@ -113,10 +113,10 @@ func mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenge
 	return messenger, nil
 }
 
-func mapService(serviceMap map[interface{}]interface{}) (service.Service, error) {
+func mapService(serviceMap map[interface{}]interface{}) (services.Service, error) {
 	serviceType := serviceMap["type"].(string)
 	log.Info("type of service is " + serviceType)
-	service, err := service.InitService(serviceType)
+	service, err := services.InitService(serviceType)
 	if err != nil {
 		return nil, err
 	}

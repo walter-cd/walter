@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/recruit-tech/walter/messengers"
-	"github.com/recruit-tech/walter/service"
+	"github.com/recruit-tech/walter/services"
 	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
 )
@@ -162,7 +162,7 @@ func TestParseConfWithServiceBlock(t *testing.T) {
           file: ../stages/test_sample.sh
     `))
 	result, err := Parse(configData)
-	service, ok := result.RepoService.(*service.GitHubClient)
+	service, ok := result.RepoService.(*services.GitHubClient)
 	assert.Nil(t, err)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, "xxxx", service.Token)
