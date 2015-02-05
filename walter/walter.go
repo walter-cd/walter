@@ -64,12 +64,19 @@ func (e *Walter) Run() bool {
 
 func (e *Walter) runService() bool {
 	// load .walter-update
-	log.Info("loading update file...")
+	log.Infof("loading update file... \"%s\"", e.Engine.Pipeline.RepoService.GetUpdateFilePath())
 	update, err := services.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
-	if err != nil {
-		log.Warnf("failed to load update: %s", err)
+	log.Infof("succeeded to load update file")
+
+	log.Info("updating status...")
+	update.Status = "inprogress"
+	result := services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
+	if result == false {
+		log.Error("failed to save status update")
+		return false
 	}
-	log.Infof("update date is \"%s\"", update)
+	log.Info("succeeded to update status")
+
 	// get latest commit and pull requests
 	log.Info("downloading commits and pull requests...")
 	commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
@@ -98,10 +105,12 @@ func (e *Walter) runService() bool {
 
 	// save .walter-update
 	log.Info("saving update file...")
+	update.Status = "finished"
 	update.Time = time.Now()
-	result := services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
+	result = services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
 	if result == false {
-		log.Warnf("failed to save update")
+		log.Error("failed to save update")
+		return false
 	}
 	return true
 }

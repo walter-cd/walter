@@ -58,17 +58,19 @@ func TestLoadUpdateInProgress(t *testing.T) {
 	ioutil.WriteFile(tempFile.Name(), *bytes, 0644)
 
 	//	load update
-	update, err := LoadLastUpdate(tempFile.Name())
+	_, err := LoadLastUpdate(tempFile.Name())
 	assert.NotNil(t, err)
 }
 
+func TestLoadUpdateNotExistPath(t *testing.T) {
+	input := "nothing_such_file.json"
+	update, err := LoadLastUpdate(input)
+	defer os.Remove(input)
 
-func TestNotExistPath(t *testing.T) {
-	update, err := LoadLastUpdate("nothing_such_file.json")
-	assert.NotNil(t, err)
+	assert.Nil(t, err) // NOTE: continue the process even when there is no specified file
 	assert.NotNil(t, update)
 	assert.Equal(t, true, update.Succeeded)
-	assert.Equal(t, "finished", update.Status)
+	assert.Equal(t, "inprogress", update.Status)
 }
 
 func TestSaveLastUpdate(t *testing.T) {

@@ -68,8 +68,9 @@ func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 	client := github.NewClient(t.Client())
 
 	// get a list of pull requests with Pull Request API
-	pullreqs, _, err := client.PullRequests.List(self.From, self.Repo,
-			&github.PullRequestListOptions{})
+	pullreqs, _, err := client.PullRequests.List(
+		self.From, self.Repo,
+		&github.PullRequestListOptions{})
 	if err != nil {
 		log.Errorf("failed to get pull requests");
 		return list.New(), err

@@ -48,21 +48,36 @@ type Result struct {
 
 func LoadLastUpdate(fname string) (Update, error) {
 	file, err := ioutil.ReadFile(fname)
+	log.Infof("opening file: \"%s\"...", fname)
 	if err != nil {
-		log.Warnf("no file named \"%s\" exist...", fname)
-		return Update{Time: time.Date(1970, time.November, 10, 15, 0, 0, 0, time.Local), Succeeded: true, Status: "finished" }, err
+		log.Warnf("error occured opening file: \"%s\" ...", fname)
+		log.Warnf(err.Error())
+		log.Warnf("continue the process with the new settings")
+		update := Update{
+			Time: time.Date(1970, time.November, 10, 15, 0, 0, 0, time.Local),
+			Succeeded: true,
+			Status: "inprogress" }
+		return update, nil
 	}
 
 	log.Infof("loading last update form \"%s\"\n", string(file));
 	var update Update
 	if err:= json.Unmarshal(file, &update); err != nil {
 		log.Warnf("failed to load \"%s\" ...", fname)
-		return Update{Time: time.Now(), Succeeded: true, Status: "finished" }, err
+		log.Warnf(err.Error())
+		log.Warnf("continue the process with the new settings")
+		update := Update{
+			Time: time.Now(),
+			Succeeded: true,
+			Status: "inprogress"}
+		return update, nil
 	}
 
 	if update.Status == "inprogress" {
 		return Update{}, errors.New("update is currently run in another process")
 	}
+
+	log.Info("setting update status into \"inprogress\"...");
 	return update, nil
 }
 
