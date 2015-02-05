@@ -69,7 +69,7 @@ func (e *Walter) runService() bool {
 	if err != nil {
 		log.Warnf("failed to load update: %s", err)
 	}
-	log.Infof("Update date is \"%s\"", update)
+	log.Infof("update date is \"%s\"", update)
 	// get latest commit and pull requests
 	log.Info("downloading commits and pull requests...")
 	commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
@@ -141,7 +141,6 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 				SHA:     *commit.SHA})
 		return true
 	}
-
 }
 
 func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {

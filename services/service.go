@@ -17,6 +17,7 @@
 package services
 
 import (
+	"errors"
 	"os"
 	"container/list"
 	"fmt"
@@ -51,11 +52,16 @@ func LoadLastUpdate(fname string) (Update, error) {
 		log.Warnf("no file named \"%s\" exist...", fname)
 		return Update{Time: time.Date(1970, time.November, 10, 15, 0, 0, 0, time.Local), Succeeded: true, Status: "finished" }, err
 	}
+
 	log.Infof("loading last update form \"%s\"\n", string(file));
 	var update Update
 	if err:= json.Unmarshal(file, &update); err != nil {
 		log.Warnf("failed to load \"%s\" ...", fname)
 		return Update{Time: time.Now(), Succeeded: true, Status: "finished" }, err
+	}
+
+	if update.Status == "inprogress" {
+		return Update{}, errors.New("update is currently run in another process")
 	}
 	return update, nil
 }

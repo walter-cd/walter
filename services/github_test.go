@@ -26,14 +26,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func createUpdate(timeStr string, success bool, status string) *[]byte {
+	updateTime, _ := time.Parse(time.RFC3339, timeStr)
+	sample := Update{updateTime, success, status}
+	bytes, _ := json.Marshal(sample)
+	return &bytes
+}
+
 func TestLoadUpdate(t *testing.T) {
 	// save update
 	tempFile, _ := ioutil.TempFile("", "update")
 	defer os.Remove(tempFile.Name())
-	updateTime, _ := time.Parse(time.RFC3339, "2015-01-21T05:05:42Z")
-	sample := Update{updateTime, true, "finished"}
-	bytes, err := json.Marshal(sample)
-	ioutil.WriteFile(tempFile.Name(), bytes, 0644)
+	bytes := createUpdate("2015-01-21T05:05:42Z", true, "finished")
+	ioutil.WriteFile(tempFile.Name(), *bytes, 0644)
 
 	//	load update
 	update, err := LoadLastUpdate(tempFile.Name())
@@ -44,6 +49,19 @@ func TestLoadUpdate(t *testing.T) {
 	expectedTime, _ := time.Parse(time.RFC3339, "2015-01-21T05:05:42Z")
 	assert.Equal(t, expectedTime, update.Time)
 }
+
+func TestLoadUpdateInProgress(t *testing.T) {
+	// save update
+	tempFile, _ := ioutil.TempFile("", "update")
+	defer os.Remove(tempFile.Name())
+	bytes := createUpdate("2015-01-21T05:05:42Z", true, "inprogress")
+	ioutil.WriteFile(tempFile.Name(), *bytes, 0644)
+
+	//	load update
+	update, err := LoadLastUpdate(tempFile.Name())
+	assert.NotNil(t, err)
+}
+
 
 func TestNotExistPath(t *testing.T) {
 	update, err := LoadLastUpdate("nothing_such_file.json")
