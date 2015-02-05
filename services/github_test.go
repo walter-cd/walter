@@ -21,12 +21,22 @@ import (
 	"time"
 	"io/ioutil"
 	"os"
+	"encoding/json"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadUpdate(t *testing.T) {
-	update, err := LoadLastUpdate("update_sample.json") // NOTE the time format need to be RFC3339
+	// save update
+	tempFile, _ := ioutil.TempFile("", "update")
+	defer os.Remove(tempFile.Name())
+	updateTime, _ := time.Parse(time.RFC3339, "2015-01-21T05:05:42Z")
+	sample := Update{updateTime, true, "finished"}
+	bytes, err := json.Marshal(sample)
+	ioutil.WriteFile(tempFile.Name(), bytes, 0644)
+
+	//	load update
+	update, err := LoadLastUpdate(tempFile.Name())
 	assert.Nil(t, err)
 	assert.NotNil(t, update)
 	assert.Equal(t, true, update.Succeeded)
