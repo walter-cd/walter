@@ -42,7 +42,7 @@ func (self *GitHubClient) RegisterResult(result Result) error {
 	client := github.NewClient(t.Client())
 
 	log.Info("submitting result")
-	repositories := &client.Repositories
+	repositories := client.Repositories
 	status, _, err := repositories.CreateStatus(
 		self.From,
 		self.Repo,
