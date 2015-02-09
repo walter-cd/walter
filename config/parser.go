@@ -25,6 +25,7 @@ import (
 	"github.com/recruit-tech/walter/log"
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/pipelines"
+	"github.com/recruit-tech/walter/services"
 	"github.com/recruit-tech/walter/stages"
 )
 
@@ -32,12 +33,29 @@ func getStageTypeModuleName(stageType string) string {
 	return strings.ToLower(stageType)
 }
 
+// TODO: need refactoring
 func Parse(configData *map[interface{}]interface{}) (*pipelines.Pipeline, error) {
-	var pipeline *pipelines.Pipeline
+	// parse service block
+	serviceOps, ok := (*configData)["service"].(map[interface{}]interface{})
+	var repoService services.Service
+	var err error
+	if ok == true {
+		log.Info("Found \"service\" block")
+		repoService, err = mapService(serviceOps)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Info("Not found \"service\" block")
+		repoService, err = services.InitService("local")
+		if err != nil {
+			return nil, err
+		}
+	}
 
+	// parse messenger block
 	messengerOps, ok := (*configData)["messenger"].(map[interface{}]interface{})
 	var messenger messengers.Messenger
-	var err error
 	if ok == true {
 		log.Info("Found messenger block")
 		messenger, err = mapMessenger(messengerOps)
@@ -51,8 +69,10 @@ func Parse(configData *map[interface{}]interface{}) (*pipelines.Pipeline, error)
 			return nil, err
 		}
 	}
-	pipeline = &pipelines.Pipeline{
-		Reporter: messenger,
+
+	// parse pipeline block
+	var pipeline *pipelines.Pipeline = &pipelines.Pipeline{
+		Reporter: messenger, RepoService: repoService,
 	}
 
 	pipelineData, ok := (*configData)["pipeline"].([]interface{})
@@ -91,6 +111,30 @@ func mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenge
 	}
 
 	return messenger, nil
+}
+
+func mapService(serviceMap map[interface{}]interface{}) (services.Service, error) {
+	serviceType := serviceMap["type"].(string)
+	log.Info("type of service is " + serviceType)
+	service, err := services.InitService(serviceType)
+	if err != nil {
+		return nil, err
+	}
+
+	newServiceValue := reflect.ValueOf(service).Elem()
+	newServiceType := reflect.TypeOf(service).Elem()
+	for i := 0; i < newServiceType.NumField(); i++ {
+		tagName := newServiceType.Field(i).Tag.Get("config")
+		for serviceOptKey, serviceOptVal := range serviceMap {
+			if tagName == serviceOptKey {
+				fieldVal := newServiceValue.Field(i)
+				if fieldVal.Type() == reflect.ValueOf("string").Type() {
+					fieldVal.SetString(serviceOptVal.(string))
+				}
+			}
+		}
+	}
+	return service, nil
 }
 
 func convertYamlMapToStages(yamlStageList []interface{}) (*list.List, error) {

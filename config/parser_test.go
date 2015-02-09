@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/recruit-tech/walter/messengers"
+	"github.com/recruit-tech/walter/services"
 	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
 )
@@ -145,4 +146,26 @@ func TestParseConfWithInvalidChildStage(t *testing.T) {
 	result, err := Parse(configData)
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
+}
+
+func TestParseConfWithServiceBlock(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+    service:
+        type: github
+        token: xxxx
+        repo: walter
+        from: yyyy
+        update: .walter-update
+    pipeline:
+        - stage_name: command_stage_1
+          stage_type: shell
+          file: ../stages/test_sample.sh
+    `))
+	result, err := Parse(configData)
+	service, ok := result.RepoService.(*services.GitHubClient)
+	assert.Nil(t, err)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "xxxx", service.Token)
+	assert.Equal(t, "walter", service.Repo)
+	assert.Equal(t, "yyyy", service.From)
 }

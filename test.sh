@@ -36,6 +36,9 @@ go test -v ./engine -race || exit 1
 go test -i ./messengers || exit 1
 go test -v ./messengers -race || exit 1
 
+go test -i ./services || exit 1
+go test -v ./services -race || exit 1
+
 #go test -i ./tests/functional
 #ETCD_BIN_PATH=$(pwd)/bin/walter go test -v ./tests/functional -race
 

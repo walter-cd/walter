@@ -54,13 +54,13 @@ than one stage element.
 The following is a sample configuration of Walter.
 
      pipeline:
-          command_stage_1:
+          - stage_name: command_stage_1
              stage_type: command
              command: echo "hello, world"
-         command_stage_2:
+          - stage_name: command_stage_2
              stage_type: command
              command: echo "hello, world, command_stage_2"
-         command_stage_3:
+          - stage_name: command_stage_3
              stage_type: command
              command: echo "hello, world, command_stage_3"
 
@@ -92,7 +92,7 @@ The following is the parameter of Command stage.
 |:----------------:|:----------:|:--------------------------------------:|
 |   file           | false      | shell script file run in the stage     |
 
-## Report setting
+## Reporting function
 
 Walter supports to submits the messages to messaging services.
 
@@ -102,21 +102,21 @@ To submit a message, users need to add a **messenger** block into the configurat
     messenger:
         type: hipchat
         room_id: ROOM_ID
-	    token: TOKEN
-		from: USER_NAME
+        token: TOKEN
+        from: USER_NAME
 
 To report the result to the specified messenger service added with the above setting,
 users add **message** attribute with **true** into the stage they want to know the results.
 
      pipeline:
-          command_stage_1:
+        - stage_name: command_stage_1
              stage_type: command
              command: echo "hello, world"
-			 message: true
-         command_stage_2:
+             message: true
+        - stage_name: command_stage_2
              stage_type: command
              command: echo "hello, world, command_stage_2"
-			 message: true
+             message: true
 
 ### Report types
 Walter supports HipChat API v1 and v2 as the messenger type.
@@ -126,3 +126,31 @@ Walter supports HipChat API v1 and v2 as the messenger type.
 |   hipchat        |  [HipChat (API v1)](https://www.hipchat.com/docs/api)                                     |
 |   hipchat2       |  [HipChat (API v2)](https://www.hipchat.com/docs/apiv2)                                   |
 |   slack          |  [Slack Incoming Webhook integration](https://my.slack.com/services/new/incoming-webhook) |
+
+
+## Service coordination
+
+Walter provides a coordination function to a project hosting service, GitHub. Specifically the service function provides two roles
+
+- Check if a new commit or pull requests from the repository
+- Run pipeline to the latest commit and pull requests when there are newer ones than the last update
+
+### Service configuration
+To activate service coordination function, we add a "service" block to the Walter configuration file. "service" block contains several elements (type, token, repo, from, update).
+
+    service:
+        type: github
+        token: ADD_YOUR_KEY
+        repo: YOUR_REPOSITORY_NAME
+        from: YOUR_ACCOUNT_OR_GROUP_NAME
+        update: UPDATE_FILE_NAME
+
+The following shows the description of each element.
+
+|  Element  | description                                                                                          |
+|:---------:|:----------------------------------------------------------------------------------------------------:|
+|   type    |  Service type (currently Walter supports github only)                                                |
+|   token   |  GitHub token (see https://help.github.com/articles/creating-an-access-token-for-command-line-use/)  |
+|   repo    |  Repository name                                                                                     |
+|   from    |  Account or organization name (if the repository is own by a organization)                           |
+|   update  |  Update file which contains the result and time of the last execution                                |

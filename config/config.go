@@ -32,6 +32,7 @@ type Opts struct {
 	PipelineFilePath string
 	StopOnAnyFailure bool
 	PrintVersion     bool
+	Mode             string
 }
 
 func LoadOpts(arguments []string) (*Opts, error) {
@@ -40,12 +41,14 @@ func LoadOpts(arguments []string) (*Opts, error) {
 	var printVersion bool
 	var threshold string
 	var log_dir string
+	var mode string
 
 	fs.StringVar(&pipelineFilePath, "c", "./pipeline.yml", "pipeline.yml file")
 	fs.BoolVar(&stopOnAnyFailure, "f", false, "Skip execution of subsequent stage after failing to exec the upstream stage.")
 	fs.BoolVar(&printVersion, "v", false, "Print the version information and exit.")
 	fs.StringVar(&threshold, "threshold", "INFO", "Log events at or above this severity are logged.")
 	fs.StringVar(&log_dir, "log_dir", "", "Log files will be written to this directory.")
+	fs.StringVar(&mode, "mode", "", "Execution mode (local or service).")
 
 	if err := fs.Parse(arguments); err != nil {
 		return nil, err
@@ -61,6 +64,7 @@ func LoadOpts(arguments []string) (*Opts, error) {
 		PipelineFilePath: pipelineFilePath,
 		StopOnAnyFailure: stopOnAnyFailure,
 		PrintVersion:     printVersion,
+		Mode:             mode,
 	}, nil
 }
 
