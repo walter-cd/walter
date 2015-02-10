@@ -51,6 +51,7 @@ func (self *GitHubClient) RegisterResult(result Result) error {
 			State: github.String(result.State),
 			TargetURL: github.String(""),
 			Description: github.String(result.Message),
+		    Context: github.String("continuous-integraion/walter"),
 	})
 	log.Infof("submit status: %s", status)
 	if err != nil {
