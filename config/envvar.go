@@ -18,11 +18,50 @@ package config
 
 import (
 	"os"
+	"regexp"
 	"strings"
 )
 
-//NOTE: maybe env map should be singleton in the future.
-func LoadEnvMap() map[string]string {
+type EnvVariables struct {
+	variables *map[string]string
+	re        *regexp.Regexp
+}
+
+func NewEnvVariables() *EnvVariables {
+	envmap := loadEnvMap()
+	regex_str := "[$]{env.([^ ]+)}"
+	envPattern, _ := regexp.Compile(regex_str)
+	return &EnvVariables{
+		variables: &envmap,
+		re:        envPattern,
+	}
+}
+
+func (self *EnvVariables) Get(vname string) (string, bool) {
+	val, ok := (*self.variables)[vname]
+	return val, ok
+}
+
+func (self *EnvVariables) Add(key string, value string) {
+	(*self.variables)[key] = value
+}
+
+func (self *EnvVariables) Replace(line string) string {
+	ret := (*self.re).ReplaceAllStringFunc(line, self.regexReplace)
+	return ret
+}
+
+func (self *EnvVariables) regexReplace(input string) string {
+	matched := (*self.re).FindStringSubmatch(input)
+	if len(matched) == 2 {
+		if replaced := (*self.variables)[matched[1]]; replaced != "" {
+			return replaced
+		}
+	}
+	return input
+}
+
+func loadEnvMap() map[string]string {
 	envs := make(map[string]string)
 	for _, envVal := range os.Environ() {
 		curEnv := strings.Split(envVal, "=")

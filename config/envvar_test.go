@@ -23,14 +23,42 @@ import (
 )
 
 func TestEnvAccess(t *testing.T) {
-	env := LoadEnvMap()
-	path, ok := env["GOPATH"]
+	envs := NewEnvVariables()
+	path, ok := envs.Get("GOPATH")
 	assert.True(t, ok)
 	assert.True(t, len(path) > 0)
 }
 
 func TestEnvAccessNoExist(t *testing.T) {
-	env := LoadEnvMap()
-	_, ok := env["NO_SUCH_A_ENV_VARIABLE"]
+	envs := NewEnvVariables()
+	_, ok := envs.Get("NO_SUCH_A_ENV_VARIABLE")
 	assert.False(t, ok)
+}
+
+func TestReplaceLineWithEnvVariable(t *testing.T) {
+	envs := NewEnvVariables()
+	envs.Add("SLACK_CHANNEL", "foobar")
+	result := envs.Replace("path: ${env.SLACK_CHANNEL}")
+	assert.Equal(t, "path: foobar", result)
+}
+
+func TestReplaceMultipleItemsLineWithEnvVariable(t *testing.T) {
+	envs := NewEnvVariables()
+	envs.Add("PATH", "/usr/:/usr/local")
+	envs.Add("LOCAL", "en")
+	result := envs.Replace("${env.PATH} is set for ${env.LOCAL}")
+	assert.Equal(t, "/usr/:/usr/local is set for en", result)
+}
+
+func TestReplaceWithoutWhiteSpace(t *testing.T) {
+	envs := NewEnvVariables()
+	envs.Add("PATH", "/usr/:/usr/local")
+	result := envs.Replace("${env.PATH}:/opt")
+	assert.Equal(t, "/usr/:/usr/local:/opt", result)
+}
+
+func TestVoidInput(t *testing.T) {
+	envs := NewEnvVariables()
+	result := envs.Replace("")
+	assert.Equal(t, "", result)
 }
