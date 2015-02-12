@@ -194,7 +194,7 @@ func TestParseConfWithNoExistEnvVariable(t *testing.T) {
 	envs.Add("USER_NAME", "takahi-i")
 	result, err := ParseWithSpecifiedEnvs(configData, envs)
 	actual := result.Stages.Front().Value.(*stages.CommandStage).Command
-	assert.Equal(t, "echo \"hello ${env.NO_SUCH_A_ENV_VARIABLE}\"", actual)
+	assert.Equal(t, "echo \"hello \"", actual) // NOTE: No env variable name is shown when there is no env variable
 	assert.Nil(t, err)
 }
 

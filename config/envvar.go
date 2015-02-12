@@ -20,6 +20,8 @@ import (
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/recruit-tech/walter/log"
 )
 
 type EnvVariables struct {
@@ -56,6 +58,9 @@ func (self *EnvVariables) regexReplace(input string) string {
 	if len(matched) == 2 {
 		if replaced := (*self.variables)[matched[1]]; replaced != "" {
 			return replaced
+		} else {
+			log.Warnf("NO environment variable: %s", matched[0])
+			return ""
 		}
 	}
 	return input
