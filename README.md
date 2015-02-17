@@ -97,7 +97,7 @@ The following is the parameter of Command stage.
 Walter supports to submits the messages to messaging services.
 
 ### Report configuration
-To submit a message, users need to add a **messenger** block into the configuration file. Following is a sample of the yaml block with HipChat.
+To submit a message, users need to add a **messenger** block into the configuration file. The following is a sample of the yaml block with HipChat.
 
     messenger:
         type: hipchat
@@ -127,6 +127,23 @@ Walter supports HipChat API v1 and v2 as the messenger type.
 |   hipchat2       |  [HipChat (API v2)](https://www.hipchat.com/docs/apiv2)                                   |
 |   slack          |  [Slack Incoming Webhook integration](https://my.slack.com/services/new/incoming-webhook) |
 
+### Report configuration
+To activate the report function, we need to specify the properties for messenger type. The needed properties are different in each messenger type.
+
+#### hipchat and hipchat2
+
+|  Property Name   | meaning                                                                                   |
+|:----------------:|:----------------------------------|
+|   room_id        |  Room name                        |
+|   token          |  HipChat token                    |
+|   from           |  Account name                     |
+
+#### slack
+
+|  Property Name   | meaning                                                                                   |
+|:----------------:|:----------------------------------|
+|   channel        |  Channel name                     |
+|   username       |  User name                        |
 
 ## Service coordination
 
@@ -148,9 +165,9 @@ To activate service coordination function, we add a "service" block to the Walte
 The following shows the description of each element.
 
 |  Element  | description                                                                                          |
-|:---------:|:----------------------------------------------------------------------------------------------------:|
+|:---------:|:----------------------------------------------------------------------------------------------------|
 |   type    |  Service type (currently Walter supports github only)                                                |
-|   token   |  GitHub token (see https://help.github.com/articles/creating-an-access-token-for-command-line-use/)  |
+|   token   |  [GitHub token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/)  |
 |   repo    |  Repository name                                                                                     |
 |   from    |  Account or organization name (if the repository is own by a organization)                           |
 |   update  |  Update file which contains the result and time of the last execution                                |
