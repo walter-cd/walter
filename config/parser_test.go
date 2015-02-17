@@ -169,3 +169,54 @@ func TestParseConfWithServiceBlock(t *testing.T) {
 	assert.Equal(t, "walter", service.Repo)
 	assert.Equal(t, "yyyy", service.From)
 }
+
+func TestParseConfWithEnvVariable(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      command: echo "hello ${env.USER_NAME}-san"
+`))
+
+	envs := NewEnvVariables()
+	envs.Add("USER_NAME", "takahi-i")
+	result, err := ParseWithSpecifiedEnvs(configData, envs)
+	actual := result.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello takahi-i-san\"", actual)
+	assert.Nil(t, err)
+}
+
+func TestParseConfWithNoExistEnvVariable(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      command: echo "hello ${env.NO_SUCH_A_ENV_VARIABLE}"
+`))
+
+	envs := NewEnvVariables()
+	envs.Add("USER_NAME", "takahi-i")
+	result, err := ParseWithSpecifiedEnvs(configData, envs)
+	actual := result.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello \"", actual) // NOTE: No env variable name is shown when there is no env variable
+	assert.Nil(t, err)
+}
+
+func TestParseMessengerConfWithEnvVariable(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+    messenger:
+           type: hipchat
+           room_id: foobar
+           token: ${env.HIPCHAT_TOKEN}
+           from: yyyy
+    pipeline:
+        - stage_name: command_stage_1
+          stage_type: shell
+          file: ../stages/test_sample.sh
+`))
+	envs := NewEnvVariables()
+	envs.Add("HIPCHAT_TOKEN", "this-token-is-very-secret")
+	result, err := ParseWithSpecifiedEnvs(configData, envs)
+	messenger, ok := result.Reporter.(*messengers.HipChat)
+	assert.Nil(t, err)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "foobar", messenger.RoomId)
+	assert.Equal(t, "this-token-is-very-secret", messenger.Token)
+	assert.Equal(t, "yyyy", messenger.From)
+}

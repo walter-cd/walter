@@ -154,3 +154,23 @@ The following shows the description of each element.
 |   repo    |  Repository name                                                                                     |
 |   from    |  Account or organization name (if the repository is own by a organization)                           |
 |   update  |  Update file which contains the result and time of the last execution                                |
+
+## Embedding of Environment Variables
+
+Users add environment variables in Walter configuration files. The names of environment variables are expanted into the the values of environment variables.
+Environment variables in the configuration files are valuable when we need to write the sensitive information such as
+tokens of messenger service or passwords of a external systems.
+
+The following is the format of embedding of the environment variables.
+
+     ${env.ENV_NAME}
+
+We write the envrionment variable into **ENV_NAME**. The following configuration file specify the GitHub Token by embedding the environment variable, GITHUB_TOKEN.
+
+    service:
+        type: github
+        token: ${env.GITHUB_TOKEN}
+        repo: my-service-repository
+        from: service-group
+        update: .walter
+
