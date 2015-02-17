@@ -54,10 +54,15 @@ func New(opts *config.Opts) (*Walter, error) {
 }
 
 func (e *Walter) Run() bool {
-	if e.Engine.Opts.Mode == "local" {
+	repoServiceValue := reflect.ValueOf(e.Engine.Pipeline.RepoService)
+	log.Info(repoServiceValue.Type().String())
+	if e.Engine.Opts.Mode == "local" ||
+		repoServiceValue.Type().String() == "*services.LocalClient" {
+		log.Info("start walter in local mode")
 		mediator := e.Engine.RunOnce()
 		return !mediator.IsAnyFailure()
 	} else {
+		log.Info("start walter in repository service mode")
 		return e.runService()
 	}
 }
