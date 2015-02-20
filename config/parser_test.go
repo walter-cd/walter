@@ -173,21 +173,21 @@ func TestParseConfWithServiceBlock(t *testing.T) {
 func TestParseConfWithEnvVariable(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
     - stage_name: command_stage_1
-      command: echo "hello ${env.USER_NAME}-san"
+      command: echo "hello $USER_NAME"
 `))
 
 	envs := NewEnvVariables()
 	envs.Add("USER_NAME", "takahi-i")
 	result, err := ParseWithSpecifiedEnvs(configData, envs)
 	actual := result.Stages.Front().Value.(*stages.CommandStage).Command
-	assert.Equal(t, "echo \"hello takahi-i-san\"", actual)
+	assert.Equal(t, "echo \"hello takahi-i\"", actual)
 	assert.Nil(t, err)
 }
 
 func TestParseConfWithNoExistEnvVariable(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
     - stage_name: command_stage_1
-      command: echo "hello ${env.NO_SUCH_A_ENV_VARIABLE}"
+      command: echo "hello $NO_SUCH_A_ENV_VARIABLE"
 `))
 
 	envs := NewEnvVariables()
@@ -203,7 +203,7 @@ func TestParseMessengerConfWithEnvVariable(t *testing.T) {
     messenger:
            type: hipchat
            room_id: foobar
-           token: ${env.HIPCHAT_TOKEN}
+           token: $HIPCHAT_TOKEN
            from: yyyy
     pipeline:
         - stage_name: command_stage_1

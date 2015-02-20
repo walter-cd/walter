@@ -180,13 +180,13 @@ tokens of messenger service or passwords of a external systems.
 
 The following is the format of embedding of the environment variables.
 
-     ${env.ENV_NAME}
+     $ENV_NAME
 
 We write the envrionment variable into **ENV_NAME**. The following configuration file specify the GitHub Token by embedding the environment variable, GITHUB_TOKEN.
 
     service:
         type: github
-        token: ${env.GITHUB_TOKEN}
+        token: $GITHUB_TOKEN
         repo: my-service-repository
         from: service-group
         update: .walter
