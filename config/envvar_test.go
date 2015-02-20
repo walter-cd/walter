@@ -38,7 +38,7 @@ func TestEnvAccessNoExist(t *testing.T) {
 func TestReplaceLineWithEnvVariable(t *testing.T) {
 	envs := NewEnvVariables()
 	envs.Add("SLACK_CHANNEL", "foobar")
-	result := envs.Replace("path: ${env.SLACK_CHANNEL}")
+	result := envs.Replace("path: $SLACK_CHANNEL")
 	assert.Equal(t, "path: foobar", result)
 }
 
@@ -46,14 +46,14 @@ func TestReplaceMultipleItemsLineWithEnvVariable(t *testing.T) {
 	envs := NewEnvVariables()
 	envs.Add("PATH", "/usr/:/usr/local")
 	envs.Add("LOCAL", "en")
-	result := envs.Replace("${env.PATH} is set for ${env.LOCAL}")
+	result := envs.Replace("$PATH is set for $LOCAL")
 	assert.Equal(t, "/usr/:/usr/local is set for en", result)
 }
 
 func TestReplaceWithoutWhiteSpace(t *testing.T) {
 	envs := NewEnvVariables()
 	envs.Add("PATH", "/usr/:/usr/local")
-	result := envs.Replace("${env.PATH}:/opt")
+	result := envs.Replace("$PATH:/opt")
 	assert.Equal(t, "/usr/:/usr/local:/opt", result)
 }
 

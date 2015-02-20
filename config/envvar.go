@@ -31,7 +31,7 @@ type EnvVariables struct {
 
 func NewEnvVariables() *EnvVariables {
 	envmap := loadEnvMap()
-	regex_str := "[$]{env.([^ ]+)}"
+	regex_str := "[$]([a-zA-Z_]+)"
 	envPattern, _ := regexp.Compile(regex_str)
 	return &EnvVariables{
 		variables: &envmap,
