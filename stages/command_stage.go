@@ -38,7 +38,8 @@ func (self *CommandStage) GetStdoutResult() string {
 
 func (self *CommandStage) Run() bool {
 	cmd := exec.Command("sh", "-c", self.Command)
-	log.Infof("[command] exec: %s", self.Command)
+	log.Infof("[command] exec: %s", self.BaseStage.StageName)
+	log.Debugf("[command] command literal: %s", self.Command)
 	cmd.Dir = self.Directory
 	out, err := cmd.StdoutPipe()
 	outE, errE := cmd.StderrPipe()

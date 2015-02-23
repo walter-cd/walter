@@ -33,7 +33,8 @@ func (self *ShellScriptStage) preCheck() bool {
 }
 
 func (self *ShellScriptStage) Run() bool {
-	log.Infof("[shell] %s", self.File)
+	log.Infof("[shell] exec: %s", self.BaseStage.StageName)
+	log.Debugf("[shell] specified file: %s\n", self.File)
 	if self.preCheck() == false {
 		log.Infof("failed preCheck before running script...")
 		return false
