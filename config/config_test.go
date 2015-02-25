@@ -31,8 +31,8 @@ func TestReadConfig(t *testing.T) {
 func TestReadConfigBytes(t *testing.T) {
 	configStr :=
 		`pipeline:
-    - stage_name: command_stage_1
-      stage_type: command
+    - name: command_stage_1
+      type: command
       command: echo "hello, world"
 `
 	configBytes := []byte(configStr)
@@ -45,8 +45,8 @@ func TestReadConfigBytes(t *testing.T) {
 func TestReadConfigWithDirectory(t *testing.T) {
 	configStr :=
 		`pipeline:
-    - stage_name: command_stage_1
-      stage_type: command
+    - name: command_stage_1
+      type: command
       command: echo "hello, world"
       directory: /user/local/bin
 `
@@ -60,15 +60,15 @@ func TestReadConfigWithDirectory(t *testing.T) {
 func TestReadConfigWithChildren(t *testing.T) {
 	configStr :=
 		`pipeline:
-    - stage_name: command_stage_1
-      stage_type: command
+    - name: command_stage_1
+      type: command
       command: echo "hello, world"
       run_after:
-          -  stage_name: command_stage_2_group_1
-             stage_type: command
+          -  name: command_stage_2_group_1
+             type: command
              command: echo "hello, world, command_stage_2_group_1"
-    - stage_name: command_stage_3
-      stage_type: command
+    - name: command_stage_3
+      type: command
       command: echo "hello, world"1
 `
 	configBytes := []byte(configStr)
