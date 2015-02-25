@@ -187,7 +187,7 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 			if tagName == stageOptKey {
 				fieldVal := newStageValue.Field(i)
 				if fieldVal.Type() == reflect.ValueOf("string").Type() {
-					fieldVal.SetString(envs.Replace(stageOptVal.(string)))
+					fieldVal.SetString(stageOptVal.(string))
 				}
 			}
 		}
