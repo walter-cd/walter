@@ -2,23 +2,23 @@ global:
     dummyOpt: true
 
 pipeline:
-    - stage_name: command_stage_1
-      stage_type: command
+    - name: command_stage_1
+      type: command
       command: echo "hello, world"
       run_after:
-          -  stage_name: command_stage_2_group_1
-             stage_type: command
+          -  name: command_stage_2_group_1
+             type: command
              command: echo "hello, world, command_stage_2_group_1"
-          -  stage_name: command_stage_3_group_1
-             stage_type: command
+          -  name: command_stage_3_group_1
+             type: command
              command: echo "hello, world, command_stage_3_group_1"
              run_after:
-                  -  stage_name: command_stage_3_group_2
-                     stage_type: command
+                  -  name: command_stage_3_group_2
+                     type: command
                      command: echo "hello, world, command_stage_3_group_2"
-    - stage_name: command_stage_4
-      stage_type: command
+    - name: command_stage_4
+      type: command
       command: echo "hello, world" && sleep 1
-    - stage_name: command_stage_5
-      stage_type: command
+    - name: command_stage_5
+      type: command
       command: echo "hello, world, command_stage_3_group_1"

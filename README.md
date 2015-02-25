@@ -54,28 +54,28 @@ than one stage element.
 The following is a sample configuration of Walter.
 
      pipeline:
-          - stage_name: command_stage_1
-             stage_type: command
-             command: echo "hello, world"
-          - stage_name: command_stage_2
-             stage_type: command
-             command: echo "hello, world, command_stage_2"
-          - stage_name: command_stage_3
-             stage_type: command
-             command: echo "hello, world, command_stage_3"
+          - name: command_stage_1
+            type: command
+            command: echo "hello, world"
+          - name: command_stage_2
+            type: command
+            command: echo "hello, world, command_stage_2"
+          - name: command_stage_3
+            type: command
+            command: echo "hello, world, command_stage_3"
 
 As we see, the pipeline block has three stages and the stage type is command, each of which run **echo** command and has the stage name
 (such as **command_stage_1**). User can name arbitrary name of each stage. The commands are executed with the same order as the pipeline configuration.
 
 ### Stage setting
 
-Stage in pipeline has three elements, **name** **stage_type** and the **configurations** if needed. The configurations depend on the stage_type.
+Stage in pipeline has three elements, **name**, **type** and **configurations**. configuration elements are optional. The elements of configurations depend on the type.
 For example command_stage type has **command** configuration, which specify the shell command run in the stage.
-The following is the table on the stage_type and the parameters.
+The following is the table on the type and the parameters.
 
 #### Command stage
 
-Command stage executes one command. Users specify Command stage adding **command** in stage_type.
+Command stage executes one command. Users specify Command stage adding **command** in type.
 
 The following is the parameter of Command stage.
 
@@ -84,7 +84,7 @@ The following is the parameter of Command stage.
 |   command      | false      | shell command run in the stage         |
 
 #### Shell script stage
-Command stage executes specified shell script file. Users specify Command stage adding **shell** in stage_type.
+Command stage executes specified shell script file. Users specify Command stage adding **shell** in type.
 
 The following is the parameter of Command stage.
 
@@ -109,14 +109,14 @@ To report the result to the specified messenger service added with the above set
 users add **message** attribute with **true** into the stage they want to know the results.
 
      pipeline:
-        - stage_name: command_stage_1
-             stage_type: command
-             command: echo "hello, world"
-             message: true
-        - stage_name: command_stage_2
-             stage_type: command
-             command: echo "hello, world, command_stage_2"
-             message: true
+        - name: command_stage_1
+          type: command
+          command: echo "hello, world"
+          message: true
+        - name: command_stage_2
+          type: command
+          command: echo "hello, world, command_stage_2"
+          message: true
 
 ### Report types
 Walter supports HipChat API v1 and v2 as the messenger type.
@@ -172,7 +172,7 @@ The following shows the description of each element.
 |   from    |  Account or organization name (if the repository is own by a organization)                           |
 |   update  |  Update file which contains the result and time of the last execution                                |
 
-## Embedding of Environment Variables
+## Embedding Environment Variables
 
 Users add environment variables in Walter configuration files. The names of environment variables are expanted into the the values of environment variables.
 Environment variables in the configuration files are valuable when we need to write the sensitive information such as

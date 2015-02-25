@@ -46,13 +46,13 @@ func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 	var repoService services.Service
 	var err error
 	if ok == true {
-		log.Info("Found \"service\" block")
+		log.Info("found \"service\" block")
 		repoService, err = mapService(serviceOps, envs)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		log.Info("Not found \"service\" block")
+		log.Info("not found \"service\" block")
 		repoService, err = services.InitService("local")
 		if err != nil {
 			return nil, err
@@ -63,13 +63,13 @@ func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 	messengerOps, ok := (*configData)["messenger"].(map[interface{}]interface{})
 	var messenger messengers.Messenger
 	if ok == true {
-		log.Info("Found messenger block")
+		log.Info("found messenger block")
 		messenger, err = mapMessenger(messengerOps, envs)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		log.Info("Not found messenger block")
+		log.Info("not found messenger block")
 		messenger, err = messengers.InitMessenger("fake")
 		if err != nil {
 			return nil, err
@@ -83,7 +83,7 @@ func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 
 	pipelineData, ok := (*configData)["pipeline"].([]interface{})
 	if ok == false {
-		return nil, fmt.Errorf("No pipeline block in the input file")
+		return nil, fmt.Errorf("no pipeline block in the input file")
 	}
 	stageList, err := convertYamlMapToStages(pipelineData, envs)
 	if err != nil {
@@ -159,7 +159,11 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 	log.Debugf("%v", stageMap["run_after"])
 
 	var stageType string = "command"
-	if stageMap["stage_type"] != nil {
+	if stageMap["type"] != nil {
+		stageType = stageMap["type"].(string)
+	} else if stageMap["stage_type"] != nil {
+		log.Warn("found property \"stage_type\"")
+		log.Warn("property \"stage_type\" is deprecated. please use \"type\" instead.")
 		stageType = stageMap["stage_type"].(string)
 	}
 	stage, err := stages.InitStage(stageType)
@@ -169,7 +173,11 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 	newStageValue := reflect.ValueOf(stage).Elem()
 	newStageType := reflect.TypeOf(stage).Elem()
 
-	if stageName := stageMap["stage_name"]; stageName != nil {
+	if stageName := stageMap["name"]; stageName != nil {
+		stage.SetStageName(stageMap["name"].(string))
+	} else if stageName := stageMap["stage_name"]; stageName != nil {
+		log.Warn("found property \"stage_name\"")
+		log.Warn("property \"stage_name\" is deprecated. please use \"stage\" instead.")
 		stage.SetStageName(stageMap["stage_name"].(string))
 	}
 

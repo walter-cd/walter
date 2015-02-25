@@ -27,7 +27,7 @@ type BaseStage struct {
 	InputCh     *chan Mediator
 	OutputCh    *chan Mediator
 	ChildStages list.List
-	StageName   string `config:"stage_name"`
+	StageName   string `config:"name"`
 }
 
 func (b *BaseStage) Run() bool {

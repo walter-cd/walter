@@ -49,15 +49,15 @@ func TestParseVoid(t *testing.T) {
 
 func TestParseConfWithChildren(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
-      stage_type: command
+    - name: command_stage_1
+      type: command
       command: echo "hello, world"
       run_after:
-          -  stage_name: command_stage_2_group_1
-             stage_type: command
+          -  name: command_stage_2_group_1
+             type: command
              command: echo "hello, world, command_stage_2_group_1"
-          -  stage_name: command_stage_3_group_1
-             stage_type: command
+          -  name: command_stage_3_group_1
+             type: command
              command: echo "hello, world, command_stage_3_group_1"`))
 	result, err := Parse(configData)
 	assert.Equal(t, 1, result.Size())
@@ -69,7 +69,7 @@ func TestParseConfWithChildren(t *testing.T) {
 
 func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
+    - name: command_stage_1
       command: echo "hello, world"
 `))
 	result, err := Parse(configData)
@@ -80,8 +80,8 @@ func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
 
 func TestParseConfWithDirectory(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
-      stage_type: command
+    - name: command_stage_1
+      type: command
       command: ls -l
       directory: /usr/local
 `))
@@ -93,8 +93,8 @@ func TestParseConfWithDirectory(t *testing.T) {
 
 func TestParseConfWithShellScriptStage(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
-      stage_type: shell
+    - name: command_stage_1
+      type: shell
       file: ../stages/test_sample.sh
 `))
 	result, err := Parse(configData)
@@ -111,8 +111,8 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
            token: xxxx
            from: yyyy
     pipeline:
-        - stage_name: command_stage_1
-          stage_type: shell
+        - name: command_stage_1
+          type: shell
           file: ../stages/test_sample.sh
 `))
 	result, err := Parse(configData)
@@ -126,8 +126,8 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
 
 func TestParseConfWithInvalidStage(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
-      stage_type: xxxxx
+    - name: command_stage_1
+      type: xxxxx
 `))
 	result, err := Parse(configData)
 	assert.Nil(t, result)
@@ -136,12 +136,12 @@ func TestParseConfWithInvalidStage(t *testing.T) {
 
 func TestParseConfWithInvalidChildStage(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
-      stage_type: command
+    - name: command_stage_1
+      type: command
       command: echo "hello, world"
       run_after:
-          -  stage_name: command_stage_2_group_1
-             stage_type: xxxxx
+          -  name: command_stage_2_group_1
+             type: xxxxx
 `))
 	result, err := Parse(configData)
 	assert.Nil(t, result)
@@ -157,8 +157,8 @@ func TestParseConfWithServiceBlock(t *testing.T) {
         from: yyyy
         update: .walter-update
     pipeline:
-        - stage_name: command_stage_1
-          stage_type: shell
+        - name: command_stage_1
+          type: shell
           file: ../stages/test_sample.sh
     `))
 	result, err := Parse(configData)
@@ -172,7 +172,7 @@ func TestParseConfWithServiceBlock(t *testing.T) {
 
 func TestParseConfWithEnvVariable(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
+    - name: command_stage_1
       command: echo "hello $USER_NAME"
 `))
 
@@ -186,7 +186,7 @@ func TestParseConfWithEnvVariable(t *testing.T) {
 
 func TestParseConfWithNoExistEnvVariable(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
-    - stage_name: command_stage_1
+    - name: command_stage_1
       command: echo "hello $NO_SUCH_A_ENV_VARIABLE"
 `))
 
@@ -206,8 +206,8 @@ func TestParseMessengerConfWithEnvVariable(t *testing.T) {
            token: $HIPCHAT_TOKEN
            from: yyyy
     pipeline:
-        - stage_name: command_stage_1
-          stage_type: shell
+        - name: command_stage_1
+          type: shell
           file: ../stages/test_sample.sh
 `))
 	envs := NewEnvVariables()
@@ -219,4 +219,17 @@ func TestParseMessengerConfWithEnvVariable(t *testing.T) {
 	assert.Equal(t, "foobar", messenger.RoomId)
 	assert.Equal(t, "this-token-is-very-secret", messenger.Token)
 	assert.Equal(t, "yyyy", messenger.From)
+}
+
+func TestParseConfigWithDeprecatedProperties(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - stage_name: command_stage_1
+      stage_type: command
+      command: echo "hello, world"
+`))
+	result, err := Parse(configData)
+	assert.Equal(t, 1, result.Size())
+	assert.Nil(t, err)
+	actual := result.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello, world\"", actual)
 }
