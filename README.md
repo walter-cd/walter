@@ -79,9 +79,10 @@ Command stage executes one command. Users specify Command stage adding **command
 
 The following is the parameter of Command stage.
 
-|  Configuration | Optional   | meaning                                |
-|:--------------:|:----------:|:--------------------------------------:|
-|   command      | false      | shell command run in the stage         |
+|  Configuration | Optional   | meaning                                                                     |
+|:--------------:|:----------:|:----------------------------------------------------------------------------|
+|   command      | false      | shell command run in the stage                                              |
+|   only_if      | true       | run specified command on when the condition written in only_if is satisfied |
 
 #### Shell script stage
 Command stage executes specified shell script file. Users specify Command stage adding **shell** in type.

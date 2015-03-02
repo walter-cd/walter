@@ -28,6 +28,7 @@ type CommandStage struct {
 	BaseStage
 	Command   string `config:"command"`
 	Directory string `config:"directory"`
+	OnlyIf    string `config:"only_if"`
 	OutResult string
 	ErrResult string
 }
@@ -37,42 +38,94 @@ func (self *CommandStage) GetStdoutResult() string {
 }
 
 func (self *CommandStage) Run() bool {
-	cmd := exec.Command("sh", "-c", self.Command)
-	log.Infof("[command] exec: %s", self.BaseStage.StageName)
-	log.Debugf("[command] command literal: %s", self.Command)
+	// Check OnlyIf
+	if self.runOnlyIf() == false {
+		log.Warnf("[command] exec: skipped stage \"%s\", since only_if condition failed", self.BaseStage.StageName)
+		return false
+	}
+
+	// Run command
+	return self.runCommand()
+}
+
+func (self *CommandStage) runOnlyIf() bool {
+	if self.OnlyIf == "" {
+		log.Infof("[command] only_if: %s stage does not have \"only_if\" attribute", self.BaseStage.StageName)
+		return true
+	}
+
+	cmd := exec.Command("sh", "-c", self.OnlyIf)
+	log.Infof("[command] only_if: %s", self.BaseStage.StageName)
+	log.Debugf("[command] only_if literal: %s", self.OnlyIf)
 	cmd.Dir = self.Directory
 	out, err := cmd.StdoutPipe()
 	outE, errE := cmd.StderrPipe()
 
 	if err != nil {
-		log.Errorf("[command] err: %s", out)
-		log.Errorf("[command] err: %s", err)
+		log.Errorf("[command] only_if err: %s", out)
+		log.Errorf("[command] only_if err: %s", err)
 		return false
 	}
 
 	if errE != nil {
-		log.Errorf("[command] err: %s", outE)
-		log.Errorf("[command] err: %s", errE)
+		log.Errorf("[command] only_if err: %s", outE)
+		log.Errorf("[command] only_if err: %s", errE)
 		return false
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		log.Errorf("[command] err: %s", err)
+		log.Errorf("[command] only_if err: %s", err)
 		return false
 	}
-	self.OutResult = copyStream(out)
-	self.ErrResult = copyStream(outE)
+	self.OutResult = copyStream(out, "only_if")
+	self.ErrResult = copyStream(outE, "only_if")
 
 	err = cmd.Wait()
 	if err != nil {
-		log.Errorf("[command] err: %s", err)
+		log.Errorf("[command] only_if err: %s", err)
 		return false
 	}
 	return true
 }
 
-func copyStream(reader io.Reader) string {
+func (self *CommandStage) runCommand() bool {
+	cmd := exec.Command("sh", "-c", self.Command)
+	log.Infof("[command] exec: %s", self.BaseStage.StageName)
+	log.Debugf("[command] exec command literal: %s", self.Command)
+	cmd.Dir = self.Directory
+	out, err := cmd.StdoutPipe()
+	outE, errE := cmd.StderrPipe()
+
+	if err != nil {
+		log.Errorf("[command] exec err: %s", out)
+		log.Errorf("[command] exec err: %s", err)
+		return false
+	}
+
+	if errE != nil {
+		log.Errorf("[command] exec err: %s", outE)
+		log.Errorf("[command] exec err: %s", errE)
+		return false
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		log.Errorf("[command] exec err: %s", err)
+		return false
+	}
+	self.OutResult = copyStream(out, "exec")
+	self.ErrResult = copyStream(outE, "exec")
+
+	err = cmd.Wait()
+	if err != nil {
+		log.Errorf("[command] exec err: %s", err)
+		return false
+	}
+	return true
+}
+
+func copyStream(reader io.Reader, prefix string) string {
 	var err error
 	var n int
 	var buffer bytes.Buffer
@@ -82,7 +135,7 @@ func copyStream(reader io.Reader) string {
 			break
 		}
 		buffer.Write(tmpBuf[0:n])
-		log.Infof("[command] output: %s", tmpBuf[0:n])
+		log.Infof("[command] %s output: %s", prefix, tmpBuf[0:n])
 	}
 	if err == io.EOF {
 		err = nil
