@@ -50,43 +50,15 @@ func (self *CommandStage) Run() bool {
 
 func (self *CommandStage) runOnlyIf() bool {
 	if self.OnlyIf == "" {
-		log.Infof("[command] only_if: %s stage does not have \"only_if\" attribute", self.BaseStage.StageName)
 		return true
 	}
-
+	log.Infof("[command] only_if: found \"only_if\" attribute", self.BaseStage.StageName)
 	cmd := exec.Command("sh", "-c", self.OnlyIf)
 	log.Infof("[command] only_if: %s", self.BaseStage.StageName)
 	log.Debugf("[command] only_if literal: %s", self.OnlyIf)
 	cmd.Dir = self.Directory
-	out, err := cmd.StdoutPipe()
-	outE, errE := cmd.StderrPipe()
-
-	if err != nil {
-		log.Errorf("[command] only_if err: %s", out)
-		log.Errorf("[command] only_if err: %s", err)
-		return false
-	}
-
-	if errE != nil {
-		log.Errorf("[command] only_if err: %s", outE)
-		log.Errorf("[command] only_if err: %s", errE)
-		return false
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		log.Errorf("[command] only_if err: %s", err)
-		return false
-	}
-	self.OutResult = copyStream(out, "only_if")
-	self.ErrResult = copyStream(outE, "only_if")
-
-	err = cmd.Wait()
-	if err != nil {
-		log.Errorf("[command] only_if err: %s", err)
-		return false
-	}
-	return true
+	result, _, _ := execCommand(cmd)
+	return result
 }
 
 func (self *CommandStage) runCommand() bool {
@@ -94,35 +66,42 @@ func (self *CommandStage) runCommand() bool {
 	log.Infof("[command] exec: %s", self.BaseStage.StageName)
 	log.Debugf("[command] exec command literal: %s", self.Command)
 	cmd.Dir = self.Directory
+	result, outResult, errResult := execCommand(cmd)
+	self.OutResult = *outResult
+	self.ErrResult = *errResult
+	return result
+}
+
+func execCommand(cmd *exec.Cmd) (bool, *string, *string) {
 	out, err := cmd.StdoutPipe()
 	outE, errE := cmd.StderrPipe()
 
 	if err != nil {
 		log.Errorf("[command] exec err: %s", out)
 		log.Errorf("[command] exec err: %s", err)
-		return false
+		return false, nil, nil
 	}
 
 	if errE != nil {
 		log.Errorf("[command] exec err: %s", outE)
 		log.Errorf("[command] exec err: %s", errE)
-		return false
+		return false, nil, nil
 	}
 
 	err = cmd.Start()
 	if err != nil {
 		log.Errorf("[command] exec err: %s", err)
-		return false
+		return false, nil, nil
 	}
-	self.OutResult = copyStream(out, "exec")
-	self.ErrResult = copyStream(outE, "exec")
+	outResult := copyStream(out, "exec")
+	errResult := copyStream(outE, "exec")
 
 	err = cmd.Wait()
 	if err != nil {
 		log.Errorf("[command] exec err: %s", err)
-		return false
+		return false, &outResult, &errResult
 	}
-	return true
+	return true, &outResult, &errResult
 }
 
 func copyStream(reader io.Reader, prefix string) string {
