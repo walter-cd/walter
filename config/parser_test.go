@@ -184,6 +184,18 @@ func TestParseConfWithEnvVariable(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestParseConfWithEnvVariableInDirectoryAttribute(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - name: command_stage_1
+      command: echo "hello walter"
+      directory: $HOME
+`))
+
+	envs := NewEnvVariables()
+	_, err := ParseWithSpecifiedEnvs(configData, envs) // confirm not to be panic
+	assert.Nil(t, err)
+}
+
 func TestParseConfWithNoExistEnvVariable(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1

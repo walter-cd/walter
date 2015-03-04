@@ -26,9 +26,9 @@ import (
 
 type CommandStage struct {
 	BaseStage
-	Command   string `config:"command"`
-	Directory string `config:"directory"`
-	OnlyIf    string `config:"only_if"`
+	Command   string `config:"command" is_replace:"false"`
+	Directory string `config:"directory" is_replace:"true"`
+	OnlyIf    string `config:"only_if" is_replace:"false"`
 	OutResult string
 	ErrResult string
 }
@@ -56,7 +56,7 @@ func (self *CommandStage) runOnlyIf() bool {
 	if self.OnlyIf == "" {
 		return true
 	}
-	log.Infof("[command] only_if: found \"only_if\" attribute", self.BaseStage.StageName)
+	log.Infof("[command] only_if: found \"only_if\" attribute in stage \"%s\"", self.BaseStage.StageName)
 	cmd := exec.Command("sh", "-c", self.OnlyIf)
 	log.Infof("[command] only_if: %s", self.BaseStage.StageName)
 	log.Debugf("[command] only_if literal: %s", self.OnlyIf)
