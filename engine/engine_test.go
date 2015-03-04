@@ -41,17 +41,22 @@ func createShellScriptStage(name string, fileName string) *stages.ShellScriptSta
 	}
 }
 
-func createCommandStageWithName(name string, command string) *stages.CommandStage {
+func createCommandStageWithOnlyIf(name string, command string, only_if string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
 	return &stages.CommandStage{
 		Command: command,
+		OnlyIf:  only_if,
 		BaseStage: stages.BaseStage{
 			StageName: name,
 			InputCh:   &in,
 			OutputCh:  &out,
 		},
 	}
+}
+
+func createCommandStageWithName(name string, command string) *stages.CommandStage {
+	return createCommandStageWithOnlyIf(name, command, "")
 }
 
 func createCommandStage(command string) *stages.CommandStage {
@@ -168,6 +173,52 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 
 	assert.Equal(t, "true", m.States["echo foobar2"])
 	assert.Equal(t, true, m.IsAnyFailure())
+}
+
+func TestRunOnceWithOnlyIfFailure(t *testing.T) {
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+	}
+	pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -lt 1"))
+	pipeline.AddStage(createCommandStageWithName("second", "echo second"))
+	pipeline.AddStage(createCommandStageWithName("third", "echo third"))
+	monitorCh := make(chan stages.Mediator)
+	o := &config.Opts{}
+	engine := &Engine{
+		Pipeline:  pipeline,
+		MonitorCh: &monitorCh,
+		Opts:      o,
+	}
+	m := engine.RunOnce()
+
+	assert.Equal(t, 3, len(m.States))
+	assert.Equal(t, "true", m.States["first"])
+	assert.Equal(t, "true", m.States["second"])
+	assert.Equal(t, "true", m.States["third"])
+	assert.Equal(t, false, m.IsAnyFailure())
+}
+
+func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+	}
+	pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -eq 1"))
+	pipeline.AddStage(createCommandStageWithName("second", "echo second"))
+	pipeline.AddStage(createCommandStageWithName("third", "echo third"))
+	monitorCh := make(chan stages.Mediator)
+	o := &config.Opts{}
+	engine := &Engine{
+		Pipeline:  pipeline,
+		MonitorCh: &monitorCh,
+		Opts:      o,
+	}
+	m := engine.RunOnce()
+
+	assert.Equal(t, 3, len(m.States))
+	assert.Equal(t, "true", m.States["first"])
+	assert.Equal(t, "true", m.States["second"])
+	assert.Equal(t, "true", m.States["third"])
+	assert.Equal(t, false, m.IsAnyFailure())
 }
 
 func TestExecuteWithSingleStage(t *testing.T) {
