@@ -192,10 +192,10 @@ func TestRunOnceWithOnlyIfFailure(t *testing.T) {
 	m := engine.RunOnce()
 
 	assert.Equal(t, 3, len(m.States))
-	assert.Equal(t, "false", m.States["first"])
-	assert.Equal(t, "false", m.States["second"])
-	assert.Equal(t, "false", m.States["third"])
-	assert.Equal(t, true, m.IsAnyFailure())
+	assert.Equal(t, "true", m.States["first"])
+	assert.Equal(t, "true", m.States["second"])
+	assert.Equal(t, "true", m.States["third"])
+	assert.Equal(t, false, m.IsAnyFailure())
 }
 
 func TestRunOnceWithOnlyIfSuccess(t *testing.T) {

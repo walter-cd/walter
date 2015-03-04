@@ -40,12 +40,16 @@ func (self *CommandStage) GetStdoutResult() string {
 func (self *CommandStage) Run() bool {
 	// Check OnlyIf
 	if self.runOnlyIf() == false {
-		log.Warnf("[command] exec: skipped stage \"%s\", since only_if condition failed", self.BaseStage.StageName)
-		return false
+		log.Warnf("[command] exec: skipped this stage \"%s\", since only_if condition failed", self.BaseStage.StageName)
+		return true
 	}
 
 	// Run command
-	return self.runCommand()
+	result := self.runCommand()
+	if result == false {
+		log.Errorf("[command] exec: failed stage \"%s\"", self.BaseStage.StageName)
+	}
+	return result
 }
 
 func (self *CommandStage) runOnlyIf() bool {
@@ -57,7 +61,7 @@ func (self *CommandStage) runOnlyIf() bool {
 	log.Infof("[command] only_if: %s", self.BaseStage.StageName)
 	log.Debugf("[command] only_if literal: %s", self.OnlyIf)
 	cmd.Dir = self.Directory
-	result, _, _ := execCommand(cmd)
+	result, _, _ := execCommand(cmd, "only_if")
 	return result
 }
 
@@ -66,39 +70,39 @@ func (self *CommandStage) runCommand() bool {
 	log.Infof("[command] exec: %s", self.BaseStage.StageName)
 	log.Debugf("[command] exec command literal: %s", self.Command)
 	cmd.Dir = self.Directory
-	result, outResult, errResult := execCommand(cmd)
+	result, outResult, errResult := execCommand(cmd, "exec")
 	self.OutResult = *outResult
 	self.ErrResult = *errResult
 	return result
 }
 
-func execCommand(cmd *exec.Cmd) (bool, *string, *string) {
+func execCommand(cmd *exec.Cmd, prefix string) (bool, *string, *string) {
 	out, err := cmd.StdoutPipe()
 	outE, errE := cmd.StderrPipe()
 
 	if err != nil {
-		log.Errorf("[command] exec err: %s", out)
-		log.Errorf("[command] exec err: %s", err)
+		log.Warnf("[command] %s err: %s", prefix, out)
+		log.Warnf("[command] %s err: %s", prefix, err)
 		return false, nil, nil
 	}
 
 	if errE != nil {
-		log.Errorf("[command] exec err: %s", outE)
-		log.Errorf("[command] exec err: %s", errE)
+		log.Warnf("[command] %s err: %s", prefix, outE)
+		log.Warnf("[command] %s err: %s", prefix, errE)
 		return false, nil, nil
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		log.Errorf("[command] exec err: %s", err)
+		log.Warnf("[command] %s err: %s", prefix, err)
 		return false, nil, nil
 	}
-	outResult := copyStream(out, "exec")
-	errResult := copyStream(outE, "exec")
+	outResult := copyStream(out, prefix)
+	errResult := copyStream(outE, prefix)
 
 	err = cmd.Wait()
 	if err != nil {
-		log.Errorf("[command] exec err: %s", err)
+		log.Warnf("[command] %s err: %s", prefix, err)
 		return false, &outResult, &errResult
 	}
 	return true, &outResult, &errResult
