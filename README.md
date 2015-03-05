@@ -83,6 +83,7 @@ The following is the parameter of Command stage.
 |:--------------:|:----------:|:----------------------------------------------------------------------------|
 |   command      | false      | shell command run in the stage                                              |
 |   only_if      | true       | run specified command on when the condition written in only_if is satisfied |
+|   directory    | true       | the directory where walter runs the specified command                       |
 
 #### Shell script stage
 Command stage executes specified shell script file. Users specify Command stage adding **shell** in type.
