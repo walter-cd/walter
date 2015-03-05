@@ -183,11 +183,13 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 
 	for i := 0; i < newStageType.NumField(); i++ {
 		tagName := newStageType.Field(i).Tag.Get("config")
+		is_replace := newStageType.Field(i).Tag.Get("is_replace")
 		for stageOptKey, stageOptVal := range stageMap {
 			if tagName == stageOptKey {
-				fieldVal := newStageValue.Field(i)
-				if fieldVal.Type() == reflect.ValueOf("string").Type() {
-					fieldVal.SetString(stageOptVal.(string))
+				if stageOptVal == nil {
+					log.Warnf("stage option \"%s\" is not specified", stageOptKey)
+				} else {
+					setFieldVal(newStageValue.Field(i), stageOptVal, is_replace, envs)
 				}
 			}
 		}
@@ -203,4 +205,14 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 		}
 	}
 	return stage, nil
+}
+
+func setFieldVal(fieldVal reflect.Value, stageOptVal interface{}, is_replace string, envs *EnvVariables) {
+	if fieldVal.Type() == reflect.ValueOf("string").Type() {
+		if is_replace == "true" {
+			fieldVal.SetString(envs.Replace(stageOptVal.(string)))
+		} else {
+			fieldVal.SetString(stageOptVal.(string))
+		}
+	}
 }
