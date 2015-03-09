@@ -13,7 +13,7 @@ build:
         - script:
             name: output release tag
             code: |
-                git pull --tags && git describe --tags --exact --match 'v*' > $WERCKER_OUTPUT_DIR/.release_tag || true
+                git describe --tags --exact --match 'v*' > $WERCKER_OUTPUT_DIR/.release_tag || true
 deploy:
   steps:
     # reference: https://github.com/motemen/ghq/blob/beee539aead9c3940a0c4706357c5753999f6c85/wercker.yml
