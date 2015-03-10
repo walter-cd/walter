@@ -74,8 +74,8 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 		log.Warnf("execution is skipped: %v", stage.GetStageName())
 		result = false
 	}
-	log.Debugf("stage executution results: %+v, %+v", stage.GetStageName(), result)
-	e.Pipeline.Report(fmt.Sprintf("stage executution results: %+v, %+v", stage.GetStageName(), result))
+	log.Debugf("stage execution results: %+v, %+v", stage.GetStageName(), result)
+	e.Pipeline.Report(fmt.Sprintf("stage execution results: %+v, %+v", stage.GetStageName(), result))
 
 	mediator := stages.Mediator{States: make(map[string]string)}
 	mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)
