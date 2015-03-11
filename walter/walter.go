@@ -58,47 +58,47 @@ func (e *Walter) Run() bool {
 	log.Info(repoServiceValue.Type().String())
 	if e.Engine.Opts.Mode == "local" ||
 		repoServiceValue.Type().String() == "*services.LocalClient" {
-		log.Info("start walter in local mode")
+		log.Info("Starting Walter in local mode")
 		mediator := e.Engine.RunOnce()
 		return !mediator.IsAnyFailure()
 	} else {
-		log.Info("start walter in repository service mode")
+		log.Info("Starting Walter in repository service mode")
 		return e.runService()
 	}
 }
 
 func (e *Walter) runService() bool {
 	// load .walter-update
-	log.Infof("loading update file... \"%s\"", e.Engine.Pipeline.RepoService.GetUpdateFilePath())
+	log.Infof("Loading update file... \"%s\"", e.Engine.Pipeline.RepoService.GetUpdateFilePath())
 	update, err := services.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
-	log.Infof("succeeded to load update file")
+	log.Infof("Succeeded loading update file")
 
-	log.Info("updating status...")
+	log.Info("Updating status...")
 	update.Status = "inprogress"
 	result := services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
 	if result == false {
-		log.Error("failed to save status update")
+		log.Error("Failed to save status update")
 		return false
 	}
-	log.Info("succeeded to update status")
+	log.Info("Succeeded updating status")
 
 	// get latest commit and pull requests
 	log.Info("downloading commits and pull requests...")
 	commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
 	if err != nil {
-		log.Errorf("failed to get commits: %s", err)
+		log.Errorf("Failed getting commits: %s", err)
 		return false
 	}
 
-	log.Info("suceeded to get commits")
+	log.Info("Succeeded getting commits")
 	for commit := commits.Front(); commit != nil; commit = commit.Next() {
 		commitType := reflect.TypeOf(commit.Value)
 		if commitType.Name() == "RepositoryCommit" {
-			log.Info("found new repository commit")
+			log.Info("Found new repository commit")
 			trunkCommit := commit.Value.(github.RepositoryCommit)
 			e.processTrunkCommit(trunkCommit)
 		} else if commitType.Name() == "PullRequest" {
-			log.Info("found new pull request commit")
+			log.Info("Found new pull request commit")
 			pullreq := commit.Value.(github.PullRequest)
 			if result := e.processPullRequest(pullreq); result == false {
 				return false
@@ -109,49 +109,49 @@ func (e *Walter) runService() bool {
 	}
 
 	// save .walter-update
-	log.Info("saving update file...")
+	log.Info("Saving update file...")
 	update.Status = "finished"
 	update.Time = time.Now()
 	result = services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
 	if result == false {
-		log.Error("failed to save update")
+		log.Error("Failed to save update")
 		return false
 	}
 	return true
 }
 
 func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
-	log.Infof("checkout master branch")
+	log.Infof("Checkout master branch")
 	_, err := exec.Command("git", "checkout", "master", "-f").Output()
 	if err != nil {
-		log.Errorf("failed to checkout master branch: %s", err)
+		log.Errorf("Failed to checkout master branch: %s", err)
 		return false
 	}
-	log.Infof("downloading new commit from master")
+	log.Infof("Downloading new commit from master")
 	_, err = exec.Command("git", "pull", "origin", "master").Output()
 	if err != nil {
-		log.Errorf("failed to download new commit from master: %s", err)
+		log.Errorf("Failed to download new commit from master: %s", err)
 		return false
 	}
-	log.Infof("running the latest commit in master")
+	log.Infof("Running the latest commit in master")
 	w, _ := New(e.Opts)
 	mediator := w.Engine.RunOnce()
 
 	// register the result to hosting service
 	if mediator.IsAnyFailure() {
-		log.Error("error reported...")
+		log.Error("Error reported...")
 		e.Engine.Pipeline.RepoService.RegisterResult(
 			services.Result{
 				State:   "failure",
-				Message: "failed running pipleline ...",
+				Message: "Failed running pipleline ...",
 				SHA:     *commit.SHA})
 		return false
 	} else {
-		log.Info("succeeded.")
+		log.Info("Succeeded.")
 		e.Engine.Pipeline.RepoService.RegisterResult(
 			services.Result{
 				State:   "success",
-				Message: "succeeded running pipeline...",
+				Message: "Succeeded running pipeline...",
 				SHA:     *commit.SHA})
 		return true
 	}
@@ -166,7 +166,7 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	defer log.Info("returning master branch...")
 
 	if err != nil {
-		log.Errorf("failed to fetch pullrequest: %s", err)
+		log.Errorf("Failed to fetch pull request: %s", err)
 		return false
 	}
 
@@ -177,17 +177,17 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	}
 
 	// run pipeline
-	log.Info("running pipeline...")
+	log.Info("Running pipeline...")
 	w, _ := New(e.Opts)
 	mediator := w.Engine.RunOnce()
 
 	// register the result to hosting service
 	if mediator.IsAnyFailure() {
-		log.Error("error reported...")
+		log.Error("Error reported...")
 		e.Engine.Pipeline.RepoService.RegisterResult(
 			services.Result{
 				State:   "failure",
-				Message: "failed running pipleline ...",
+				Message: "Failed running pipleline ...",
 				SHA:     *pullrequest.Head.SHA})
 		return false
 	} else {
@@ -195,7 +195,7 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 		e.Engine.Pipeline.RepoService.RegisterResult(
 			services.Result{
 				State:   "success",
-				Message: "succeeded running pipeline...",
+				Message: "Succeeded running pipeline...",
 				SHA:     *pullrequest.Head.SHA})
 		return true
 	}
