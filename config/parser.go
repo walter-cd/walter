@@ -79,18 +79,17 @@ func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 	// parse cleanup block
 	var cleanup *pipelines.Pipeline = &pipelines.Pipeline{}
 	cleanupData, ok := (*configData)["cleanup"].([]interface{})
-	if ok == false {
-		log.Info("no cleanup block in the input file")
-	} else {
+	if ok == true {
 		log.Info("found cleanup block")
 		cleanupList, err := convertYamlMapToStages(cleanupData, envs)
 		if err != nil {
 			return nil, err
 		}
-
 		for stageItem := cleanupList.Front(); stageItem != nil; stageItem = stageItem.Next() {
 			cleanup.AddStage(stageItem.Value.(stages.Stage))
 		}
+	} else {
+		log.Info("not found cleanup block in the input file")
 	}
 
 	// parse pipeline block

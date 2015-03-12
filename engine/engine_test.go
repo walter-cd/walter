@@ -113,10 +113,12 @@ func TestRunOnce(t *testing.T) {
 		Pipeline:  pipeline,
 		MonitorCh: &monitorCh,
 	}
-	m := engine.RunOnce()
+	result := engine.RunOnce()
 
-	assert.Equal(t, "true", m.States["echo foobar"])
-	assert.Equal(t, false, m.IsAnyFailure())
+	assert.Equal(t, "true", result.Pipeline.States["echo foobar"])
+	assert.Equal(t, false, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, false, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, true, result.IsSucceeded())
 }
 
 func TestRunOnceWithShellScriptStage(t *testing.T) {
@@ -130,10 +132,12 @@ func TestRunOnceWithShellScriptStage(t *testing.T) {
 		Pipeline:  pipeline,
 		MonitorCh: &monitorCh,
 	}
-	m := engine.RunOnce()
+	result := engine.RunOnce()
 
-	assert.Equal(t, "true", m.States["foobar-shell"])
-	assert.Equal(t, false, m.IsAnyFailure())
+	assert.Equal(t, "true", result.Pipeline.States["foobar-shell"])
+	assert.Equal(t, false, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, false, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, true, result.IsSucceeded())
 }
 
 func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
@@ -151,10 +155,10 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
-	m := engine.RunOnce()
+	result := engine.RunOnce()
 
-	assert.Equal(t, "false", m.States["echo foobar2"])
-	assert.Equal(t, true, m.IsAnyFailure())
+	assert.Equal(t, "false", result.Pipeline.States["echo foobar2"])
+	assert.Equal(t, true, result.Pipeline.IsAnyFailure())
 }
 
 func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
@@ -173,10 +177,12 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 		Opts:      o,
 	}
 
-	m := engine.RunOnce()
+	result := engine.RunOnce()
 
-	assert.Equal(t, "true", m.States["echo foobar2"])
-	assert.Equal(t, true, m.IsAnyFailure())
+	assert.Equal(t, "true", result.Pipeline.States["echo foobar2"])
+	assert.Equal(t, true, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, false, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, false, result.IsSucceeded())
 }
 
 func TestRunOnceWithOnlyIfFailure(t *testing.T) {
@@ -194,13 +200,15 @@ func TestRunOnceWithOnlyIfFailure(t *testing.T) {
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
-	m := engine.RunOnce()
+	result := engine.RunOnce()
 
-	assert.Equal(t, 3, len(m.States))
-	assert.Equal(t, "true", m.States["first"])
-	assert.Equal(t, "true", m.States["second"])
-	assert.Equal(t, "true", m.States["third"])
-	assert.Equal(t, false, m.IsAnyFailure())
+	assert.Equal(t, 3, len(result.Pipeline.States))
+	assert.Equal(t, "true", result.Pipeline.States["first"])
+	assert.Equal(t, "true", result.Pipeline.States["second"])
+	assert.Equal(t, "true", result.Pipeline.States["third"])
+	assert.Equal(t, false, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, false, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, true, result.IsSucceeded())
 }
 
 func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
@@ -218,18 +226,20 @@ func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
-	m := engine.RunOnce()
+	result := engine.RunOnce()
 
-	assert.Equal(t, 3, len(m.States))
-	assert.Equal(t, "true", m.States["first"])
-	assert.Equal(t, "true", m.States["second"])
-	assert.Equal(t, "true", m.States["third"])
-	assert.Equal(t, false, m.IsAnyFailure())
+	assert.Equal(t, 3, len(result.Pipeline.States))
+	assert.Equal(t, "true", result.Pipeline.States["first"])
+	assert.Equal(t, "true", result.Pipeline.States["second"])
+	assert.Equal(t, "true", result.Pipeline.States["third"])
+	assert.Equal(t, false, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, false, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, true, result.IsSucceeded())
 }
 
 func TestRunOnceWithCleanup(t *testing.T) {
 	cleanup := &pipelines.Pipeline{}
-	cleanup.AddStage(createCommandStage("echo foobar"))
+	cleanup.AddStage(createCommandStage("echo cleanup"))
 	cleanup.AddStage(createCommandStage("echo baz"))
 	pipeline := &pipelines.Pipeline{
 		Reporter: &messengers.FakeMessenger{},
@@ -243,9 +253,35 @@ func TestRunOnceWithCleanup(t *testing.T) {
 		Pipeline:  pipeline,
 		MonitorCh: &monitorCh,
 	}
-	m := engine.RunOnce()
-	assert.Equal(t, "true", m.States["echo foobar"])
-	assert.Equal(t, false, m.IsAnyFailure())
+	result := engine.RunOnce()
+	assert.Equal(t, "true", result.Pipeline.States["echo foobar"])
+	assert.Equal(t, "true", result.Cleanup.States["echo cleanup"])
+	assert.Equal(t, false, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, false, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, true, result.IsSucceeded())
+}
+
+func TestRunOnceWithFailedCleanup(t *testing.T) {
+	cleanup := &pipelines.Pipeline{}
+	cleanup.AddStage(createCommandStage("nosuchacommand"))
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  cleanup,
+	}
+
+	pipeline.AddStage(createCommandStage("echo foobar"))
+	pipeline.AddStage(createCommandStage("echo baz"))
+	monitorCh := make(chan stages.Mediator)
+	engine := &Engine{
+		Pipeline:  pipeline,
+		MonitorCh: &monitorCh,
+	}
+	result := engine.RunOnce()
+	assert.Equal(t, "true", result.Pipeline.States["echo foobar"])
+	assert.Equal(t, "false", result.Cleanup.States["nosuchacommand"])
+	assert.Equal(t, false, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, true, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, false, result.IsSucceeded())
 }
 
 func TestExecuteWithSingleStage(t *testing.T) {

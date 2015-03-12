@@ -32,22 +32,32 @@ type Engine struct {
 	MonitorCh *chan stages.Mediator
 }
 
-func (e *Engine) RunOnce() stages.Mediator {
-	pipe_result := e.executePipeline(e.Pipeline)
-	if e.Pipeline.Cleanup.Size() > 0 {
-		e.executePipeline(e.Pipeline.Cleanup)
-	}
-	return pipe_result
+type Result struct {
+	Pipeline *stages.Mediator
+	Cleanup  *stages.Mediator
 }
 
-func (e *Engine) executePipeline(pipeline *pipelines.Pipeline) stages.Mediator {
-	log.Info("Preparing to run pipeline process...")
+func (r *Result) IsSucceeded() bool {
+	if !r.Pipeline.IsAnyFailure() && !r.Cleanup.IsAnyFailure() {
+		return true
+	}
+	return false
+}
+
+func (e *Engine) RunOnce() *Result {
+	pipe_result := e.executePipeline(e.Pipeline, "pipeline")
+	cleanup_result := e.executePipeline(e.Pipeline.Cleanup, "cleanup")
+	return &Result{Pipeline: &pipe_result, Cleanup: &cleanup_result}
+}
+
+func (e *Engine) executePipeline(pipeline *pipelines.Pipeline, name string) stages.Mediator {
+	log.Infof("Preparing to run %s process...", name)
 	var mediator stages.Mediator
 	for stageItem := pipeline.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		log.Debugf("Executing planned stage: %s\n", stageItem.Value)
 		mediator = e.Execute(stageItem.Value.(stages.Stage), mediator)
 	}
-	log.Info("Finished running pipeline process...")
+	log.Infof("Finished running %s process...", name)
 	return mediator
 }
 

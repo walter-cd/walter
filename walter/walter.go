@@ -55,12 +55,11 @@ func New(opts *config.Opts) (*Walter, error) {
 
 func (e *Walter) Run() bool {
 	repoServiceValue := reflect.ValueOf(e.Engine.Pipeline.RepoService)
-	log.Info(repoServiceValue.Type().String())
 	if e.Engine.Opts.Mode == "local" ||
 		repoServiceValue.Type().String() == "*services.LocalClient" {
 		log.Info("Starting Walter in local mode")
-		mediator := e.Engine.RunOnce()
-		return !mediator.IsAnyFailure()
+		result := e.Engine.RunOnce()
+		return result.IsSucceeded()
 	} else {
 		log.Info("Starting Walter in repository service mode")
 		return e.runService()
@@ -135,18 +134,10 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 	}
 	log.Infof("Running the latest commit in master")
 	w, _ := New(e.Opts)
-	mediator := w.Engine.RunOnce()
+	result := w.Engine.RunOnce()
 
 	// register the result to hosting service
-	if mediator.IsAnyFailure() {
-		log.Error("Error reported...")
-		e.Engine.Pipeline.RepoService.RegisterResult(
-			services.Result{
-				State:   "failure",
-				Message: "Failed running pipleline ...",
-				SHA:     *commit.SHA})
-		return false
-	} else {
+	if result.IsSucceeded() {
 		log.Info("Succeeded.")
 		e.Engine.Pipeline.RepoService.RegisterResult(
 			services.Result{
@@ -154,6 +145,14 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 				Message: "Succeeded running pipeline...",
 				SHA:     *commit.SHA})
 		return true
+	} else {
+		log.Error("Error reported...")
+		e.Engine.Pipeline.RepoService.RegisterResult(
+			services.Result{
+				State:   "failure",
+				Message: "Failed running pipleline ...",
+				SHA:     *commit.SHA})
+		return false
 	}
 }
 
@@ -179,18 +178,10 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	// run pipeline
 	log.Info("Running pipeline...")
 	w, _ := New(e.Opts)
-	mediator := w.Engine.RunOnce()
+	result := w.Engine.RunOnce()
 
 	// register the result to hosting service
-	if mediator.IsAnyFailure() {
-		log.Error("Error reported...")
-		e.Engine.Pipeline.RepoService.RegisterResult(
-			services.Result{
-				State:   "failure",
-				Message: "Failed running pipleline ...",
-				SHA:     *pullrequest.Head.SHA})
-		return false
-	} else {
+	if result.IsSucceeded() {
 		log.Info("succeeded.")
 		e.Engine.Pipeline.RepoService.RegisterResult(
 			services.Result{
@@ -198,5 +189,13 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 				Message: "Succeeded running pipeline...",
 				SHA:     *pullrequest.Head.SHA})
 		return true
+	} else {
+		log.Error("Error reported...")
+		e.Engine.Pipeline.RepoService.RegisterResult(
+			services.Result{
+				State:   "failure",
+				Message: "Failed running pipleline ...",
+				SHA:     *pullrequest.Head.SHA})
+		return false
 	}
 }
