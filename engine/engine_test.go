@@ -104,6 +104,7 @@ func execute(stage stages.Stage) stages.Mediator {
 func TestRunOnce(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
 		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  &pipelines.Pipeline{},
 	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("echo baz"))
@@ -121,6 +122,7 @@ func TestRunOnce(t *testing.T) {
 func TestRunOnceWithShellScriptStage(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
 		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  &pipelines.Pipeline{},
 	}
 	pipeline.AddStage(createShellScriptStage("foobar-shell", "../stages/test_sample.sh"))
 	monitorCh := make(chan stages.Mediator)
@@ -137,6 +139,7 @@ func TestRunOnceWithShellScriptStage(t *testing.T) {
 func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
 		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  &pipelines.Pipeline{},
 	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
@@ -157,6 +160,7 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
 		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  &pipelines.Pipeline{},
 	}
 	pipeline.AddStage(createCommandStage("echo foobar"))
 	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
@@ -178,6 +182,7 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 func TestRunOnceWithOnlyIfFailure(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
 		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  &pipelines.Pipeline{},
 	}
 	pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -lt 1"))
 	pipeline.AddStage(createCommandStageWithName("second", "echo second"))
@@ -201,6 +206,7 @@ func TestRunOnceWithOnlyIfFailure(t *testing.T) {
 func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
 	pipeline := &pipelines.Pipeline{
 		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  &pipelines.Pipeline{},
 	}
 	pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -eq 1"))
 	pipeline.AddStage(createCommandStageWithName("second", "echo second"))
@@ -218,6 +224,27 @@ func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
 	assert.Equal(t, "true", m.States["first"])
 	assert.Equal(t, "true", m.States["second"])
 	assert.Equal(t, "true", m.States["third"])
+	assert.Equal(t, false, m.IsAnyFailure())
+}
+
+func TestRunOnceWithCleanup(t *testing.T) {
+	cleanup := &pipelines.Pipeline{}
+	cleanup.AddStage(createCommandStage("echo foobar"))
+	cleanup.AddStage(createCommandStage("echo baz"))
+	pipeline := &pipelines.Pipeline{
+		Reporter: &messengers.FakeMessenger{},
+		Cleanup:  cleanup,
+	}
+
+	pipeline.AddStage(createCommandStage("echo foobar"))
+	pipeline.AddStage(createCommandStage("echo baz"))
+	monitorCh := make(chan stages.Mediator)
+	engine := &Engine{
+		Pipeline:  pipeline,
+		MonitorCh: &monitorCh,
+	}
+	m := engine.RunOnce()
+	assert.Equal(t, "true", m.States["echo foobar"])
 	assert.Equal(t, false, m.IsAnyFailure())
 }
 

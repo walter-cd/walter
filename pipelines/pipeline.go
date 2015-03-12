@@ -28,6 +28,7 @@ type Pipeline struct {
 	Stages      list.List
 	Reporter    messengers.Messenger
 	RepoService services.Service
+	Cleanup     *Pipeline
 }
 
 func (self *Pipeline) Report(message string) {

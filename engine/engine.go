@@ -33,10 +33,17 @@ type Engine struct {
 }
 
 func (e *Engine) RunOnce() stages.Mediator {
-	p := e.Pipeline
-	var mediator stages.Mediator
+	pipe_result := e.executePipeline(e.Pipeline)
+	if e.Pipeline.Cleanup.Size() > 0 {
+		e.executePipeline(e.Pipeline.Cleanup)
+	}
+	return pipe_result
+}
+
+func (e *Engine) executePipeline(pipeline *pipelines.Pipeline) stages.Mediator {
 	log.Info("Preparing to run pipeline process...")
-	for stageItem := p.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
+	var mediator stages.Mediator
+	for stageItem := pipeline.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		log.Debugf("Executing planned stage: %s\n", stageItem.Value)
 		mediator = e.Execute(stageItem.Value.(stages.Stage), mediator)
 	}
