@@ -22,3 +22,8 @@ pipeline:
     - name: command_stage_5
       type: command
       command: echo "hello, world, command_stage_3_group_1"
+
+cleanup:
+    - name: cleanup_stage_1
+      type: command
+      command: echo "hello cleanup"

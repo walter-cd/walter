@@ -94,8 +94,19 @@ The following is the parameter of Command stage.
 |:----------------:|:----------:|:--------------------------------------:|
 |   file           | false      | shell script file run in the stage     |
 
-## Reporting function
+## Cleanup pipeline
 
+Walter configuraiton can have one **cleanup** block; cleanup is another pipeline which needs to be executed after a pipeline has either failed or passed.
+In the cleanup block, we can add command or shell script stages. The below example create a log file in pipeline and then cleanup the log file in the cleaup steps.
+
+    pipeline:
+        -  name: start pipeline
+           command: echo “pipeline” > log/log.txt
+    cleanup:
+        -  name: cleanup
+           command:  rm log/*
+
+## Reporting function
 Walter supports to submits the messages to messaging services.
 
 ### Report configuration
