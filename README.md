@@ -86,9 +86,9 @@ The following is the parameter of Command stage.
 |   directory    | true       | the directory where walter runs the specified command                       |
 
 #### Shell script stage
-Command stage executes specified shell script file. Users specify Command stage adding **shell** in type.
+Shell script stage executes specified shell script file. Users specify Shell script stage adding **shell** in type.
 
-The following is the parameter of Command stage.
+The following is the parameter of Shell script stage.
 
 |  Configuration   | Optional   | meaning                                |
 |:----------------:|:----------:|:--------------------------------------:|
