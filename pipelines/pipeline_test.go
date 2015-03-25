@@ -46,3 +46,50 @@ func TestAddPipeline(t *testing.T) {
 	pipeline.AddStage(createStage("command"))
 	assert.Equal(t, 2, pipeline.Size())
 }
+
+type MockMessenger struct {
+	Posts []string
+}
+
+func (mock *MockMessenger) Post(msg string) bool {
+	mock.Posts = append(mock.Posts, msg)
+	return true
+}
+
+func TestReportStageResult(t *testing.T) {
+	mock := &MockMessenger{}
+	p := Pipeline{
+		Reporter: mock,
+	}
+
+	stage := createStage("command")
+	stage.SetStageName("test")
+
+	opts := stages.NewStageOpts()
+
+	stage.SetStageOpts(*opts)
+
+	p.ReportStageResult(stage, true)
+
+	assert.Equal(t, 1, len(mock.Posts))
+}
+
+func TestReportStageResultWithFullOutput(t *testing.T) {
+	mock := &MockMessenger{}
+	p := Pipeline{
+		Reporter: mock,
+	}
+
+	stage := createStage("command")
+	stage.SetStageName("test")
+	stage.SetOutResult("output")
+
+	opts := stages.NewStageOpts()
+	opts.ReportingFullOutput = true
+
+	stage.SetStageOpts(*opts)
+
+	p.ReportStageResult(stage, true)
+
+	assert.Equal(t, 2, len(mock.Posts))
+}
