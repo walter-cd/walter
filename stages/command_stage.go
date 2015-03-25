@@ -29,8 +29,6 @@ type CommandStage struct {
 	Command   string `config:"command" is_replace:"false"`
 	Directory string `config:"directory" is_replace:"true"`
 	OnlyIf    string `config:"only_if" is_replace:"false"`
-	OutResult string
-	ErrResult string
 }
 
 func (self *CommandStage) GetStdoutResult() string {
@@ -71,8 +69,8 @@ func (self *CommandStage) runCommand() bool {
 	log.Debugf("[command] exec command literal: %s", self.Command)
 	cmd.Dir = self.Directory
 	result, outResult, errResult := execCommand(cmd, "exec")
-	self.OutResult = *outResult
-	self.ErrResult = *errResult
+	self.SetOutResult(*outResult)
+	self.SetErrResult(*errResult)
 	return result
 }
 
