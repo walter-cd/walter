@@ -26,10 +26,16 @@ type Stage interface {
 	GetChildStages() list.List
 	GetStageName() string
 	SetStageName(string)
+	GetStageOpts() StageOpts
+	SetStageOpts(StageOpts)
 	GetInputCh() *chan Mediator
 	SetInputCh(*chan Mediator)
 	GetOutputCh() *chan Mediator
 	SetOutputCh(*chan Mediator)
+	GetOutResult() string
+	SetOutResult(string)
+	GetErrResult() string
+	SetErrResult(string)
 }
 
 type Runner interface {

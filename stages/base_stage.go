@@ -28,6 +28,19 @@ type BaseStage struct {
 	OutputCh    *chan Mediator
 	ChildStages list.List
 	StageName   string `config:"name"`
+	OutResult   string
+	ErrResult   string
+	Opts        StageOpts
+}
+
+type StageOpts struct {
+	ReportingFullOutput bool `config:"report_full_output"`
+}
+
+func NewStageOpts() *StageOpts {
+	return &StageOpts{
+		ReportingFullOutput: false,
+	}
 }
 
 func (b *BaseStage) Run() bool {
@@ -54,6 +67,14 @@ func (b *BaseStage) SetStageName(stageName string) {
 	b.StageName = stageName
 }
 
+func (b *BaseStage) GetStageOpts() StageOpts {
+	return b.Opts
+}
+
+func (b *BaseStage) SetStageOpts(stageOpts StageOpts) {
+	b.Opts = stageOpts
+}
+
 func (b *BaseStage) SetInputCh(inputCh *chan Mediator) {
 	b.InputCh = inputCh
 }
@@ -68,4 +89,20 @@ func (b *BaseStage) SetOutputCh(outputCh *chan Mediator) {
 
 func (b *BaseStage) GetOutputCh() *chan Mediator {
 	return b.OutputCh
+}
+
+func (b *BaseStage) GetOutResult() string {
+	return b.OutResult
+}
+
+func (b *BaseStage) SetOutResult(result string) {
+	b.OutResult = result
+}
+
+func (b *BaseStage) GetErrResult() string {
+	return b.ErrResult
+}
+
+func (b *BaseStage) SetErrResult(result string) {
+	b.ErrResult = result
 }

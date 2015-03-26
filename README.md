@@ -118,18 +118,19 @@ To submit a message, users need to add a **messenger** block into the configurat
         token: TOKEN
         from: USER_NAME
 
-To report the result to the specified messenger service added with the above setting,
-users add **message** attribute with **true** into the stage they want to know the results.
+To report the full output of stage execution to the specified messenger service added with the above setting,
+users add **report_full_output** attribute with **true** into the stage they want to know the command outputs.
 
      pipeline:
         - name: command_stage_1
           type: command
           command: echo "hello, world"
-          message: true
+          report_full_output: true # If you put this option, messenger sends the command output "hello, world"
         - name: command_stage_2
           type: command
           command: echo "hello, world, command_stage_2"
-          message: true
+          # By default, report_full_output is false
+
 
 ### Report types
 Walter supports HipChat API v1 and v2 as the messenger type.
@@ -203,4 +204,3 @@ We write the envrionment variable into **ENV_NAME**. The following configuration
         repo: my-service-repository
         from: service-group
         update: .walter
-

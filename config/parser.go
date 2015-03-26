@@ -197,6 +197,14 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 		stage.SetStageName(stageMap["stage_name"].(string))
 	}
 
+	stageOpts := stages.NewStageOpts()
+
+	if reportingFullOutput := stageMap["report_full_output"]; reportingFullOutput != nil {
+		stageOpts.ReportingFullOutput = true
+	}
+
+	stage.SetStageOpts(*stageOpts)
+
 	for i := 0; i < newStageType.NumField(); i++ {
 		tagName := newStageType.Field(i).Tag.Get("config")
 		is_replace := newStageType.Field(i).Tag.Get("is_replace")

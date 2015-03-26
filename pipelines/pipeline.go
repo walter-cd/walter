@@ -18,6 +18,7 @@ package pipelines
 
 import (
 	"container/list"
+	"fmt"
 
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/services"
@@ -31,8 +32,21 @@ type Pipeline struct {
 	Cleanup     *Pipeline
 }
 
-func (self *Pipeline) Report(message string) {
-	self.Reporter.Post(message)
+func (self *Pipeline) ReportStageResult(stage stages.Stage, result bool) {
+	name := stage.GetStageName()
+	self.Reporter.Post(
+		fmt.Sprintf("Stage execution results: %+v, %+v", name, result))
+
+	if stage.GetStageOpts().ReportingFullOutput {
+		if out := stage.GetOutResult(); len(out) > 0 {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s] %s", name, stage.GetOutResult()))
+		}
+		if err := stage.GetErrResult(); len(err) > 0 {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s][ERROR] %s", name, stage.GetErrResult()))
+		}
+	}
 }
 
 func (self *Pipeline) AddStage(stage stages.Stage) {
