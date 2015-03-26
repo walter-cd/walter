@@ -27,9 +27,9 @@ import (
 )
 
 type Engine struct {
-	Pipeline  *pipelines.Pipeline
-	Opts      *config.Opts
+	Resources *pipelines.Resources
 	MonitorCh *chan stages.Mediator
+	Opts      *config.Opts
 }
 
 type Result struct {
@@ -45,8 +45,8 @@ func (r *Result) IsSucceeded() bool {
 }
 
 func (e *Engine) RunOnce() *Result {
-	pipe_result := e.executePipeline(e.Pipeline, "pipeline")
-	cleanup_result := e.executePipeline(e.Pipeline.Cleanup, "cleanup")
+	pipe_result := e.executePipeline(e.Resources.Pipeline, "pipeline")
+	cleanup_result := e.executePipeline(e.Resources.Cleanup, "cleanup")
 	return &Result{Pipeline: &pipe_result, Cleanup: &cleanup_result}
 }
 
@@ -92,7 +92,7 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 		result = false
 	}
 	log.Debugf("Stage execution results: %+v, %+v", stage.GetStageName(), result)
-	e.Pipeline.ReportStageResult(stage, result)
+	e.Resources.ReportStageResult(stage, result)
 
 	mediator := stages.Mediator{States: make(map[string]string)}
 	mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)

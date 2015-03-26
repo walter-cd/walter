@@ -58,7 +58,7 @@ func (mock *MockMessenger) Post(msg string) bool {
 
 func TestReportStageResult(t *testing.T) {
 	mock := &MockMessenger{}
-	p := Pipeline{
+	p := Resources{
 		Reporter: mock,
 	}
 
@@ -76,7 +76,7 @@ func TestReportStageResult(t *testing.T) {
 
 func TestReportStageResultWithFullOutput(t *testing.T) {
 	mock := &MockMessenger{}
-	p := Pipeline{
+	p := Resources{
 		Reporter: mock,
 	}
 

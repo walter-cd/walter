@@ -26,13 +26,17 @@ import (
 )
 
 type Pipeline struct {
-	Stages      list.List
-	Reporter    messengers.Messenger
-	RepoService services.Service
-	Cleanup     *Pipeline
+	Stages list.List
 }
 
-func (self *Pipeline) ReportStageResult(stage stages.Stage, result bool) {
+type Resources struct {
+	Pipeline    *Pipeline
+	Cleanup     *Pipeline
+	Reporter    messengers.Messenger
+	RepoService services.Service
+}
+
+func (self *Resources) ReportStageResult(stage stages.Stage, result bool) {
 	name := stage.GetStageName()
 	self.Reporter.Post(
 		fmt.Sprintf("Stage execution results: %+v, %+v", name, result))

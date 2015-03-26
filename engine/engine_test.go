@@ -67,7 +67,7 @@ func execute(stage stages.Stage) stages.Mediator {
 	mon := make(chan stages.Mediator)
 	e := &Engine{
 		MonitorCh: &mon,
-		Pipeline: &pipelines.Pipeline{
+		Resources: &pipelines.Resources{
 			Reporter: &messengers.FakeMessenger{},
 		},
 	}
@@ -102,15 +102,16 @@ func execute(stage stages.Stage) stages.Mediator {
 }
 
 func TestRunOnce(t *testing.T) {
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  &pipelines.Pipeline{},
 	}
-	pipeline.AddStage(createCommandStage("echo foobar"))
-	pipeline.AddStage(createCommandStage("echo baz"))
+	resources.Pipeline.AddStage(createCommandStage("echo foobar"))
+	resources.Pipeline.AddStage(createCommandStage("echo baz"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 	}
 	result := engine.RunOnce()
@@ -122,14 +123,15 @@ func TestRunOnce(t *testing.T) {
 }
 
 func TestRunOnceWithShellScriptStage(t *testing.T) {
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  &pipelines.Pipeline{},
 	}
-	pipeline.AddStage(createShellScriptStage("foobar-shell", "../stages/test_sample.sh"))
+	resources.Pipeline.AddStage(createShellScriptStage("foobar-shell", "../stages/test_sample.sh"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 	}
 	result := engine.RunOnce()
@@ -141,17 +143,18 @@ func TestRunOnceWithShellScriptStage(t *testing.T) {
 }
 
 func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  &pipelines.Pipeline{},
 	}
-	pipeline.AddStage(createCommandStage("echo foobar"))
-	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
-	pipeline.AddStage(createCommandStage("echo foobar2"))
+	resources.Pipeline.AddStage(createCommandStage("echo foobar"))
+	resources.Pipeline.AddStage(createCommandStage("thisiserrorcommand"))
+	resources.Pipeline.AddStage(createCommandStage("echo foobar2"))
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{StopOnAnyFailure: false}
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
@@ -162,17 +165,18 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 }
 
 func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  &pipelines.Pipeline{},
 	}
-	pipeline.AddStage(createCommandStage("echo foobar"))
-	pipeline.AddStage(createCommandStage("thisiserrorcommand"))
-	pipeline.AddStage(createCommandStage("echo foobar2"))
+	resources.Pipeline.AddStage(createCommandStage("echo foobar"))
+	resources.Pipeline.AddStage(createCommandStage("thisiserrorcommand"))
+	resources.Pipeline.AddStage(createCommandStage("echo foobar2"))
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{StopOnAnyFailure: true}
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
@@ -186,17 +190,18 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 }
 
 func TestRunOnceWithOnlyIfFailure(t *testing.T) {
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  &pipelines.Pipeline{},
 	}
-	pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -lt 1"))
-	pipeline.AddStage(createCommandStageWithName("second", "echo second"))
-	pipeline.AddStage(createCommandStageWithName("third", "echo third"))
+	resources.Pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -lt 1"))
+	resources.Pipeline.AddStage(createCommandStageWithName("second", "echo second"))
+	resources.Pipeline.AddStage(createCommandStageWithName("third", "echo third"))
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{}
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
@@ -212,17 +217,18 @@ func TestRunOnceWithOnlyIfFailure(t *testing.T) {
 }
 
 func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  &pipelines.Pipeline{},
 	}
-	pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -eq 1"))
-	pipeline.AddStage(createCommandStageWithName("second", "echo second"))
-	pipeline.AddStage(createCommandStageWithName("third", "echo third"))
+	resources.Pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "test 1 -eq 1"))
+	resources.Pipeline.AddStage(createCommandStageWithName("second", "echo second"))
+	resources.Pipeline.AddStage(createCommandStageWithName("third", "echo third"))
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{}
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 		Opts:      o,
 	}
@@ -241,16 +247,17 @@ func TestRunOnceWithCleanup(t *testing.T) {
 	cleanup := &pipelines.Pipeline{}
 	cleanup.AddStage(createCommandStage("echo cleanup"))
 	cleanup.AddStage(createCommandStage("echo baz"))
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  cleanup,
 	}
 
-	pipeline.AddStage(createCommandStage("echo foobar"))
-	pipeline.AddStage(createCommandStage("echo baz"))
+	resources.Pipeline.AddStage(createCommandStage("echo foobar"))
+	resources.Pipeline.AddStage(createCommandStage("echo baz"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 	}
 	result := engine.RunOnce()
@@ -264,16 +271,17 @@ func TestRunOnceWithCleanup(t *testing.T) {
 func TestRunOnceWithFailedCleanup(t *testing.T) {
 	cleanup := &pipelines.Pipeline{}
 	cleanup.AddStage(createCommandStage("nosuchacommand"))
-	pipeline := &pipelines.Pipeline{
+	resources := &pipelines.Resources{
 		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
 		Cleanup:  cleanup,
 	}
 
-	pipeline.AddStage(createCommandStage("echo foobar"))
-	pipeline.AddStage(createCommandStage("echo baz"))
+	resources.Pipeline.AddStage(createCommandStage("echo foobar"))
+	resources.Pipeline.AddStage(createCommandStage("echo baz"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		MonitorCh: &monitorCh,
 	}
 	result := engine.RunOnce()
