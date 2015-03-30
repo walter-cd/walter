@@ -33,14 +33,14 @@ func getStageTypeModuleName(stageType string) string {
 	return strings.ToLower(stageType)
 }
 
-func Parse(configData *map[interface{}]interface{}) (*pipelines.Pipeline, error) {
+func Parse(configData *map[interface{}]interface{}) (*pipelines.Resources, error) {
 	envs := NewEnvVariables()
 	return ParseWithSpecifiedEnvs(configData, envs)
 }
 
-// TODO: need refactoring
+// TODO: make parser process a struct (for simplifying redundant functions and reducing the number of function parameters)
 func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
-	envs *EnvVariables) (*pipelines.Pipeline, error) {
+	envs *EnvVariables) (*pipelines.Resources, error) {
 	// parse service block
 	serviceOps, ok := (*configData)["service"].(map[interface{}]interface{})
 	var repoService services.Service
@@ -93,9 +93,7 @@ func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 	}
 
 	// parse pipeline block
-	var pipeline *pipelines.Pipeline = &pipelines.Pipeline{
-		Reporter: messenger, RepoService: repoService, Cleanup: cleanup,
-	}
+	var pipeline *pipelines.Pipeline = &pipelines.Pipeline{}
 
 	pipelineData, ok := (*configData)["pipeline"].([]interface{})
 	if ok == false {
@@ -108,7 +106,9 @@ func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 	for stageItem := stageList.Front(); stageItem != nil; stageItem = stageItem.Next() {
 		pipeline.AddStage(stageItem.Value.(stages.Stage))
 	}
-	return pipeline, nil
+	var resources = &pipelines.Resources{Pipeline: pipeline, Cleanup: cleanup, Reporter: messenger, RepoService: repoService}
+
+	return resources, nil
 }
 
 func mapMessenger(messengerMap map[interface{}]interface{}, envs *EnvVariables) (messengers.Messenger, error) {

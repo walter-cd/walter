@@ -37,24 +37,24 @@ type Walter struct {
 
 func New(opts *config.Opts) (*Walter, error) {
 	configData := config.ReadConfig(opts.PipelineFilePath)
-	pipeline, err := config.Parse(configData)
+	resources, err := config.Parse(configData)
 	if err != nil {
 		return nil, err
 	}
 	monitorCh := make(chan stages.Mediator)
 	engine := &engine.Engine{
-		Pipeline:  pipeline,
+		Resources: resources,
 		Opts:      opts,
 		MonitorCh: &monitorCh,
 	}
 	return &Walter{
 		Opts:   opts,
 		Engine: engine,
-	}, err
+	}, nil
 }
 
 func (e *Walter) Run() bool {
-	repoServiceValue := reflect.ValueOf(e.Engine.Pipeline.RepoService)
+	repoServiceValue := reflect.ValueOf(e.Engine.Resources.RepoService)
 	if e.Engine.Opts.Mode == "local" ||
 		repoServiceValue.Type().String() == "*services.LocalClient" {
 		log.Info("Starting Walter in local mode")
@@ -68,13 +68,13 @@ func (e *Walter) Run() bool {
 
 func (e *Walter) runService() bool {
 	// load .walter-update
-	log.Infof("Loading update file... \"%s\"", e.Engine.Pipeline.RepoService.GetUpdateFilePath())
-	update, err := services.LoadLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath())
+	log.Infof("Loading update file... \"%s\"", e.Engine.Resources.RepoService.GetUpdateFilePath())
+	update, err := services.LoadLastUpdate(e.Engine.Resources.RepoService.GetUpdateFilePath())
 	log.Infof("Succeeded loading update file")
 
 	log.Info("Updating status...")
 	update.Status = "inprogress"
-	result := services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
+	result := services.SaveLastUpdate(e.Engine.Resources.RepoService.GetUpdateFilePath(), update)
 	if result == false {
 		log.Error("Failed to save status update")
 		return false
@@ -83,7 +83,7 @@ func (e *Walter) runService() bool {
 
 	// get latest commit and pull requests
 	log.Info("downloading commits and pull requests...")
-	commits, err := e.Engine.Pipeline.RepoService.GetCommits(update)
+	commits, err := e.Engine.Resources.RepoService.GetCommits(update)
 	if err != nil {
 		log.Errorf("Failed getting commits: %s", err)
 		return false
@@ -111,7 +111,7 @@ func (e *Walter) runService() bool {
 	log.Info("Saving update file...")
 	update.Status = "finished"
 	update.Time = time.Now()
-	result = services.SaveLastUpdate(e.Engine.Pipeline.RepoService.GetUpdateFilePath(), update)
+	result = services.SaveLastUpdate(e.Engine.Resources.RepoService.GetUpdateFilePath(), update)
 	if result == false {
 		log.Error("Failed to save update")
 		return false
@@ -139,7 +139,7 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 	// register the result to hosting service
 	if result.IsSucceeded() {
 		log.Info("Succeeded.")
-		e.Engine.Pipeline.RepoService.RegisterResult(
+		e.Engine.Resources.RepoService.RegisterResult(
 			services.Result{
 				State:   "success",
 				Message: "Succeeded running pipeline...",
@@ -147,7 +147,7 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 		return true
 	} else {
 		log.Error("Error reported...")
-		e.Engine.Pipeline.RepoService.RegisterResult(
+		e.Engine.Resources.RepoService.RegisterResult(
 			services.Result{
 				State:   "failure",
 				Message: "Failed running pipleline ...",
@@ -183,7 +183,7 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	// register the result to hosting service
 	if result.IsSucceeded() {
 		log.Info("succeeded.")
-		e.Engine.Pipeline.RepoService.RegisterResult(
+		e.Engine.Resources.RepoService.RegisterResult(
 			services.Result{
 				State:   "success",
 				Message: "Succeeded running pipeline...",
@@ -191,7 +191,7 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 		return true
 	} else {
 		log.Error("Error reported...")
-		e.Engine.Pipeline.RepoService.RegisterResult(
+		e.Engine.Resources.RepoService.RegisterResult(
 			services.Result{
 				State:   "failure",
 				Message: "Failed running pipleline ...",
