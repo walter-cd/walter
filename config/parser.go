@@ -38,7 +38,7 @@ func Parse(configData *map[interface{}]interface{}) (*pipelines.Resources, error
 	return ParseWithSpecifiedEnvs(configData, envs)
 }
 
-// TODO: need refactoring
+// TODO: make parser process a struct (for simplifying redundant functions and reducing the number of function parameters)
 func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 	envs *EnvVariables) (*pipelines.Resources, error) {
 	// parse service block
