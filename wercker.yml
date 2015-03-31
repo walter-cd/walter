@@ -1,4 +1,4 @@
-box: ainoya/golang-goxc@0.2.0
+box: motemen/golang-goxc@0.1.0
 build:
     steps:
         - script:
@@ -10,13 +10,17 @@ build:
             code: |
                 . ./build
                 goxc -tasks='xc archive' -n walter -bc='linux,!arm windows darwin' -main-dirs-exclude='gopath,Godeps,tests' -d ${WERCKER_OUTPUT_DIR} -build-ldflags "-X ${REPO_PATH}/version.Version \"$(git describe --tags --always --dirty)\""
+        - script:
+            name: output release tag
+            code: |
+                git describe --tags --exact --match 'v*' > $WERCKER_OUTPUT_DIR/.release_tag || true
 deploy:
   steps:
     # reference: https://github.com/motemen/ghq/blob/beee539aead9c3940a0c4706357c5753999f6c85/wercker.yml
     - script:
-        name: fetch release tag
+        name: restore release tag
         code: |
-            export RELEASE_TAG=$(curl https://api.github.com/repos/walter-cd/walter/tags | jq -r ".[] | select(.commit.sha == \"${WERCKER_GIT_COMMIT}\") | .name")
+          export RELEASE_TAG=$(cat .release_tag)
     - wercker/github-create-release:
         token: $GITHUB_TOKEN
         tag: $RELEASE_TAG
