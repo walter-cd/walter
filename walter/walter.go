@@ -91,24 +91,24 @@ func (e *Walter) runService() bool {
 
 	log.Info("Succeeded getting commits")
 	log.Info("Size of commits: " + strconv.Itoa(commits.Len()))
-	is_failed_process := false
+	has_failed_process := false
 	for commit := commits.Front(); commit != nil; commit = commit.Next() {
 		commitType := reflect.TypeOf(commit.Value)
 		if commitType.Name() == "RepositoryCommit" {
 			log.Info("Found new repository commit")
 			trunkCommit := commit.Value.(github.RepositoryCommit)
 			if result := e.processTrunkCommit(trunkCommit); result == false {
-				is_failed_process = true
+				has_failed_process = true
 			}
 		} else if commitType.Name() == "PullRequest" {
 			log.Info("Found new pull request commit")
 			pullreq := commit.Value.(github.PullRequest)
 			if result := e.processPullRequest(pullreq); result == false {
-				is_failed_process = true
+				has_failed_process = true
 			}
 		} else {
 			log.Errorf("Nothing commit type: %s", commitType)
-			is_failed_process = true
+			has_failed_process = true
 		}
 	}
 
@@ -121,7 +121,7 @@ func (e *Walter) runService() bool {
 		log.Error("Failed to save update")
 		return false
 	}
-	return !is_failed_process
+	return !has_failed_process
 }
 
 func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
