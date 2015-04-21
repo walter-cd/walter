@@ -219,14 +219,16 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 		}
 	}
 
-	runAfters := stageMap["run_after"]
-	if runAfters == nil {
-		runAfters = stageMap["parallel"]
+	parallelStages := stageMap["parallel"]
+	if parallelStages == nil {
+		if parallelStages = stageMap["run_after"]; parallelStages != nil {
+			log.Warn("`run_after' will be obsoleted in near future. Use `parallel' instead.")
+		}
 	}
 
-	if runAfters != nil {
-		for _, runAfter := range runAfters.([]interface{}) {
-			childStage, err := mapStage(runAfter.(map[interface{}]interface{}), envs)
+	if parallelStages != nil {
+		for _, parallelStages := range parallelStages.([]interface{}) {
+			childStage, err := mapStage(parallelStages.(map[interface{}]interface{}), envs)
 			if err != nil {
 				return nil, err
 			}
