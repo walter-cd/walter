@@ -27,9 +27,11 @@ How to Build
 
 You can build Walter with the following commands.
 
-    $git clone git@github.com:walter-cd/walter.git
-    $cd walter
-    $./build
+```
+$ git clone git@github.com:walter-cd/walter.git
+$ cd walter
+$ ./build
+```
 
 How to contribute
 ====================
@@ -38,7 +40,9 @@ We welcome any contributions through Github pull requests.
 When you make changes such as new features and the add the tests, please run test before throw the pull request.
 You can run test with the test.sh script.
 
-    $sh test.sh
+```
+$ sh test.sh
+```
 
 Configuration setting
 ======================
@@ -53,16 +57,18 @@ than one stage element.
 
 The following is a sample configuration of Walter.
 
-     pipeline:
-          - name: command_stage_1
-            type: command
-            command: echo "hello, world"
-          - name: command_stage_2
-            type: command
-            command: echo "hello, world, command_stage_2"
-          - name: command_stage_3
-            type: command
-            command: echo "hello, world, command_stage_3"
+```yaml
+pipeline:
+  - name: command_stage_1
+    type: command
+    command: echo "hello, world"
+  - name: command_stage_2
+    type: command
+    command: echo "hello, world, command_stage_2"
+  - name: command_stage_3
+    type: command
+    command: echo "hello, world, command_stage_3"
+```
 
 As we see, the pipeline block has three stages and the stage type is command, each of which run **echo** command and has the stage name
 (such as **command_stage_1**). User can name arbitrary name of each stage. The commands are executed with the same order as the pipeline configuration.
@@ -99,12 +105,16 @@ The following is the parameter of Shell script stage.
 Walter configuraiton can have one **cleanup** block; cleanup is another pipeline which needs to be executed after a pipeline has either failed or passed.
 In the cleanup block, we can add command or shell script stages. The below example create a log file in pipeline and then cleanup the log file in the cleaup steps.
 
-    pipeline:
-        -  name: start pipeline
-           command: echo “pipeline” > log/log.txt
-    cleanup:
-        -  name: cleanup
-           command:  rm log/*
+
+```yaml
+pipeline:
+  - name: start pipeline
+    command: echo “pipeline” > log/log.txt
+cleanup:
+  - name: cleanup
+    command:  rm log/*
+```
+
 
 ## Reporting function
 Walter supports to submits the messages to messaging services.
@@ -112,25 +122,28 @@ Walter supports to submits the messages to messaging services.
 ### Report configuration
 To submit a message, users need to add a **messenger** block into the configuration file. The following is a sample of the yaml block with HipChat.
 
-    messenger:
-        type: hipchat
-        room_id: ROOM_ID
-        token: TOKEN
-        from: USER_NAME
+```yaml
+messenger:
+  type: hipchat
+  room_id: ROOM_ID
+  token: TOKEN
+  from: USER_NAME
+```
 
 To report the full output of stage execution to the specified messenger service added with the above setting,
 users add **report_full_output** attribute with **true** into the stage they want to know the command outputs.
 
-     pipeline:
-        - name: command_stage_1
-          type: command
-          command: echo "hello, world"
-          report_full_output: true # If you put this option, messenger sends the command output "hello, world"
-        - name: command_stage_2
-          type: command
-          command: echo "hello, world, command_stage_2"
-          # By default, report_full_output is false
-
+```yaml
+pipeline:
+  - name: command_stage_1
+    type: command
+    command: echo "hello, world"
+    report_full_output: true # If you put this option, messenger sends the command output "hello, world"
+  - name: command_stage_2
+    type: command
+    command: echo "hello, world, command_stage_2"
+    # By default, report_full_output is false
+```
 
 ### Report types
 Walter supports HipChat API v1 and v2 as the messenger type.
@@ -169,12 +182,14 @@ Walter provides a coordination function to a project hosting service, GitHub. Sp
 ### Service configuration
 To activate service coordination function, we add a "service" block to the Walter configuration file. "service" block contains several elements (type, token, repo, from, update).
 
-    service:
-        type: github
-        token: ADD_YOUR_KEY
-        repo: YOUR_REPOSITORY_NAME
-        from: YOUR_ACCOUNT_OR_GROUP_NAME
-        update: UPDATE_FILE_NAME
+```yaml
+service:
+  type: github
+  token: ADD_YOUR_KEY
+  repo: YOUR_REPOSITORY_NAME
+  from: YOUR_ACCOUNT_OR_GROUP_NAME
+  update: UPDATE_FILE_NAME
+```
 
 The following shows the description of each element.
 
@@ -194,13 +209,17 @@ tokens of messenger service or passwords of a external systems.
 
 The following is the format of embedding of the environment variables.
 
-     $ENV_NAME
+```
+$ENV_NAME
+```
 
 We write the envrionment variable into **ENV_NAME**. The following configuration file specify the GitHub Token by embedding the environment variable, GITHUB_TOKEN.
 
-    service:
-        type: github
-        token: $GITHUB_TOKEN
-        repo: my-service-repository
-        from: service-group
-        update: .walter
+```yaml
+service:
+  type: github
+  token: $GITHUB_TOKEN
+  repo: my-service-repository
+  from: service-group
+  update: .walter
+```
