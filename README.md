@@ -94,6 +94,27 @@ The following is the parameter of Shell script stage.
 |:----------------:|:----------:|:--------------------------------------:|
 |   file           | false      | shell script file run in the stage     |
 
+## Parallel stages
+
+ You can set child stages and run these stages in parallel like this.
+ 
+```yaml
+pipeline:
+  - name: parallel stages
+    parallel:
+      - name: parallel command 1
+        type: command
+        command: parallel command 1
+      - name: parallel command 2
+        type: command
+        command: parallel command 2
+      - name: parallel command 3
+        type: command
+        command: parallel command 3
+```
+
+`parallel command 1`, `parallel command 2` and `parallel command 3` are executed in parallel.
+
 ## Cleanup pipeline
 
 Walter configuraiton can have one **cleanup** block; cleanup is another pipeline which needs to be executed after a pipeline has either failed or passed.
