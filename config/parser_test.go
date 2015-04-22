@@ -67,6 +67,24 @@ func TestParseConfWithChildren(t *testing.T) {
 	assert.Equal(t, 2, childStages.Len())
 }
 
+func TestParseConfWithParallel(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - name: parallel stages
+      parallel:
+          -  name: parallel command 1
+             type: command
+             command: echo "hello, world, parallel command 1"
+          -  name: parallel command 2
+             type: command
+             command: echo "hello, world, parallel command 2"`))
+	result, err := Parse(configData)
+	assert.Equal(t, 1, result.Pipeline.Size())
+	assert.Nil(t, err)
+
+	childStages := result.Pipeline.Stages.Front().Value.(stages.Stage).GetChildStages()
+	assert.Equal(t, 2, childStages.Len())
+}
+
 func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
 	configData := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
@@ -141,6 +159,18 @@ func TestParseConfWithInvalidChildStage(t *testing.T) {
       command: echo "hello, world"
       run_after:
           -  name: command_stage_2_group_1
+             type: xxxxx
+`))
+	result, err := Parse(configData)
+	assert.Nil(t, result)
+	assert.NotNil(t, err)
+}
+
+func TestParseConfWithInvalidParallelStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`pipeline:
+    - name: parallel stages
+      parallel:
+          -  name: parallel command 1
              type: xxxxx
 `))
 	result, err := Parse(configData)
