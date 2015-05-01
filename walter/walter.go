@@ -36,6 +36,7 @@ type Walter struct {
 }
 
 func New(opts *config.Opts) (*Walter, error) {
+	log.Infof("Pipeline file path: \"%s\"", opts.PipelineFilePath)
 	configData := config.ReadConfig(opts.PipelineFilePath)
 	resources, err := config.Parse(configData)
 	if err != nil {
@@ -138,7 +139,12 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 		return false
 	}
 	log.Infof("Running the latest commit in master")
-	w, _ := New(e.Opts)
+	w, err := New(e.Opts)
+	if err != nil {
+		log.Errorf("Failed to create Walter object...: %s", err)
+		log.Error("Skip execution...")
+		return false
+	}
 	result := w.Engine.RunOnce()
 
 	// register the result to hosting service
@@ -177,12 +183,19 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 	_, err = exec.Command("git", "checkout", "pr_"+strconv.Itoa(num)).Output()
 	if err != nil {
 		log.Errorf("Failed to checkout pullrequest branch (\"%s\") : %s", "pr_"+strconv.Itoa(num), err)
+		log.Error("Skip execution...")
 		return false
 	}
 
 	// run pipeline
 	log.Info("Running pipeline...")
-	w, _ := New(e.Opts)
+	w, err := New(e.Opts)
+	if err != nil {
+		log.Errorf("Failed to create Walter object...: %s", err)
+		log.Error("Skip execution...")
+		return false
+	}
+
 	result := w.Engine.RunOnce()
 
 	// register the result to hosting service
