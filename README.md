@@ -217,10 +217,10 @@ The following shows the description of each element.
 |  Element  | description                                                                                          |
 |:---------:|:----------------------------------------------------------------------------------------------------|
 |   type    |  Service type (currently Walter supports github only)                                                |
-|   token   |  [GitHub token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/)  |
+|   token   |  [GitHub token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/)     |
 |   repo    |  Repository name                                                                                     |
 |   from    |  Account or organization name (if the repository is own by a organization)                           |
-|   update  |  Update file which contains the result and time of the last execution                                |
+|   update  |  Update file which contains the result and time of the last execution  (default **.walter**)         |
 
 ## Embedding Environment Variables
 
