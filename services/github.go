@@ -32,7 +32,11 @@ type GitHubClient struct {
 }
 
 func (self *GitHubClient) GetUpdateFilePath() string {
-	return self.UpdateFile
+	if self.UpdateFile != "" {
+		return self.UpdateFile
+	} else {
+		return DEFAULT_UPDATE_FILE_NAME
+	}
 }
 
 func (self *GitHubClient) RegisterResult(result Result) error {

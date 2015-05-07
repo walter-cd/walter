@@ -71,7 +71,7 @@ func LoadOpts(arguments []string) (*Opts, error) {
 func ReadConfig(configFilePath string) *map[interface{}]interface{} {
 	data, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		log.Errorf("error :%v \n", err)
+		log.Errorf("%v \n", err)
 	}
 
 	return ReadConfigBytes(data)

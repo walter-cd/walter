@@ -2,3 +2,6 @@
 /bin
 *~
 .walter-update
+#*
+*#
+.#*

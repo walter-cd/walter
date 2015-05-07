@@ -88,3 +88,8 @@ func TestSaveLastUpdate(t *testing.T) {
 	assert.Equal(t, true, loadedUpdate.Succeeded)
 	assert.Equal(t, "finished", loadedUpdate.Status)
 }
+
+func TestDefaultUpdateFilePath(t *testing.T) {
+	service, _ := InitService("github")
+	assert.Equal(t, ".walter", service.GetUpdateFilePath())
+}

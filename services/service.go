@@ -46,6 +46,10 @@ type Result struct {
 	Message string
 }
 
+// DEFAULT_UPDATE_FILE_NAME is the default file name of status of Walter service.
+// The file name can be overridden with the configuration file.
+const DEFAULT_UPDATE_FILE_NAME string = ".walter"
+
 func LoadLastUpdate(fname string) (Update, error) {
 	file, err := ioutil.ReadFile(fname)
 	log.Infof("opening file: \"%s\"...", fname)
