@@ -18,6 +18,7 @@ package services
 
 import (
 	"container/list"
+	"path/filepath"
 
 	"github.com/recruit-tech/walter/log"
 	"github.com/google/go-github/github"
@@ -29,6 +30,7 @@ type GitHubClient struct {
 	From string `config:"from"`
 	Token string `config:"token"`
 	UpdateFile string `config:"update"`
+	FilterBranch string `config:"filter"`
 }
 
 func (self *GitHubClient) GetUpdateFilePath() string {
@@ -45,7 +47,7 @@ func (self *GitHubClient) RegisterResult(result Result) error {
 	}
 	client := github.NewClient(t.Client())
 
-	log.Info("submitting result")
+	log.Info("Submitting result")
 	repositories := client.Repositories
 	status, _, err := repositories.CreateStatus(
 		self.From,
@@ -57,9 +59,9 @@ func (self *GitHubClient) RegisterResult(result Result) error {
 			Description: github.String(result.Message),
 		    Context: github.String("continuous-integraion/walter"),
 	})
-	log.Infof("submit status: %s", status)
+	log.Infof("Submit status: %s", status)
 	if err != nil {
-		log.Errorf("failed to register result: %s", err)
+		log.Errorf("Failed to register result: %s", err)
 	}
 	return err
 }
@@ -77,12 +79,26 @@ func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 		self.From, self.Repo,
 		&github.PullRequestListOptions{})
 	if err != nil {
-		log.Errorf("failed to get pull requests");
+		log.Errorf("Failed to get pull requests");
 		return list.New(), err
 	}
 
-	log.Infof("size of pull reqests: %d", len(pullreqs))
+	log.Infof("Size of pull reqests: %d", len(pullreqs))
 	for _, pullreq := range pullreqs {
+		log.Infof("Branch name is \"%s\"", *pullreq.Head.Ref)
+
+		if self.FilterBranch != "" {
+			matched, err := filepath.Match(self.FilterBranch, *pullreq.Head.Ref)
+			if matched != true {
+				log.Infof("Not add a branch, \"%s\" since this branch name is not match the filtering pattern", *pullreq.Head.Ref)
+				continue
+			}
+			if err != nil {
+				log.Warnf("Errror detected when matching a branch name, \"%s\" since detected an error %s", *pullreq.Head.Ref, err)
+				continue
+			}
+		}
+
 		if *pullreq.State == "open" && pullreq.UpdatedAt.After(update.Time) {
 			log.Infof("Adding pullrequest %d", *pullreq.Number)
 			commits.PushBack(pullreq)
