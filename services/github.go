@@ -30,7 +30,7 @@ type GitHubClient struct {
 	From string `config:"from"`
 	Token string `config:"token"`
 	UpdateFile string `config:"update"`
-	SupportBranch string `config:"branch"`
+	TargetBranch string `config:"branch"`
 }
 
 func (self *GitHubClient) GetUpdateFilePath() string {
@@ -83,7 +83,7 @@ func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 		return list.New(), err
 	}
 
-	re, err := regexp.Compile(self.SupportBranch)
+	re, err := regexp.Compile(self.TargetBranch)
 	if err != nil {
 		log.Error("Failed to compile branch pattern...")
 		return list.New(), err
@@ -93,7 +93,7 @@ func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 	for _, pullreq := range pullreqs {
 		log.Infof("Branch name is \"%s\"", *pullreq.Head.Ref)
 
-		if self.SupportBranch != "" {
+		if self.TargetBranch != "" {
 			matched := re.Match([]byte(*pullreq.Head.Ref))
 			if matched != true {
 				log.Infof("Not add a branch, \"%s\" since this branch name is not match the filtering pattern", *pullreq.Head.Ref)
