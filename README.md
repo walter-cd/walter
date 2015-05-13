@@ -214,13 +214,14 @@ service:
 
 The following shows the description of each element.
 
-|  Element  | description                                                                                          |
-|:---------:|:----------------------------------------------------------------------------------------------------|
-|   type    |  Service type (currently Walter supports github only)                                                |
-|   token   |  [GitHub token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/)     |
-|   repo    |  Repository name                                                                                     |
-|   from    |  Account or organization name (if the repository is own by a organization)                           |
-|   update  |  Update file which contains the result and time of the last execution  (default **.walter**)         |
+|  Element  | description                                                                                                                          |
+|:---------:|:-------------------------------------------------------------------------------------------------------------------------------------|
+|   type    |  Service type (currently Walter supports github only)                                                                                |
+|   token   |  [GitHub token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/)                                     |
+|   repo    |  Repository name                                                                                                                     |
+|   from    |  Account or organization name (if the repository is own by a organization)                                                           |
+|   update  |  Update file which contains the result and time of the last execution  (default **.walter**)                                         |
+|   branch  |  Branch name pattern (When this value is filled, Walter only checks the branches who name is matched with the filled regex pattern)  |
 
 ## Embedding Environment Variables
 

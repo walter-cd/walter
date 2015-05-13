@@ -18,7 +18,7 @@ package services
 
 import (
 	"container/list"
-	"path/filepath"
+	"regexp"
 
 	"github.com/recruit-tech/walter/log"
 	"github.com/google/go-github/github"
@@ -30,7 +30,7 @@ type GitHubClient struct {
 	From string `config:"from"`
 	Token string `config:"token"`
 	UpdateFile string `config:"update"`
-	FilterBranch string `config:"filter"`
+	SupportBranch string `config:"branch"`
 }
 
 func (self *GitHubClient) GetUpdateFilePath() string {
@@ -83,18 +83,20 @@ func (self *GitHubClient) GetCommits(update Update) (*list.List, error) {
 		return list.New(), err
 	}
 
+	re, err := regexp.Compile(self.SupportBranch)
+	if err != nil {
+		log.Error("Failed to compile branch pattern...")
+		return list.New(), err
+	}
+
 	log.Infof("Size of pull reqests: %d", len(pullreqs))
 	for _, pullreq := range pullreqs {
 		log.Infof("Branch name is \"%s\"", *pullreq.Head.Ref)
 
-		if self.FilterBranch != "" {
-			matched, err := filepath.Match(self.FilterBranch, *pullreq.Head.Ref)
+		if self.SupportBranch != "" {
+			matched := re.Match([]byte(*pullreq.Head.Ref))
 			if matched != true {
 				log.Infof("Not add a branch, \"%s\" since this branch name is not match the filtering pattern", *pullreq.Head.Ref)
-				continue
-			}
-			if err != nil {
-				log.Warnf("Errror detected when matching a branch name, \"%s\" since detected an error %s", *pullreq.Head.Ref, err)
 				continue
 			}
 		}
