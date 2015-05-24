@@ -18,11 +18,10 @@ package messengers
 
 import (
 	"encoding/json"
+	"github.com/recruit-tech/walter/log"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/recruit-tech/walter/log"
 )
 
 type Slack struct {
@@ -58,7 +57,7 @@ func (self *Slack) Post(message string) bool {
 	defer resp.Body.Close()
 
 	if err != nil {
-		log.Errorf("Failed post message to Slack...: %s", message);
+		log.Errorf("Failed post message to Slack...: %s", message)
 		return false
 	}
 
