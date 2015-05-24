@@ -69,7 +69,7 @@ func TestReportStageResult(t *testing.T) {
 
 	stage.SetStageOpts(*opts)
 
-	p.ReportStageResult(stage, true)
+	p.ReportStageResult(stage, "true")
 
 	assert.Equal(t, 1, len(mock.Posts))
 }
@@ -89,7 +89,7 @@ func TestReportStageResultWithFullOutput(t *testing.T) {
 
 	stage.SetStageOpts(*opts)
 
-	p.ReportStageResult(stage, true)
+	p.ReportStageResult(stage, "true")
 
 	assert.Equal(t, 2, len(mock.Posts))
 }
