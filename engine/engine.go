@@ -18,7 +18,6 @@ package engine
 
 import (
 	"container/list"
-	"fmt"
 	"strconv"
 
 	"github.com/recruit-tech/walter/config"
@@ -96,7 +95,7 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	e.Resources.ReportStageResult(stage, result)
 
 	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)
+	mediator.States[stage.GetStageName()] = result
 
 	if childStages := stage.GetChildStages(); childStages.Len() > 0 {
 		log.Debugf("Execute childstage: %v", childStages)
