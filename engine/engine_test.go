@@ -160,7 +160,7 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 	}
 	result := engine.RunOnce()
 
-	assert.Equal(t, "false", result.Pipeline.States["echo foobar2"])
+	assert.Equal(t, "skipped", result.Pipeline.States["echo foobar2"])
 	assert.Equal(t, true, result.Pipeline.IsAnyFailure())
 }
 
