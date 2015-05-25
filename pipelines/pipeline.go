@@ -36,7 +36,7 @@ type Resources struct {
 	RepoService services.Service
 }
 
-func (self *Resources) ReportStageResult(stage stages.Stage, result bool) {
+func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
 	name := stage.GetStageName()
 	self.Reporter.Post(
 		fmt.Sprintf("Stage execution results: %+v, %+v", name, result))

@@ -18,7 +18,7 @@ package engine
 
 import (
 	"container/list"
-	"fmt"
+	"strconv"
 
 	"github.com/recruit-tech/walter/config"
 	"github.com/recruit-tech/walter/log"
@@ -84,18 +84,18 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debugf("Execute as parent: %+v", stage)
 	log.Debugf("Execute as parent name %+v", stage.GetStageName())
 
-	var result bool
+	var result string
 	if !e.isUpstreamAnyFailure(mediatorsReceived) || e.Opts.StopOnAnyFailure {
-		result = stage.(stages.Runner).Run()
+		result = strconv.FormatBool(stage.(stages.Runner).Run())
 	} else {
 		log.Warnf("Execution is skipped: %v", stage.GetStageName())
-		result = false
+		result = "skipped"
 	}
 	log.Debugf("Stage execution results: %+v, %+v", stage.GetStageName(), result)
 	e.Resources.ReportStageResult(stage, result)
 
 	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.States[stage.GetStageName()] = fmt.Sprintf("%v", result)
+	mediator.States[stage.GetStageName()] = result
 
 	if childStages := stage.GetChildStages(); childStages.Len() > 0 {
 		log.Debugf("Execute childstage: %v", childStages)
