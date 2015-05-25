@@ -18,11 +18,11 @@ package messengers
 
 import (
 	"encoding/json"
+	"github.com/recruit-tech/walter/log"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/recruit-tech/walter/log"
+	"strings"
 )
 
 type Slack struct {
@@ -43,12 +43,29 @@ func (self *Slack) Post(message string) bool {
 		self.Channel = "#" + self.Channel
 	}
 
+	var color string
+
+	if strings.Contains(message, ", true") {
+		color = "good"
+	} else if strings.Contains(message, ", skipped") {
+		color = "warning"
+	} else {
+		color = "danger"
+	}
+
+	attachment := map[string]string{
+		"text":  message,
+		"color": color,
+	}
+
+	attachments := []map[string]string{attachment}
+
 	params, _ := json.Marshal(struct {
 		FakeSlack
-		Text string `json:"text"`
+		Attachments []map[string]string `json:"attachments"`
 	}{
-		FakeSlack : FakeSlack(*self),
-		Text:  message,
+		FakeSlack:   FakeSlack(*self),
+		Attachments: attachments,
 	})
 
 	resp, err := http.PostForm(
@@ -58,7 +75,7 @@ func (self *Slack) Post(message string) bool {
 	defer resp.Body.Close()
 
 	if err != nil {
-		log.Errorf("Failed post message to Slack...: %s", message);
+		log.Errorf("Failed post message to Slack...: %s", message)
 		return false
 	}
 
