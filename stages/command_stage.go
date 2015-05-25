@@ -59,7 +59,7 @@ func (self *CommandStage) runOnlyIf() bool {
 	log.Infof("[command] only_if: %s", self.BaseStage.StageName)
 	log.Debugf("[command] only_if literal: %s", self.OnlyIf)
 	cmd.Dir = self.Directory
-	result, _, _ := execCommand(cmd, "only_if")
+	result, _, _ := execCommand(cmd, "only_if", self.BaseStage.StageName)
 	return result
 }
 
@@ -68,13 +68,13 @@ func (self *CommandStage) runCommand() bool {
 	log.Infof("[command] exec: %s", self.BaseStage.StageName)
 	log.Debugf("[command] exec command literal: %s", self.Command)
 	cmd.Dir = self.Directory
-	result, outResult, errResult := execCommand(cmd, "exec")
+	result, outResult, errResult := execCommand(cmd, "exec", self.BaseStage.StageName)
 	self.SetOutResult(*outResult)
 	self.SetErrResult(*errResult)
 	return result
 }
 
-func execCommand(cmd *exec.Cmd, prefix string) (bool, *string, *string) {
+func execCommand(cmd *exec.Cmd, prefix string, name string) (bool, *string, *string) {
 	out, err := cmd.StdoutPipe()
 	outE, errE := cmd.StderrPipe()
 
@@ -95,8 +95,8 @@ func execCommand(cmd *exec.Cmd, prefix string) (bool, *string, *string) {
 		log.Warnf("[command] %s err: %s", prefix, err)
 		return false, nil, nil
 	}
-	outResult := copyStream(out, prefix)
-	errResult := copyStream(outE, prefix)
+	outResult := copyStream(out, prefix, name)
+	errResult := copyStream(outE, prefix, name)
 
 	err = cmd.Wait()
 	if err != nil {
@@ -106,7 +106,7 @@ func execCommand(cmd *exec.Cmd, prefix string) (bool, *string, *string) {
 	return true, &outResult, &errResult
 }
 
-func copyStream(reader io.Reader, prefix string) string {
+func copyStream(reader io.Reader, prefix string, name string) string {
 	var err error
 	var n int
 	var buffer bytes.Buffer
@@ -116,7 +116,7 @@ func copyStream(reader io.Reader, prefix string) string {
 			break
 		}
 		buffer.Write(tmpBuf[0:n])
-		log.Infof("[command] %s output: %s", prefix, tmpBuf[0:n])
+		log.Infof("[%s][command] %s output: %s", name, prefix, tmpBuf[0:n])
 	}
 	if err == io.EOF {
 		err = nil
