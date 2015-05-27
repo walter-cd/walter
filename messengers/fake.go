@@ -14,8 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Package messengers defines clients for the messaging services such as Slack.
+// The clients reports the results of the pipeline stages and whole results.
 package messengers
 
+// FakeMessenger is a Messenger type used only for testing.
 type FakeMessenger struct {
 }
 

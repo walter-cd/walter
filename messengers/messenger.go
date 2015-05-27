@@ -20,10 +20,13 @@ import (
 	"fmt"
 )
 
+// Messenger is a interface for notifying the result to the messeging
+// services such as Slack or HipChat.
 type Messenger interface {
 	Post(string) bool
 }
 
+// InitMessenger generates a spefified Messenger client objet.
 func InitMessenger(mtype string) (Messenger, error) {
 	var messenger Messenger
 	switch mtype {

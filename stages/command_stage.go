@@ -24,6 +24,7 @@ import (
 	"github.com/recruit-tech/walter/log"
 )
 
+// CommandStage executes more than one commands.
 type CommandStage struct {
 	BaseStage
 	Command   string `config:"command" is_replace:"false"`
@@ -31,10 +32,12 @@ type CommandStage struct {
 	OnlyIf    string `config:"only_if" is_replace:"false"`
 }
 
+// Get standard output results.
 func (self *CommandStage) GetStdoutResult() string {
 	return self.OutResult
 }
 
+// Run registered commands.
 func (self *CommandStage) Run() bool {
 	// Check OnlyIf
 	if self.runOnlyIf() == false {
@@ -126,15 +129,18 @@ func copyStream(reader io.Reader, prefix string, name string) string {
 	return buffer.String()
 }
 
+// Register specified command.
 func (self *CommandStage) AddCommand(command string) {
 	self.Command = command
 	self.BaseStage.Runner = self
 }
 
+// Set the directory where the command is executed.
 func (self *CommandStage) SetDirectory(directory string) {
 	self.Directory = directory
 }
 
+// Create one CommandStage object.
 func NewCommandStage() *CommandStage {
 	stage := CommandStage{Directory: "."}
 	return &stage

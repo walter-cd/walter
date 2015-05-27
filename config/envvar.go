@@ -24,11 +24,14 @@ import (
 	"github.com/recruit-tech/walter/log"
 )
 
+// EnvVariables is a set of environment variables contains all the variables
+// defined when the walter command is executed.
 type EnvVariables struct {
 	variables *map[string]string
 	re        *regexp.Regexp
 }
 
+// NewEnvVariables creates one EnvVariable object.
 func NewEnvVariables() *EnvVariables {
 	envmap := loadEnvMap()
 	regex_str := "[$]([a-zA-Z_]+)"
@@ -39,11 +42,13 @@ func NewEnvVariables() *EnvVariables {
 	}
 }
 
+// Get returns the value of envionment variable.
 func (self *EnvVariables) Get(vname string) (string, bool) {
 	val, ok := (*self.variables)[vname]
 	return val, ok
 }
 
+// Add appends the value to specified envionment variable.
 func (self *EnvVariables) Add(key string, value string) {
 	(*self.variables)[key] = value
 }

@@ -21,6 +21,7 @@ import (
 	"fmt"
 )
 
+// Stage is a interface type which declares a list of methods every Stage object should define.
 type Stage interface {
 	AddChildStage(Stage)
 	GetChildStages() list.List
@@ -38,15 +39,18 @@ type Stage interface {
 	SetErrResult(string)
 }
 
+// Runer contains the Run method which is deined in Stage implemantations.
 type Runner interface {
 	Run() bool
 }
 
+// Mediator stores the intermidate results.
 type Mediator struct {
 	States map[string]string
 	Type   string
 }
 
+// IsAnyFailure returns true when mediator found any failures. Otherwise This method returns false.
 func (m *Mediator) IsAnyFailure() bool {
 	for _, v := range m.States {
 		if v == "false" {
@@ -56,6 +60,7 @@ func (m *Mediator) IsAnyFailure() bool {
 	return false
 }
 
+// InitStage initializes a stage with specified stage type.
 func InitStage(stageType string) (Stage, error) {
 	var stage Stage
 	switch stageType {
@@ -70,6 +75,7 @@ func InitStage(stageType string) (Stage, error) {
 	return stage, nil
 }
 
+// PrepareCh prepares input and output channels.
 func PrepareCh(stage Stage) {
 	in := make(chan Mediator)
 	out := make(chan Mediator)

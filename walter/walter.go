@@ -30,11 +30,13 @@ import (
 	"github.com/recruit-tech/walter/stages"
 )
 
+// Walter object.
 type Walter struct {
 	Engine *engine.Engine
 	Opts   *config.Opts
 }
 
+// New creates a Walter instance.
 func New(opts *config.Opts) (*Walter, error) {
 	log.Infof("Pipeline file path: \"%s\"", opts.PipelineFilePath)
 	configData := config.ReadConfig(opts.PipelineFilePath)
@@ -54,6 +56,7 @@ func New(opts *config.Opts) (*Walter, error) {
 	}, nil
 }
 
+// Run executes registered Pipeline.
 func (e *Walter) Run() bool {
 	repoServiceValue := reflect.ValueOf(e.Engine.Resources.RepoService)
 	if e.Engine.Opts.Mode == "local" ||

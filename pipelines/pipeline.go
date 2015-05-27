@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Package pipelines defines the pipeline and the resources.
 package pipelines
 
 import (
@@ -25,17 +27,27 @@ import (
 	"github.com/recruit-tech/walter/stages"
 )
 
+// Pipeline stores the list of stages.
 type Pipeline struct {
 	Stages list.List
 }
 
+// Resources stores the settings loaded from the configuation file.
 type Resources struct {
-	Pipeline    *Pipeline
-	Cleanup     *Pipeline
-	Reporter    messengers.Messenger
+	// Pipeline stores the list of stages to be executed.
+	Pipeline *Pipeline
+
+	// Cleanup stores the list of stages extecuted after Pipeline.
+	Cleanup *Pipeline
+
+	// Reporter stores the messenger client which report the result to the server.
+	Reporter messengers.Messenger
+
+	// RepoService is a client of VCS services such as GitHub and reports the result to the service.
 	RepoService services.Service
 }
 
+// ReportStageResult throw the results of specified stage to the messenger services.
 func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
 	name := stage.GetStageName()
 	self.Reporter.Post(
@@ -53,10 +65,12 @@ func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
 	}
 }
 
+// AddStage appends specified stage to the pipeline.
 func (self *Pipeline) AddStage(stage stages.Stage) {
 	self.Stages.PushBack(stage)
 }
 
+// Size returns the number of stages in the pipeline.
 func (self *Pipeline) Size() int {
 	return self.Stages.Len()
 }

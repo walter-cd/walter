@@ -21,6 +21,8 @@ import (
 	"github.com/recruit-tech/walter/log"
 )
 
+// HipChat is a client which reports the pipeline results to the HipChat server.
+// The client uses V1 of the HipChat API.
 type HipChat struct {
 	RoomId string `config:"room_id"`
 	Token  string `config:"token"`
