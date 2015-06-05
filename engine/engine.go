@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Package engine defines the Engine struct, which execute registered pipelines.
 package engine
 
 import (
@@ -26,17 +28,20 @@ import (
 	"github.com/recruit-tech/walter/stages"
 )
 
+// Engine executes the its pipeline.
 type Engine struct {
 	Resources *pipelines.Resources
 	MonitorCh *chan stages.Mediator
 	Opts      *config.Opts
 }
 
+// Result stores the output in pipelines.
 type Result struct {
 	Pipeline *stages.Mediator
 	Cleanup  *stages.Mediator
 }
 
+// IsSucceeded shows the pipeline finished successfully or not.
 func (r *Result) IsSucceeded() bool {
 	if !r.Pipeline.IsAnyFailure() && !r.Cleanup.IsAnyFailure() {
 		return true
@@ -44,6 +49,7 @@ func (r *Result) IsSucceeded() bool {
 	return false
 }
 
+// RunOnce executes the pipeline and the cleanup prccedures.
 func (e *Engine) RunOnce() *Result {
 	pipe_result := e.executePipeline(e.Resources.Pipeline, "pipeline")
 	cleanup_result := e.executePipeline(e.Resources.Cleanup, "cleanup")

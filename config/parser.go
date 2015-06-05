@@ -33,6 +33,7 @@ func getStageTypeModuleName(stageType string) string {
 	return strings.ToLower(stageType)
 }
 
+// Parse reads the specified configuration and create the pipeline.Resource.
 func Parse(configData *map[interface{}]interface{}) (*pipelines.Resources, error) {
 	envs := NewEnvVariables()
 	return ParseWithSpecifiedEnvs(configData, envs)

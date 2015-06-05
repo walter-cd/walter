@@ -14,6 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+// Package main provides a command line tool, walter.
+//
+// See the usage: https://github.com/walter-cd/walter
 package main
 
 import (

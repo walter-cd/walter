@@ -14,6 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Package config defines the configration parameters,
+// and the parser to load configuration file.
 package config
 
 import (
@@ -28,6 +31,7 @@ var (
 	fs = flag.NewFlagSet("walter", flag.ExitOnError)
 )
 
+// Opts contains a set of configuration options.
 type Opts struct {
 	PipelineFilePath string
 	StopOnAnyFailure bool
@@ -35,6 +39,7 @@ type Opts struct {
 	Mode             string
 }
 
+// LoadOpts defines the prameters of the walter command.
 func LoadOpts(arguments []string) (*Opts, error) {
 	var pipelineFilePath string
 	var stopOnAnyFailure bool

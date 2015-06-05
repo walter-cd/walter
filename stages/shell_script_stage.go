@@ -20,6 +20,7 @@ import (
 	"github.com/recruit-tech/walter/log"
 )
 
+// ShellScriptStage executes one shell script file.
 type ShellScriptStage struct {
 	ResourceValidator
 	CommandStage
@@ -32,6 +33,7 @@ func (self *ShellScriptStage) preCheck() bool {
 	return self.Validate()
 }
 
+// Run exectues specified shell script.
 func (self *ShellScriptStage) Run() bool {
 	log.Infof("[shell] exec: %s", self.BaseStage.StageName)
 	log.Debugf("[shell] specified file: %s\n", self.File)
@@ -43,6 +45,7 @@ func (self *ShellScriptStage) Run() bool {
 	return self.CommandStage.Run()
 }
 
+// Generate one ShellScriptStage object.
 func NewShellScriptStage() *ShellScriptStage {
 	return &ShellScriptStage{}
 }

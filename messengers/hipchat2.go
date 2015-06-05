@@ -21,7 +21,8 @@ import (
 	"github.com/tbruyelle/hipchat-go/hipchat"
 )
 
-// HipChat2 represents a messenger for V2 of the HipChat API
+// HipChat2 is a client which reports the pipeline results to the HipChat server.
+// The client uses V2 of the HipChat API.
 type HipChat2 struct {
 	RoomID string `config:"room_id"`
 	Token  string `config:"token"`
