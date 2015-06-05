@@ -30,7 +30,7 @@ type BaseStage struct {
 	// Run specified process. The required method (Run) is defined in the inheirted structs.
 	Runner
 
-	// Input channel.This channel stores the input of the statge.
+	// Input channel. This channel stores the input of the statge.
 	InputCh *chan Mediator
 
 	// Output channel. This channel stores the output of the statge.
