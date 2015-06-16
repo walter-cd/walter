@@ -19,21 +19,26 @@ package messengers
 import (
 	"github.com/recruit-tech/walter/log"
 	"github.com/tbruyelle/hipchat-go/hipchat"
+	"net/url"
 )
 
 // HipChat2 is a client which reports the pipeline results to the HipChat server.
 // The client uses V2 of the HipChat API.
 type HipChat2 struct {
-	RoomID string `config:"room_id"`
-	Token  string `config:"token"`
-	From   string `config:"from"`
-	client *hipchat.Client
+	RoomID  string `config:"room_id"`
+	Token   string `config:"token"`
+	From    string `config:"from"`
+	BaseURL string `config:"base_url"`
+	client  *hipchat.Client
 }
 
 // Post sends a new HipChat message using V2 of the API
 func (hc *HipChat2) Post(message string) bool {
 	if hc.client == nil {
-		hc.client = hipchat.NewClient(hc.Token)
+		hc.client = hc.newClient()
+		if hc.client == nil {
+			return false
+		}
 	}
 
 	msg := &hipchat.NotificationRequest{
@@ -49,4 +54,19 @@ func (hc *HipChat2) Post(message string) bool {
 	}
 
 	return true
+}
+
+func (hc *HipChat2) newClient() *hipchat.Client {
+	client := hipchat.NewClient(hc.Token)
+	if hc.BaseURL == "" {
+		return client
+	}
+
+	base_url, err := url.Parse(hc.BaseURL)
+	if err != nil {
+		log.Errorf("Invalid Hipchat Base URL...: %s", err.Error())
+		return nil
+	}
+	client.BaseURL = base_url
+	return client
 }
