@@ -20,7 +20,7 @@
 		},
 		{
 			"ImportPath": "github.com/tbruyelle/hipchat-go/hipchat",
-			"Rev": "c2364b4acfdeb7bb4ce232fa53bc80b5d741d668"
+			"Rev": "7fdd5b2bf90aef87fd0fb5238b0fa72559e11736"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",

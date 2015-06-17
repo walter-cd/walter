@@ -103,7 +103,7 @@ The following is the parameter of Shell script stage.
 ## Parallel stages
 
  You can set child stages and run these stages in parallel like this.
- 
+
 ```yaml
 pipeline:
   - name: parallel stages
@@ -145,7 +145,8 @@ To submit a message, users need to add a **messenger** block into the configurat
 
 ```yaml
 messenger:
-  type: hipchat
+  type: hipchat2
+  base_url: BASE_URL
   room_id: ROOM_ID
   token: TOKEN
   from: USER_NAME
@@ -185,6 +186,7 @@ To activate the report function, we need to specify the properties for messenger
 |   room_id        |  Room name                        |
 |   token          |  HipChat token                    |
 |   from           |  Account name                     |
+|   base_url       |  Base API URL (for private servers; hipchat2 only) |
 
 #### slack
 
