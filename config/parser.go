@@ -35,20 +35,14 @@ type Parser struct {
 }
 
 // Parse reads the specified configuration and create the pipeline.Resource.
-func (self *Parser) Parse(configData *map[interface{}]interface{}) (*pipelines.Resources, error) {
-	envs := NewEnvVariables()
-	return self.ParseWithSpecifiedEnvs(configData, envs)
-}
-
-func (self *Parser) ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
-	envs *EnvVariables) (*pipelines.Resources, error) {
+func (self *Parser) Parse() (*pipelines.Resources, error) {
 	// parse service block
-	serviceOps, ok := (*configData)["service"].(map[interface{}]interface{})
+	serviceOps, ok := (*self.ConfigData)["service"].(map[interface{}]interface{})
 	var repoService services.Service
 	var err error
 	if ok == true {
 		log.Info("found \"service\" block")
-		repoService, err = mapService(serviceOps, envs)
+		repoService, err = mapService(serviceOps, self.EnvVariables)
 		if err != nil {
 			return nil, err
 		}
@@ -61,11 +55,11 @@ func (self *Parser) ParseWithSpecifiedEnvs(configData *map[interface{}]interface
 	}
 
 	// parse messenger block
-	messengerOps, ok := (*configData)["messenger"].(map[interface{}]interface{})
+	messengerOps, ok := (*self.ConfigData)["messenger"].(map[interface{}]interface{})
 	var messenger messengers.Messenger
 	if ok == true {
 		log.Info("found messenger block")
-		messenger, err = mapMessenger(messengerOps, envs)
+		messenger, err = mapMessenger(messengerOps, self.EnvVariables)
 		if err != nil {
 			return nil, err
 		}
@@ -79,10 +73,10 @@ func (self *Parser) ParseWithSpecifiedEnvs(configData *map[interface{}]interface
 
 	// parse cleanup block
 	var cleanup *pipelines.Pipeline = &pipelines.Pipeline{}
-	cleanupData, ok := (*configData)["cleanup"].([]interface{})
+	cleanupData, ok := (*self.ConfigData)["cleanup"].([]interface{})
 	if ok == true {
 		log.Info("found cleanup block")
-		cleanupList, err := convertYamlMapToStages(cleanupData, envs)
+		cleanupList, err := convertYamlMapToStages(cleanupData, self.EnvVariables)
 		if err != nil {
 			return nil, err
 		}
@@ -96,11 +90,11 @@ func (self *Parser) ParseWithSpecifiedEnvs(configData *map[interface{}]interface
 	// parse pipeline block
 	var pipeline *pipelines.Pipeline = &pipelines.Pipeline{}
 
-	pipelineData, ok := (*configData)["pipeline"].([]interface{})
+	pipelineData, ok := (*self.ConfigData)["pipeline"].([]interface{})
 	if ok == false {
 		return nil, fmt.Errorf("no pipeline block in the input file")
 	}
-	stageList, err := convertYamlMapToStages(pipelineData, envs)
+	stageList, err := convertYamlMapToStages(pipelineData, self.EnvVariables)
 	if err != nil {
 		return nil, err
 	}
