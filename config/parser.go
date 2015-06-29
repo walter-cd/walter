@@ -42,7 +42,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	var err error
 	if ok == true {
 		log.Info("found \"service\" block")
-		repoService, err = mapService(serviceOps, self.EnvVariables)
+		repoService, err = self.mapService(serviceOps)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +59,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	var messenger messengers.Messenger
 	if ok == true {
 		log.Info("found messenger block")
-		messenger, err = mapMessenger(messengerOps, self.EnvVariables)
+		messenger, err = self.mapMessenger(messengerOps)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	cleanupData, ok := (*self.ConfigData)["cleanup"].([]interface{})
 	if ok == true {
 		log.Info("found cleanup block")
-		cleanupList, err := convertYamlMapToStages(cleanupData, self.EnvVariables)
+		cleanupList, err := self.convertYamlMapToStages(cleanupData)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +94,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	if ok == false {
 		return nil, fmt.Errorf("no pipeline block in the input file")
 	}
-	stageList, err := convertYamlMapToStages(pipelineData, self.EnvVariables)
+	stageList, err := self.convertYamlMapToStages(pipelineData)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	return resources, nil
 }
 
-func mapMessenger(messengerMap map[interface{}]interface{}, envs *EnvVariables) (messengers.Messenger, error) {
+func (self *Parser) mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenger, error) {
 	messengerType := messengerMap["type"].(string)
 	log.Info("type of reporter is " + messengerType)
 	messenger, err := messengers.InitMessenger(messengerType)
@@ -121,7 +121,7 @@ func mapMessenger(messengerMap map[interface{}]interface{}, envs *EnvVariables) 
 			if tagName == messengerOptKey {
 				fieldVal := newMessengerValue.Field(i)
 				if fieldVal.Type() == reflect.ValueOf("string").Type() {
-					fieldVal.SetString(envs.Replace(messengerOptVal.(string)))
+					fieldVal.SetString(self.EnvVariables.Replace(messengerOptVal.(string)))
 				}
 			}
 		}
@@ -130,7 +130,7 @@ func mapMessenger(messengerMap map[interface{}]interface{}, envs *EnvVariables) 
 	return messenger, nil
 }
 
-func mapService(serviceMap map[interface{}]interface{}, envs *EnvVariables) (services.Service, error) {
+func (self *Parser) mapService(serviceMap map[interface{}]interface{}) (services.Service, error) {
 	serviceType := serviceMap["type"].(string)
 	log.Info("type of service is " + serviceType)
 	service, err := services.InitService(serviceType)
@@ -146,7 +146,7 @@ func mapService(serviceMap map[interface{}]interface{}, envs *EnvVariables) (ser
 			if tagName == serviceOptKey {
 				fieldVal := newServiceValue.Field(i)
 				if fieldVal.Type() == reflect.ValueOf("string").Type() {
-					fieldVal.SetString(envs.Replace(serviceOptVal.(string)))
+					fieldVal.SetString(self.EnvVariables.Replace(serviceOptVal.(string)))
 				}
 			}
 		}
@@ -154,10 +154,10 @@ func mapService(serviceMap map[interface{}]interface{}, envs *EnvVariables) (ser
 	return service, nil
 }
 
-func convertYamlMapToStages(yamlStageList []interface{}, envs *EnvVariables) (*list.List, error) {
+func (self *Parser) convertYamlMapToStages(yamlStageList []interface{}) (*list.List, error) {
 	stages := list.New()
 	for _, stageDetail := range yamlStageList {
-		stage, err := mapStage(stageDetail.(map[interface{}]interface{}), envs)
+		stage, err := self.mapStage(stageDetail.(map[interface{}]interface{}))
 		if err != nil {
 			return nil, err
 		}
@@ -166,7 +166,7 @@ func convertYamlMapToStages(yamlStageList []interface{}, envs *EnvVariables) (*l
 	return stages, nil
 }
 
-func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.Stage, error) {
+func (self *Parser) mapStage(stageMap map[interface{}]interface{}) (stages.Stage, error) {
 	log.Debugf("%v", stageMap["run_after"])
 
 	var stageType string = "command"
@@ -208,7 +208,7 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 				if stageOptVal == nil {
 					log.Warnf("stage option \"%s\" is not specified", stageOptKey)
 				} else {
-					setFieldVal(newStageValue.Field(i), stageOptVal, is_replace, envs)
+					self.setFieldVal(newStageValue.Field(i), stageOptVal, is_replace)
 				}
 			}
 		}
@@ -223,7 +223,7 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 
 	if parallelStages != nil {
 		for _, parallelStages := range parallelStages.([]interface{}) {
-			childStage, err := mapStage(parallelStages.(map[interface{}]interface{}), envs)
+			childStage, err := self.mapStage(parallelStages.(map[interface{}]interface{}))
 			if err != nil {
 				return nil, err
 			}
@@ -233,10 +233,10 @@ func mapStage(stageMap map[interface{}]interface{}, envs *EnvVariables) (stages.
 	return stage, nil
 }
 
-func setFieldVal(fieldVal reflect.Value, stageOptVal interface{}, is_replace string, envs *EnvVariables) {
+func (self *Parser) setFieldVal(fieldVal reflect.Value, stageOptVal interface{}, is_replace string) {
 	if fieldVal.Type() == reflect.ValueOf("string").Type() {
 		if is_replace == "true" {
-			fieldVal.SetString(envs.Replace(stageOptVal.(string)))
+			fieldVal.SetString(self.EnvVariables.Replace(stageOptVal.(string)))
 		} else {
 			fieldVal.SetString(stageOptVal.(string))
 		}
