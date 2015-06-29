@@ -40,7 +40,8 @@ type Walter struct {
 func New(opts *config.Opts) (*Walter, error) {
 	log.Infof("Pipeline file path: \"%s\"", opts.PipelineFilePath)
 	configData := config.ReadConfig(opts.PipelineFilePath)
-	resources, err := config.Parse(configData)
+	parser := &config.Parser{}
+	resources, err := parser.Parse(configData)
 	if err != nil {
 		return nil, err
 	}

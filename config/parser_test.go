@@ -27,7 +27,8 @@ import (
 
 func TestParseFromFile(t *testing.T) {
 	configData := ReadConfig("../tests/fixtures/pipeline.yml")
-	resources, err := Parse(configData)
+	parser := &Parser{}
+	resources, err := parser.Parse(configData)
 	actual := resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
 	assert.Equal(t, "echo \"hello, world\"", actual)
 	assert.Nil(t, err)
@@ -35,14 +36,16 @@ func TestParseFromFile(t *testing.T) {
 
 func TestParseJustHeading(t *testing.T) {
 	configData := ReadConfigBytes([]byte("pipeline:"))
-	pipeline, err := Parse(configData)
+	parser := &Parser{}
+	pipeline, err := parser.Parse(configData)
 	assert.Nil(t, pipeline)
 	assert.NotNil(t, err)
 }
 
 func TestParseVoid(t *testing.T) {
 	configData := ReadConfigBytes([]byte(""))
-	pipeline, err := Parse(configData)
+	parser := &Parser{}
+	pipeline, err := parser.Parse(configData)
 	assert.Nil(t, pipeline)
 	assert.NotNil(t, err)
 }
@@ -59,7 +62,8 @@ func TestParseConfWithChildren(t *testing.T) {
           -  name: command_stage_3_group_1
              type: command
              command: echo "hello, world, command_stage_3_group_1"`))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	assert.Equal(t, 1, result.Pipeline.Size())
 	assert.Nil(t, err)
 
@@ -77,7 +81,8 @@ func TestParseConfWithParallel(t *testing.T) {
           -  name: parallel command 2
              type: command
              command: echo "hello, world, parallel command 2"`))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	assert.Equal(t, 1, result.Pipeline.Size())
 	assert.Nil(t, err)
 
@@ -90,7 +95,8 @@ func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
     - name: command_stage_1
       command: echo "hello, world"
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
 	assert.Equal(t, "echo \"hello, world\"", actual)
 	assert.Nil(t, err)
@@ -103,7 +109,8 @@ func TestParseConfWithDirectory(t *testing.T) {
       command: ls -l
       directory: /usr/local
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Directory
 	assert.Nil(t, err)
 	assert.Equal(t, "/usr/local", actual)
@@ -115,7 +122,8 @@ func TestParseConfWithShellScriptStage(t *testing.T) {
       type: shell
       file: ../stages/test_sample.sh
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	actual := result.Pipeline.Stages.Front().Value.(*stages.ShellScriptStage).File
 	assert.Equal(t, "../stages/test_sample.sh", actual)
 	assert.Nil(t, err)
@@ -133,7 +141,8 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
           type: shell
           file: ../stages/test_sample.sh
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	messenger, ok := result.Reporter.(*messengers.HipChat)
 	assert.Nil(t, err)
 	assert.Equal(t, true, ok)
@@ -147,7 +156,8 @@ func TestParseConfWithInvalidStage(t *testing.T) {
     - name: command_stage_1
       type: xxxxx
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 }
@@ -161,7 +171,8 @@ func TestParseConfWithInvalidChildStage(t *testing.T) {
           -  name: command_stage_2_group_1
              type: xxxxx
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 }
@@ -173,7 +184,8 @@ func TestParseConfWithInvalidParallelStage(t *testing.T) {
           -  name: parallel command 1
              type: xxxxx
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 }
@@ -191,7 +203,8 @@ func TestParseConfWithServiceBlock(t *testing.T) {
           type: shell
           file: ../stages/test_sample.sh
     `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	service, ok := result.RepoService.(*services.GitHubClient)
 	assert.Nil(t, err)
 	assert.Equal(t, true, ok)
@@ -208,7 +221,8 @@ func TestParseConfWithEnvVariable(t *testing.T) {
 
 	envs := NewEnvVariables()
 	envs.Add("USER_NAME", "takahi-i")
-	result, err := ParseWithSpecifiedEnvs(configData, envs)
+	parser := &Parser{}
+	result, err := parser.ParseWithSpecifiedEnvs(configData, envs)
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
 	assert.Equal(t, "echo \"hello $USER_NAME\"", actual)
 	assert.Nil(t, err)
@@ -222,7 +236,8 @@ func TestParseConfWithEnvVariableInDirectoryAttribute(t *testing.T) {
 `))
 
 	envs := NewEnvVariables()
-	_, err := ParseWithSpecifiedEnvs(configData, envs) // confirm not to be panic
+	parser := &Parser{}
+	_, err := parser.ParseWithSpecifiedEnvs(configData, envs) // confirm not to be panic
 	assert.Nil(t, err)
 }
 
@@ -234,7 +249,8 @@ func TestParseConfWithNoExistEnvVariable(t *testing.T) {
 
 	envs := NewEnvVariables()
 	envs.Add("USER_NAME", "takahi-i")
-	result, err := ParseWithSpecifiedEnvs(configData, envs)
+	parser := &Parser{}
+	result, err := parser.ParseWithSpecifiedEnvs(configData, envs)
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
 	assert.Equal(t, "echo \"hello $NO_SUCH_A_ENV_VARIABLE\"", actual) // NOTE: No env variable name is shown when there is no env variable
 	assert.Nil(t, err)
@@ -254,7 +270,8 @@ func TestParseMessengerConfWithEnvVariable(t *testing.T) {
 `))
 	envs := NewEnvVariables()
 	envs.Add("HIPCHAT_TOKEN", "this-token-is-very-secret")
-	result, err := ParseWithSpecifiedEnvs(configData, envs)
+	parser := &Parser{}
+	result, err := parser.ParseWithSpecifiedEnvs(configData, envs)
 	messenger, ok := result.Reporter.(*messengers.HipChat)
 	assert.Nil(t, err)
 	assert.Equal(t, true, ok)
@@ -269,7 +286,8 @@ func TestParseConfigWithDeprecatedProperties(t *testing.T) {
       stage_type: command
       command: echo "hello, world"
 `))
-	result, err := Parse(configData)
+	parser := &Parser{}
+	result, err := parser.Parse(configData)
 	assert.Equal(t, 1, result.Pipeline.Size())
 	assert.Nil(t, err)
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command

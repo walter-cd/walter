@@ -29,18 +29,18 @@ import (
 	"github.com/recruit-tech/walter/stages"
 )
 
-func getStageTypeModuleName(stageType string) string {
-	return strings.ToLower(stageType)
+type Parser struct {
+	ConfigData   *map[interface{}]interface{}
+	EnvVariables *EnvVariables
 }
 
 // Parse reads the specified configuration and create the pipeline.Resource.
-func Parse(configData *map[interface{}]interface{}) (*pipelines.Resources, error) {
+func (self *Parser) Parse(configData *map[interface{}]interface{}) (*pipelines.Resources, error) {
 	envs := NewEnvVariables()
-	return ParseWithSpecifiedEnvs(configData, envs)
+	return self.ParseWithSpecifiedEnvs(configData, envs)
 }
 
-// TODO: make parser process a struct (for simplifying redundant functions and reducing the number of function parameters)
-func ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
+func (self *Parser) ParseWithSpecifiedEnvs(configData *map[interface{}]interface{},
 	envs *EnvVariables) (*pipelines.Resources, error) {
 	// parse service block
 	serviceOps, ok := (*configData)["service"].(map[interface{}]interface{})
@@ -247,4 +247,8 @@ func setFieldVal(fieldVal reflect.Value, stageOptVal interface{}, is_replace str
 			fieldVal.SetString(stageOptVal.(string))
 		}
 	}
+}
+
+func getStageTypeModuleName(stageType string) string {
+	return strings.ToLower(stageType)
 }
