@@ -36,6 +36,15 @@ type Parser struct {
 
 // Parse reads the specified configuration and create the pipeline.Resource.
 func (self *Parser) Parse() (*pipelines.Resources, error) {
+	// parse require block
+	requires, ok := (*self.ConfigData)["require"].([]interface{})
+	if ok == true {
+		log.Info("found \"require\" block")
+		self.mapRequire(requires)
+	} else {
+		log.Info("not found \"require\" block")
+	}
+
 	// parse service block
 	serviceOps, ok := (*self.ConfigData)["service"].(map[interface{}]interface{})
 	var repoService services.Service
@@ -104,6 +113,15 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	var resources = &pipelines.Resources{Pipeline: pipeline, Cleanup: cleanup, Reporter: messenger, RepoService: repoService}
 
 	return resources, nil
+}
+
+func (self *Parser) mapRequire(requireList []interface{}) (map[string]interface{}, error) {
+	requires := make(map[string]interface{})
+	for _, requireFile := range requireList {
+		log.Info("register require file: " + requireFile.(string))
+		ReadConfig(requireFile.(string))
+	}
+	return requires, nil
 }
 
 func (self *Parser) mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenger, error) {

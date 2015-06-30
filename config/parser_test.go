@@ -293,3 +293,12 @@ func TestParseConfigWithDeprecatedProperties(t *testing.T) {
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
 	assert.Equal(t, "echo \"hello, world\"", actual)
 }
+
+func TestParseFromFileWithRequire(t *testing.T) {
+	configData := ReadConfig("../tests/fixtures/pipeline_with_require.yml")
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	resources, err := parser.Parse()
+	actual := resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello, world\"", actual)
+	assert.Nil(t, err)
+}
