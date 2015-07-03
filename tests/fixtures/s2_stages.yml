@@ -1,13 +1,12 @@
 namespace: s2
 
-def_stage:
-    name: foo
-    command: echo 'hello for in s2'
-
-def_stage:
-    name: bar
-    command: echo 'hello bar in s2'
-
-def_stage:
-    name: baz
-    command: echo 'hello baz in s2'
+stages:
+  - def:
+      name: foo
+      command: echo 'hello for in s2'
+  - def:
+      name: bar
+      command: echo 'hello bar in s2'
+  - def:
+      name: baz
+      command: echo 'hello baz in s2'

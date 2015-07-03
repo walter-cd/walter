@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"strconv"
 
 	"github.com/recruit-tech/walter/log"
 	"github.com/recruit-tech/walter/messengers"
@@ -40,7 +41,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	requires, ok := (*self.ConfigData)["require"].([]interface{})
 	if ok == true {
 		log.Info("found \"require\" block")
-		self.mapRequire(requires)
+		self.mapRequires(requires)
 	} else {
 		log.Info("not found \"require\" block")
 	}
@@ -115,13 +116,24 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	return resources, nil
 }
 
-func (self *Parser) mapRequire(requireList []interface{}) (map[string]interface{}, error) {
+func (self *Parser) mapRequires(requireList []interface{}) (map[string]interface{}, error) {
 	requires := make(map[string]interface{})
 	for _, requireFile := range requireList {
 		log.Info("register require file: " + requireFile.(string))
-		ReadConfig(requireFile.(string))
+		requireData := ReadConfig(requireFile.(string))
+		self.mapRequire(*requireData, requires)
 	}
 	return requires, nil
+}
+
+func (self *Parser) mapRequire(requireData map[interface{}]interface{}, requries map[string]interface{}) {
+	// load namespace
+	namespace := requireData["namespace"].(string)
+	log.Info("detect namespace: " + namespace)
+
+	// load stages
+	stages := requireData["stages"].([]interface{})
+	log.Info("Number of detected stages: " + strconv.Itoa(len(stages)))
 }
 
 func (self *Parser) mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenger, error) {
