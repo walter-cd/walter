@@ -20,8 +20,8 @@ import (
 	"container/list"
 	"fmt"
 	"reflect"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/recruit-tech/walter/log"
 	"github.com/recruit-tech/walter/messengers"
