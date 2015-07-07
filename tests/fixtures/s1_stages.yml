@@ -1,6 +1,6 @@
 namespace: s1
 
 stages:
- - def_stage:
-    name: foo
-    command: echo 'hello foo with VAR1=${VAR1} in s1'
+ - def:
+     name: foo
+     command: echo 'hello foo with VAR1=${VAR1} in s1'

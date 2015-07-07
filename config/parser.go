@@ -116,24 +116,32 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	return resources, nil
 }
 
-func (self *Parser) mapRequires(requireList []interface{}) (map[string]interface{}, error) {
-	requires := make(map[string]interface{})
+func (self *Parser) mapRequires(requireList []interface{}) (*map[string]map[interface{}]interface{}, error) {
+	requires := make(map[string]map[interface{}]interface{})
 	for _, requireFile := range requireList {
 		log.Info("register require file: " + requireFile.(string))
 		requireData := ReadConfig(requireFile.(string))
-		self.mapRequire(*requireData, requires)
+		self.mapRequire(*requireData, &requires)
 	}
-	return requires, nil
+	return &requires, nil
 }
 
-func (self *Parser) mapRequire(requireData map[interface{}]interface{}, requries map[string]interface{}) {
-	// load namespace
+func (self *Parser) mapRequire(requireData map[interface{}]interface{},
+	requires *map[string]map[interface{}]interface{}) {
 	namespace := requireData["namespace"].(string)
 	log.Info("detect namespace: " + namespace)
 
-	// load stages
 	stages := requireData["stages"].([]interface{})
 	log.Info("Number of detected stages: " + strconv.Itoa(len(stages)))
+
+	for _, stageDetail := range stages {
+		stageMap := stageDetail.(map[interface{}]interface{})
+		for key, values := range stageMap {
+			stageKey := namespace + ":" + key.(string)
+			valueMap := values.(map[interface{}]interface{})
+			(*requires)[stageKey] = valueMap
+		}
+	}
 }
 
 func (self *Parser) mapMessenger(messengerMap map[interface{}]interface{}) (messengers.Messenger, error) {
