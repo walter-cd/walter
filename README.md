@@ -9,6 +9,12 @@ Walter
 
 Walter is a tiny deployment pipeline template.
 
+Blogs
+==========
+
+* http://ainoya.io/walter
+* http://walter-cd.net
+
 Overview
 ==========
 
