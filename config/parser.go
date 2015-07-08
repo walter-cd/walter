@@ -38,10 +38,12 @@ type Parser struct {
 // Parse reads the specified configuration and create the pipeline.Resource.
 func (self *Parser) Parse() (*pipelines.Resources, error) {
 	// parse require block
-	requires, ok := (*self.ConfigData)["require"].([]interface{})
+	requireFiles, ok := (*self.ConfigData)["require"].([]interface{})
+	var required *map[string]map[interface{}]interface{}
 	if ok == true {
 		log.Info("found \"require\" block")
-		self.mapRequires(requires)
+		required, _ = self.mapRequires(requireFiles)
+		log.Info("number of registered stages: " + strconv.Itoa(len(*required)))
 	} else {
 		log.Info("not found \"require\" block")
 	}
@@ -86,7 +88,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	cleanupData, ok := (*self.ConfigData)["cleanup"].([]interface{})
 	if ok == true {
 		log.Info("found cleanup block")
-		cleanupList, err := self.convertYamlMapToStages(cleanupData)
+		cleanupList, err := self.convertYamlMapToStages(cleanupData, required)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +106,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	if ok == false {
 		return nil, fmt.Errorf("no pipeline block in the input file")
 	}
-	stageList, err := self.convertYamlMapToStages(pipelineData)
+	stageList, err := self.convertYamlMapToStages(pipelineData, required)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +134,7 @@ func (self *Parser) mapRequire(requireData map[interface{}]interface{},
 	log.Info("detect namespace: " + namespace)
 
 	stages := requireData["stages"].([]interface{})
-	log.Info("Number of detected stages: " + strconv.Itoa(len(stages)))
+	log.Info("number of detected stages: " + strconv.Itoa(len(stages)))
 
 	for _, stageDetail := range stages {
 		stageMap := stageDetail.(map[interface{}]interface{})
@@ -192,10 +194,11 @@ func (self *Parser) mapService(serviceMap map[interface{}]interface{}) (services
 	return service, nil
 }
 
-func (self *Parser) convertYamlMapToStages(yamlStageList []interface{}) (*list.List, error) {
+func (self *Parser) convertYamlMapToStages(yamlStageList []interface{},
+	requiredStages *map[string]map[interface{}]interface{}) (*list.List, error) {
 	stages := list.New()
 	for _, stageDetail := range yamlStageList {
-		stage, err := self.mapStage(stageDetail.(map[interface{}]interface{}))
+		stage, err := self.mapStage(stageDetail.(map[interface{}]interface{}), requiredStages)
 		if err != nil {
 			return nil, err
 		}
@@ -204,23 +207,12 @@ func (self *Parser) convertYamlMapToStages(yamlStageList []interface{}) (*list.L
 	return stages, nil
 }
 
-func (self *Parser) mapStage(stageMap map[interface{}]interface{}) (stages.Stage, error) {
-	log.Debugf("%v", stageMap["run_after"])
-
-	var stageType string = "command"
-	if stageMap["type"] != nil {
-		stageType = stageMap["type"].(string)
-	} else if stageMap["stage_type"] != nil {
-		log.Warn("found property \"stage_type\"")
-		log.Warn("property \"stage_type\" is deprecated. please use \"type\" instead.")
-		stageType = stageMap["stage_type"].(string)
-	}
-	stage, err := stages.InitStage(stageType)
+func (self *Parser) mapStage(stageMap map[interface{}]interface{},
+	requiredStages *map[string]map[interface{}]interface{}) (stages.Stage, error) {
+	stage, err := self.initStage(stageMap, requiredStages)
 	if err != nil {
 		return nil, err
 	}
-	newStageValue := reflect.ValueOf(stage).Elem()
-	newStageType := reflect.TypeOf(stage).Elem()
 
 	if stageName := stageMap["name"]; stageName != nil {
 		stage.SetStageName(stageMap["name"].(string))
@@ -235,9 +227,10 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{}) (stages.Stage
 	if reportingFullOutput := stageMap["report_full_output"]; reportingFullOutput != nil {
 		stageOpts.ReportingFullOutput = true
 	}
-
 	stage.SetStageOpts(*stageOpts)
 
+	newStageValue := reflect.ValueOf(stage).Elem()
+	newStageType := reflect.TypeOf(stage).Elem()
 	for i := 0; i < newStageType.NumField(); i++ {
 		tagName := newStageType.Field(i).Tag.Get("config")
 		is_replace := newStageType.Field(i).Tag.Get("is_replace")
@@ -261,7 +254,7 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{}) (stages.Stage
 
 	if parallelStages != nil {
 		for _, parallelStages := range parallelStages.([]interface{}) {
-			childStage, err := self.mapStage(parallelStages.(map[interface{}]interface{}))
+			childStage, err := self.mapStage(parallelStages.(map[interface{}]interface{}), requiredStages)
 			if err != nil {
 				return nil, err
 			}
@@ -269,6 +262,28 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{}) (stages.Stage
 		}
 	}
 	return stage, nil
+}
+
+func (self *Parser) initStage(stageMap map[interface{}]interface{},
+	requiredStages *map[string]map[interface{}]interface{}) (stages.Stage, error) {
+	stageType := self.detectStageType(stageMap)
+	if stageMap["call"] != nil {
+		stageName := stageMap["call"].(string)
+		stageType = self.detectStageType((*requiredStages)[stageName])
+	}
+	return stages.InitStage(stageType)
+}
+
+func (self *Parser) detectStageType(stageMap map[interface{}]interface{}) string {
+	var stageType string = "command"
+	if stageMap["type"] != nil {
+		stageType = stageMap["type"].(string)
+	} else if stageMap["stage_type"] != nil {
+		log.Warn("found property \"stage_type\"")
+		log.Warn("property \"stage_type\" is deprecated. please use \"type\" instead.")
+		stageType = stageMap["stage_type"].(string)
+	}
+	return stageType
 }
 
 func (self *Parser) setFieldVal(fieldVal reflect.Value, stageOptVal interface{}, is_replace string) {
