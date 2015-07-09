@@ -257,8 +257,8 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{},
 	}
 
 	if parallelStages != nil {
-		for _, parallelStages := range parallelStages.([]interface{}) {
-			childStage, err := self.mapStage(parallelStages.(map[interface{}]interface{}), requiredStages)
+		for _, parallelStage := range parallelStages.([]interface{}) {
+			childStage, err := self.mapStage(parallelStage.(map[interface{}]interface{}), requiredStages)
 			if err != nil {
 				return nil, err
 			}

@@ -358,3 +358,25 @@ cleanup:
 	assert.Equal(t, "echo \"hello bar in s2\"", actual)
 	assert.Nil(t, err)
 }
+
+func TestParseFromFileWithRequiredParallelStages(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+require:
+    - ../tests/fixtures/s2_stages.yml
+
+pipeline:
+  - name: parallel stages
+    parallel:
+        - call: s2::foo
+        - call: s2::bar
+`))
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	resources, err := parser.Parse()
+	assert.Nil(t, err)
+	childStages := resources.Pipeline.Stages.Front().Value.(stages.Stage).GetChildStages()
+	assert.Equal(t, 2, childStages.Len())
+	childStage1 := childStages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello foo in s2\"", childStage1)
+	childStage2 := childStages.Back().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello bar in s2\"", childStage2)
+}
