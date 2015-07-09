@@ -39,11 +39,11 @@ type Parser struct {
 func (self *Parser) Parse() (*pipelines.Resources, error) {
 	// parse require block
 	requireFiles, ok := (*self.ConfigData)["require"].([]interface{})
-	var required *map[string]map[interface{}]interface{}
+	var required map[string]map[interface{}]interface{}
 	if ok == true {
 		log.Info("found \"require\" block")
-		required, _ = self.mapRequires(requireFiles)
-		log.Info("number of registered stages: " + strconv.Itoa(len(*required)))
+		required, _ = self.mapRequires(requireFiles) // TODO: add error handling
+		log.Info("number of registered stages: " + strconv.Itoa(len(required)))
 	} else {
 		log.Info("not found \"require\" block")
 	}
@@ -118,14 +118,14 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	return resources, nil
 }
 
-func (self *Parser) mapRequires(requireList []interface{}) (*map[string]map[interface{}]interface{}, error) {
+func (self *Parser) mapRequires(requireList []interface{}) (map[string]map[interface{}]interface{}, error) {
 	requires := make(map[string]map[interface{}]interface{})
 	for _, requireFile := range requireList {
 		log.Info("register require file: " + requireFile.(string))
 		requireData := ReadConfig(requireFile.(string))
 		self.mapRequire(*requireData, &requires)
 	}
-	return &requires, nil
+	return requires, nil
 }
 
 func (self *Parser) mapRequire(requireData map[interface{}]interface{},
@@ -138,9 +138,10 @@ func (self *Parser) mapRequire(requireData map[interface{}]interface{},
 
 	for _, stageDetail := range stages {
 		stageMap := stageDetail.(map[interface{}]interface{})
-		for key, values := range stageMap {
-			stageKey := namespace + ":" + key.(string)
+		for _, values := range stageMap {
 			valueMap := values.(map[interface{}]interface{})
+			stageKey := namespace + "::" + valueMap["name"].(string)
+			log.Info("register stage: " + stageKey)
 			(*requires)[stageKey] = valueMap
 		}
 	}
@@ -166,7 +167,6 @@ func (self *Parser) mapMessenger(messengerMap map[interface{}]interface{}) (mess
 			}
 		}
 	}
-
 	return messenger, nil
 }
 
@@ -195,7 +195,7 @@ func (self *Parser) mapService(serviceMap map[interface{}]interface{}) (services
 }
 
 func (self *Parser) convertYamlMapToStages(yamlStageList []interface{},
-	requiredStages *map[string]map[interface{}]interface{}) (*list.List, error) {
+	requiredStages map[string]map[interface{}]interface{}) (*list.List, error) {
 	stages := list.New()
 	for _, stageDetail := range yamlStageList {
 		stage, err := self.mapStage(stageDetail.(map[interface{}]interface{}), requiredStages)
@@ -208,23 +208,23 @@ func (self *Parser) convertYamlMapToStages(yamlStageList []interface{},
 }
 
 func (self *Parser) mapStage(stageMap map[interface{}]interface{},
-	requiredStages *map[string]map[interface{}]interface{}) (stages.Stage, error) {
-	stage, err := self.initStage(stageMap, requiredStages)
+	requiredStages map[string]map[interface{}]interface{}) (stages.Stage, error) {
+	mergedStageMap := self.extractStage(stageMap, requiredStages)
+	stage, err := self.initStage(mergedStageMap)
 	if err != nil {
 		return nil, err
 	}
 
-	if stageName := stageMap["name"]; stageName != nil {
-		stage.SetStageName(stageMap["name"].(string))
-	} else if stageName := stageMap["stage_name"]; stageName != nil {
+	if stageName := mergedStageMap["name"]; stageName != nil {
+		stage.SetStageName(mergedStageMap["name"].(string))
+	} else if stageName := mergedStageMap["stage_name"]; stageName != nil {
 		log.Warn("found property \"stage_name\"")
 		log.Warn("property \"stage_name\" is deprecated. please use \"stage\" instead.")
-		stage.SetStageName(stageMap["stage_name"].(string))
+		stage.SetStageName(mergedStageMap["stage_name"].(string))
 	}
 
 	stageOpts := stages.NewStageOpts()
-
-	if reportingFullOutput := stageMap["report_full_output"]; reportingFullOutput != nil {
+	if reportingFullOutput := mergedStageMap["report_full_output"]; reportingFullOutput != nil {
 		stageOpts.ReportingFullOutput = true
 	}
 	stage.SetStageOpts(*stageOpts)
@@ -234,7 +234,7 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{},
 	for i := 0; i < newStageType.NumField(); i++ {
 		tagName := newStageType.Field(i).Tag.Get("config")
 		is_replace := newStageType.Field(i).Tag.Get("is_replace")
-		for stageOptKey, stageOptVal := range stageMap {
+		for stageOptKey, stageOptVal := range mergedStageMap {
 			if tagName == stageOptKey {
 				if stageOptVal == nil {
 					log.Warnf("stage option \"%s\" is not specified", stageOptKey)
@@ -245,9 +245,9 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{},
 		}
 	}
 
-	parallelStages := stageMap["parallel"]
+	parallelStages := mergedStageMap["parallel"]
 	if parallelStages == nil {
-		if parallelStages = stageMap["run_after"]; parallelStages != nil {
+		if parallelStages = mergedStageMap["run_after"]; parallelStages != nil {
 			log.Warn("`run_after' will be obsoleted in near future. Use `parallel' instead.")
 		}
 	}
@@ -264,17 +264,24 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{},
 	return stage, nil
 }
 
-func (self *Parser) initStage(stageMap map[interface{}]interface{},
-	requiredStages *map[string]map[interface{}]interface{}) (stages.Stage, error) {
-	stageType := self.detectStageType(stageMap)
+func (self *Parser) extractStage(stageMap map[interface{}]interface{},
+	requiredStages map[string]map[interface{}]interface{}) map[interface{}]interface{} {
 	if stageMap["call"] != nil {
+		log.Info("detect call")
 		stageName := stageMap["call"].(string)
-		stageType = self.detectStageType((*requiredStages)[stageName])
+		log.Info("stageName: " + stageName)
+		calledMap := requiredStages[stageName]
+
+		for fieldName, fieldValue := range calledMap {
+			log.Info("fieldName: " + fieldName.(string))
+			// TODO: detect field name collision
+			stageMap[fieldName] = fieldValue
+		}
 	}
-	return stages.InitStage(stageType)
+	return stageMap
 }
 
-func (self *Parser) detectStageType(stageMap map[interface{}]interface{}) string {
+func (self *Parser) initStage(stageMap map[interface{}]interface{}) (stages.Stage, error) {
 	var stageType string = "command"
 	if stageMap["type"] != nil {
 		stageType = stageMap["type"].(string)
@@ -283,7 +290,7 @@ func (self *Parser) detectStageType(stageMap map[interface{}]interface{}) string
 		log.Warn("property \"stage_type\" is deprecated. please use \"type\" instead.")
 		stageType = stageMap["stage_type"].(string)
 	}
-	return stageType
+	return stages.InitStage(stageType)
 }
 
 func (self *Parser) setFieldVal(fieldVal reflect.Value, stageOptVal interface{}, is_replace string) {

@@ -6,8 +6,8 @@ pipeline:
   - name: command_stage_1
     type: command
     command: echo "hello, world"
-   # - call: s1::foo
-   # - call: s2::foo
-   # parallel:
-   #   - call: s2::bar
-   #   - call: s2::baz
+  - call: s1::foo
+  - call: s2::foo
+     parallel:
+       - call: s2::bar
+       - call: s2::baz
