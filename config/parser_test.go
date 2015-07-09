@@ -308,3 +308,53 @@ pipeline:
 	assert.Equal(t, "echo \"hello foo in s2\"", actual)
 	assert.Nil(t, err)
 }
+
+func TestParseFromFileWithRequireStageWithEnv(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+require:
+    - ../tests/fixtures/s1_stages.yml
+
+pipeline:
+  - call: s1::foo
+`))
+	envs := NewEnvVariables()
+	envs.Add("VAR1", "Heroku")
+	parser := &Parser{ConfigData: configData, EnvVariables: envs}
+	resources, err := parser.Parse()
+	actual := resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello foo with VAR1=$VAR1 in s1\"", actual)
+	assert.Nil(t, err)
+}
+
+func TestParseFromFileWithRequireNonExistStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+require:
+    - ../tests/fixtures/s1_stages.yml
+
+pipeline:
+  - call: s1::foobar
+`))
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	resources, err := parser.Parse()
+	assert.Nil(t, resources)
+	assert.NotNil(t, err)
+
+}
+
+func TestParseFromFileWithRequiredCleanUpStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+require:
+    - ../tests/fixtures/s2_stages.yml
+
+pipeline:
+  - call: s2::foo
+
+cleanup:
+  - call: s2::bar
+`))
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	resources, err := parser.Parse()
+	actual := resources.Cleanup.Stages.Front().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo \"hello bar in s2\"", actual)
+	assert.Nil(t, err)
+}

@@ -18,6 +18,7 @@ package config
 
 import (
 	"container/list"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -209,7 +210,10 @@ func (self *Parser) convertYamlMapToStages(yamlStageList []interface{},
 
 func (self *Parser) mapStage(stageMap map[interface{}]interface{},
 	requiredStages map[string]map[interface{}]interface{}) (stages.Stage, error) {
-	mergedStageMap := self.extractStage(stageMap, requiredStages)
+	mergedStageMap, err := self.extractStage(stageMap, requiredStages)
+	if err != nil {
+		return nil, err
+	}
 	stage, err := self.initStage(mergedStageMap)
 	if err != nil {
 		return nil, err
@@ -265,20 +269,22 @@ func (self *Parser) mapStage(stageMap map[interface{}]interface{},
 }
 
 func (self *Parser) extractStage(stageMap map[interface{}]interface{},
-	requiredStages map[string]map[interface{}]interface{}) map[interface{}]interface{} {
+	requiredStages map[string]map[interface{}]interface{}) (map[interface{}]interface{}, error) {
 	if stageMap["call"] != nil {
 		log.Info("detect call")
 		stageName := stageMap["call"].(string)
 		log.Info("stageName: " + stageName)
 		calledMap := requiredStages[stageName]
-
+		if calledMap == nil {
+			return nil, errors.New(stageName + " is not registerd")
+		}
 		for fieldName, fieldValue := range calledMap {
 			log.Info("fieldName: " + fieldName.(string))
 			// TODO: detect field name collision
 			stageMap[fieldName] = fieldValue
 		}
 	}
-	return stageMap
+	return stageMap, nil
 }
 
 func (self *Parser) initStage(stageMap map[interface{}]interface{}) (stages.Stage, error) {
