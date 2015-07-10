@@ -338,7 +338,6 @@ pipeline:
 	resources, err := parser.Parse()
 	assert.Nil(t, resources)
 	assert.NotNil(t, err)
-
 }
 
 func TestParseFromFileWithRequiredCleanUpStage(t *testing.T) {
@@ -379,4 +378,35 @@ pipeline:
 	assert.Equal(t, "echo \"hello foo in s2\"", childStage1)
 	childStage2 := childStages.Back().Value.(*stages.CommandStage).Command
 	assert.Equal(t, "echo \"hello bar in s2\"", childStage2)
+}
+
+func TestParseFromFileWithAddingFeatureToRequiredStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+require:
+    - ../tests/fixtures/s1_stages.yml
+
+pipeline:
+  - call: s1::foo
+    directory: /
+`))
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	resources, err := parser.Parse()
+	assert.NotNil(t, resources)
+	assert.Nil(t, err)
+}
+
+func TestParseFromFileWithInvalidOverrideRequiredStage(t *testing.T) {
+	configData := ReadConfigBytes([]byte(`
+require:
+    - ../tests/fixtures/s1_stages.yml
+
+pipeline:
+  - call: s1::foo
+    command: echo "hello, world"
+`))
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	resources, err := parser.Parse()
+	assert.Nil(t, resources)
+	assert.NotNil(t, err)
+	assert.Equal(t, "overriding required stage is forbidden", err.Error())
 }

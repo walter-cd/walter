@@ -280,8 +280,11 @@ func (self *Parser) extractStage(stageMap map[interface{}]interface{},
 		}
 		for fieldName, fieldValue := range calledMap {
 			log.Info("fieldName: " + fieldName.(string))
-			// TODO: detect field name collision
-			stageMap[fieldName] = fieldValue
+			if _, ok := stageMap[fieldName]; ok {
+				return nil, errors.New("overriding required stage is forbidden")
+			} else {
+				stageMap[fieldName] = fieldValue
+			}
 		}
 	}
 	return stageMap, nil
