@@ -119,7 +119,47 @@ pipeline:
         command: parallel command 3
 ```
 
-`parallel command 1`, `parallel command 2` and `parallel command 3` are executed in parallel.
+In the above setting, `parallel command 1`, `parallel command 2` and `parallel command 3` are executed in parallel.
+
+## Import predefined stages
+
+Walter provides the feature to import predefined stages in specified files.
+To import stages to pipeline configuration file, we use **require** block and
+add the list of file names into the block.
+
+For example, the following example import the stages defined in **conf/mystage.yml**
+
+```yaml
+require:
+    - conf/mystages.yml
+
+pipeline:
+  - call: mypackage::hello
+  - call: mypackage::goodbye
+
+```
+
+In the above setting, the stages ("mypacakge::hello" and "mypackage::goodbye") which are defined in "mystage.yml" are specified.
+
+The files specified in pipeline configuration file need to have two blocks **namespace** and **stages**.
+In **namespace**, we add the package name, the package name is need to avoid collisions of the stage names in multiple required files.
+The **stages** block contains the list of stage definitions. We can define the stages same as the stages in pipeline configurations.
+
+For example, the following configuration is the content of conf/mystages.yml imported from the above pipeline configuration file.
+
+```yaml
+namespace: mypackage
+
+stages:
+  - def:
+      name: hello
+      command: echo "May I help you majesty!"
+  - def:
+      name: goodbye
+      command: echo "Goobye majesty."
+```
+
+As we see that stages **hello** and **goodbye** are defined in the file.
 
 ## Cleanup pipeline
 
