@@ -273,7 +273,6 @@ func (self *Parser) extractStage(stageMap map[interface{}]interface{},
 	if stageMap["call"] != nil {
 		log.Info("detect call")
 		stageName := stageMap["call"].(string)
-		log.Info("stageName: " + stageName)
 		calledMap := requiredStages[stageName]
 		if calledMap == nil {
 			return nil, errors.New(stageName + " is not registerd")
@@ -286,6 +285,8 @@ func (self *Parser) extractStage(stageMap map[interface{}]interface{},
 				stageMap[fieldName] = fieldValue
 			}
 		}
+		log.Info("stageName: " + stageName)
+		stageMap["name"] = stageName
 	}
 	return stageMap, nil
 }
