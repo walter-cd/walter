@@ -23,8 +23,9 @@ import (
 )
 
 func TestReadConfig(t *testing.T) {
-	configData := *ReadConfig("../tests/fixtures/pipeline.yml")
-	actual := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})["command"]
+	configData, err := ReadConfig("../tests/fixtures/pipeline.yml")
+	actual := (*configData)["pipeline"].([]interface{})[0].(map[interface{}]interface{})["command"]
+	assert.Nil(t, err)
 	assert.Equal(t, "echo \"hello, world\"", actual)
 }
 
@@ -36,9 +37,9 @@ func TestReadConfigBytes(t *testing.T) {
       command: echo "hello, world"
 `
 	configBytes := []byte(configStr)
-	configData := *ReadConfigBytes(configBytes)
-	actual := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})["command"]
-
+	configData, err := ReadConfigBytes(configBytes)
+	actual := (*configData)["pipeline"].([]interface{})[0].(map[interface{}]interface{})["command"]
+	assert.Nil(t, err)
 	assert.Equal(t, "echo \"hello, world\"", actual)
 }
 
@@ -51,9 +52,9 @@ func TestReadConfigWithDirectory(t *testing.T) {
       directory: /user/local/bin
 `
 	configBytes := []byte(configStr)
-	configData := *ReadConfigBytes(configBytes)
-	actual := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})["directory"]
-
+	configData, err := ReadConfigBytes(configBytes)
+	actual := (*configData)["pipeline"].([]interface{})[0].(map[interface{}]interface{})["directory"]
+	assert.Nil(t, err)
 	assert.Equal(t, "/user/local/bin", actual)
 }
 
@@ -72,24 +73,27 @@ func TestReadConfigWithChildren(t *testing.T) {
       command: echo "hello, world"1
 `
 	configBytes := []byte(configStr)
-	configData := *ReadConfigBytes(configBytes)
-	pipelineConf := configData["pipeline"].([]interface{})[0].(map[interface{}]interface{})
+	configData, err := ReadConfigBytes(configBytes)
+	pipelineConf := (*configData)["pipeline"].([]interface{})[0].(map[interface{}]interface{})
 	actual := pipelineConf["run_after"].([]interface{})[0].(map[interface{}]interface{})["command"]
 	assert.Equal(t, "echo \"hello, world, command_stage_2_group_1\"", actual)
+	assert.Nil(t, err)
 }
 
 func TestReadPipelineWithoutStageConfig(t *testing.T) {
 	configStr := "pipeline:"
 	configBytes := []byte(configStr)
-	configData := *ReadConfigBytes(configBytes)
-	actual, _ := configData["pipeline"]
+	configData, err := ReadConfigBytes(configBytes)
+	actual, _ := (*configData)["pipeline"]
 	assert.Nil(t, actual)
+	assert.Nil(t, err)
 }
 
 func TestReadVoidConfig(t *testing.T) {
 	configStr := ""
 	configBytes := []byte(configStr)
-	configData := *ReadConfigBytes(configBytes)
-	actual := len(configData)
+	configData, err := ReadConfigBytes(configBytes)
+	actual := len(*configData)
 	assert.Equal(t, 0, actual)
+	assert.Nil(t, err)
 }
