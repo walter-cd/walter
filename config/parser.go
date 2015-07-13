@@ -41,9 +41,14 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	// parse require block
 	requireFiles, ok := (*self.ConfigData)["require"].([]interface{})
 	var required map[string]map[interface{}]interface{}
+	var err error
 	if ok == true {
 		log.Info("found \"require\" block")
-		required, _ = self.mapRequires(requireFiles) // TODO: add error handling
+		required, err = self.mapRequires(requireFiles)
+		if err != nil {
+			log.Error("failed to load requires...")
+			return nil, err
+		}
 		log.Info("number of registered stages: " + strconv.Itoa(len(required)))
 	} else {
 		log.Info("not found \"require\" block")
@@ -52,17 +57,18 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	// parse service block
 	serviceOps, ok := (*self.ConfigData)["service"].(map[interface{}]interface{})
 	var repoService services.Service
-	var err error
 	if ok == true {
 		log.Info("found \"service\" block")
 		repoService, err = self.mapService(serviceOps)
 		if err != nil {
+			log.Error("failed to load service settings...")
 			return nil, err
 		}
 	} else {
 		log.Info("not found \"service\" block")
 		repoService, err = services.InitService("local")
 		if err != nil {
+			log.Error("failed to init local mode...")
 			return nil, err
 		}
 	}
@@ -74,6 +80,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 		log.Info("found messenger block")
 		messenger, err = self.mapMessenger(messengerOps)
 		if err != nil {
+			log.Error("failed to init messenger...")
 			return nil, err
 		}
 	} else {
@@ -91,6 +98,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 		log.Info("found cleanup block")
 		cleanupList, err := self.convertYamlMapToStages(cleanupData, required)
 		if err != nil {
+			log.Error("failed to create a stage in cleanup...")
 			return nil, err
 		}
 		for stageItem := cleanupList.Front(); stageItem != nil; stageItem = stageItem.Next() {
@@ -109,6 +117,7 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 	}
 	stageList, err := self.convertYamlMapToStages(pipelineData, required)
 	if err != nil {
+		log.Error("failed to create a stage in pipeline...")
 		return nil, err
 	}
 	for stageItem := stageList.Front(); stageItem != nil; stageItem = stageItem.Next() {
@@ -124,7 +133,10 @@ func (self *Parser) mapRequires(requireList []interface{}) (map[string]map[inter
 	for _, requireFile := range requireList {
 		replacedFilePath := self.EnvVariables.Replace(requireFile.(string))
 		log.Info("register require file: " + replacedFilePath)
-		requireData := ReadConfig(replacedFilePath)
+		requireData, err := ReadConfig(replacedFilePath)
+		if err != nil {
+			return nil, err
+		}
 		self.mapRequire(*requireData, &requires)
 	}
 	return requires, nil

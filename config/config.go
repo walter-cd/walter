@@ -24,7 +24,6 @@ import (
 	"io/ioutil"
 
 	"github.com/go-yaml/yaml"
-	"github.com/recruit-tech/walter/log"
 )
 
 var (
@@ -73,20 +72,19 @@ func LoadOpts(arguments []string) (*Opts, error) {
 	}, nil
 }
 
-func ReadConfig(configFilePath string) *map[interface{}]interface{} {
+func ReadConfig(configFilePath string) (*map[interface{}]interface{}, error) {
 	data, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		log.Errorf("%v \n", err)
+		return nil, err
 	}
-
 	return ReadConfigBytes(data)
 }
 
-func ReadConfigBytes(configSetting []byte) *map[interface{}]interface{} {
+func ReadConfigBytes(configSetting []byte) (*map[interface{}]interface{}, error) {
 	configData := make(map[interface{}]interface{})
 	err := yaml.Unmarshal(configSetting, &configData)
 	if err != nil {
-		log.Errorf("error :%v \n", err)
+		return nil, err
 	}
-	return &configData
+	return &configData, nil
 }

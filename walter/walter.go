@@ -39,7 +39,12 @@ type Walter struct {
 // New creates a Walter instance.
 func New(opts *config.Opts) (*Walter, error) {
 	log.Infof("Pipeline file path: \"%s\"", opts.PipelineFilePath)
-	configData := config.ReadConfig(opts.PipelineFilePath)
+	configData, err := config.ReadConfig(opts.PipelineFilePath)
+	if err != nil {
+		log.Warn("failed to read the configuration file")
+		return nil, err
+	}
+
 	parser := &config.Parser{ConfigData: configData, EnvVariables: config.NewEnvVariables()}
 	resources, err := parser.Parse()
 	if err != nil {

@@ -26,7 +26,8 @@ import (
 )
 
 func TestParseFromFile(t *testing.T) {
-	configData := ReadConfig("../tests/fixtures/pipeline.yml")
+	configData, err := ReadConfig("../tests/fixtures/pipeline.yml")
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
 	actual := resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
@@ -35,7 +36,8 @@ func TestParseFromFile(t *testing.T) {
 }
 
 func TestParseJustHeading(t *testing.T) {
-	configData := ReadConfigBytes([]byte("pipeline:"))
+	configData, err := ReadConfigBytes([]byte("pipeline:"))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	pipeline, err := parser.Parse()
 	assert.Nil(t, pipeline)
@@ -43,7 +45,8 @@ func TestParseJustHeading(t *testing.T) {
 }
 
 func TestParseVoid(t *testing.T) {
-	configData := ReadConfigBytes([]byte(""))
+	configData, err := ReadConfigBytes([]byte(""))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	pipeline, err := parser.Parse()
 	assert.Nil(t, pipeline)
@@ -51,7 +54,7 @@ func TestParseVoid(t *testing.T) {
 }
 
 func TestParseConfWithChildren(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       type: command
       command: echo "hello, world"
@@ -62,6 +65,7 @@ func TestParseConfWithChildren(t *testing.T) {
           -  name: command_stage_3_group_1
              type: command
              command: echo "hello, world, command_stage_3_group_1"`))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	assert.Equal(t, 1, result.Pipeline.Size())
@@ -72,7 +76,7 @@ func TestParseConfWithChildren(t *testing.T) {
 }
 
 func TestParseConfWithParallel(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: parallel stages
       parallel:
           -  name: parallel command 1
@@ -81,6 +85,7 @@ func TestParseConfWithParallel(t *testing.T) {
           -  name: parallel command 2
              type: command
              command: echo "hello, world, parallel command 2"`))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	assert.Equal(t, 1, result.Pipeline.Size())
@@ -91,10 +96,11 @@ func TestParseConfWithParallel(t *testing.T) {
 }
 
 func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       command: echo "hello, world"
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
@@ -103,12 +109,13 @@ func TestParseConfDefaultStageTypeIsCommand(t *testing.T) {
 }
 
 func TestParseConfWithDirectory(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       type: command
       command: ls -l
       directory: /usr/local
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	actual := result.Pipeline.Stages.Front().Value.(*stages.CommandStage).Directory
@@ -117,11 +124,12 @@ func TestParseConfWithDirectory(t *testing.T) {
 }
 
 func TestParseConfWithShellScriptStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       type: shell
       file: ../stages/test_sample.sh
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	actual := result.Pipeline.Stages.Front().Value.(*stages.ShellScriptStage).File
@@ -130,7 +138,7 @@ func TestParseConfWithShellScriptStage(t *testing.T) {
 }
 
 func TestParseConfWithMessengerBlock(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
     messenger:
            type: hipchat
            room_id: foobar
@@ -141,6 +149,7 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
           type: shell
           file: ../stages/test_sample.sh
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	messenger, ok := result.Reporter.(*messengers.HipChat)
@@ -152,10 +161,11 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
 }
 
 func TestParseConfWithInvalidStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       type: xxxxx
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	assert.Nil(t, result)
@@ -163,7 +173,7 @@ func TestParseConfWithInvalidStage(t *testing.T) {
 }
 
 func TestParseConfWithInvalidChildStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       type: command
       command: echo "hello, world"
@@ -171,6 +181,7 @@ func TestParseConfWithInvalidChildStage(t *testing.T) {
           -  name: command_stage_2_group_1
              type: xxxxx
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	assert.Nil(t, result)
@@ -178,12 +189,13 @@ func TestParseConfWithInvalidChildStage(t *testing.T) {
 }
 
 func TestParseConfWithInvalidParallelStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: parallel stages
       parallel:
           -  name: parallel command 1
              type: xxxxx
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	assert.Nil(t, result)
@@ -191,7 +203,7 @@ func TestParseConfWithInvalidParallelStage(t *testing.T) {
 }
 
 func TestParseConfWithServiceBlock(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
     service:
         type: github
         token: xxxx
@@ -203,6 +215,7 @@ func TestParseConfWithServiceBlock(t *testing.T) {
           type: shell
           file: ../stages/test_sample.sh
     `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	service, ok := result.RepoService.(*services.GitHubClient)
@@ -214,11 +227,11 @@ func TestParseConfWithServiceBlock(t *testing.T) {
 }
 
 func TestParseConfWithEnvVariable(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       command: echo "hello $USER_NAME"
 `))
-
+	assert.Nil(t, err)
 	envs := NewEnvVariables()
 	envs.Add("USER_NAME", "takahi-i")
 	parser := &Parser{ConfigData: configData, EnvVariables: envs}
@@ -229,24 +242,24 @@ func TestParseConfWithEnvVariable(t *testing.T) {
 }
 
 func TestParseConfWithEnvVariableInDirectoryAttribute(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       command: echo "hello walter"
       directory: $HOME
 `))
-
+	assert.Nil(t, err)
 	envs := NewEnvVariables()
 	parser := &Parser{ConfigData: configData, EnvVariables: envs}
-	_, err := parser.Parse() // confirm not to be panic
-	assert.Nil(t, err)
+	_, err2 := parser.Parse() // confirm not to be panic
+	assert.Nil(t, err2)
 }
 
 func TestParseConfWithNoExistEnvVariable(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1
       command: echo "hello $NO_SUCH_A_ENV_VARIABLE"
 `))
-
+	assert.Nil(t, err)
 	envs := NewEnvVariables()
 	envs.Add("USER_NAME", "takahi-i")
 	parser := &Parser{ConfigData: configData, EnvVariables: envs}
@@ -257,7 +270,7 @@ func TestParseConfWithNoExistEnvVariable(t *testing.T) {
 }
 
 func TestParseMessengerConfWithEnvVariable(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
     messenger:
            type: hipchat
            room_id: foobar
@@ -268,6 +281,7 @@ func TestParseMessengerConfWithEnvVariable(t *testing.T) {
           type: shell
           file: ../stages/test_sample.sh
 `))
+	assert.Nil(t, err)
 	envs := NewEnvVariables()
 	envs.Add("HIPCHAT_TOKEN", "this-token-is-very-secret")
 	parser := &Parser{ConfigData: configData, EnvVariables: envs}
@@ -281,11 +295,12 @@ func TestParseMessengerConfWithEnvVariable(t *testing.T) {
 }
 
 func TestParseConfigWithDeprecatedProperties(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`pipeline:
+	configData, err := ReadConfigBytes([]byte(`pipeline:
     - stage_name: command_stage_1
       stage_type: command
       command: echo "hello, world"
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	result, err := parser.Parse()
 	assert.Equal(t, 1, result.Pipeline.Size())
@@ -295,13 +310,14 @@ func TestParseConfigWithDeprecatedProperties(t *testing.T) {
 }
 
 func TestParseFromFileWithRequire(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
 require:
     - ../tests/fixtures/s2_stages.yml
 
 pipeline:
   - call: s2::foo
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
 	actual := resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
@@ -310,13 +326,14 @@ pipeline:
 }
 
 func TestParseFromFileWithRequireStageWithEnv(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
 require:
     - ../tests/fixtures/s1_stages.yml
 
 pipeline:
   - call: s1::foo
 `))
+	assert.Nil(t, err)
 	envs := NewEnvVariables()
 	envs.Add("VAR1", "Heroku")
 	parser := &Parser{ConfigData: configData, EnvVariables: envs}
@@ -327,13 +344,14 @@ pipeline:
 }
 
 func TestParseFromFileWithRequireNonExistStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
 require:
     - ../tests/fixtures/s1_stages.yml
 
 pipeline:
   - call: s1::foobar
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
 	assert.Nil(t, resources)
@@ -341,7 +359,7 @@ pipeline:
 }
 
 func TestParseFromFileWithRequiredCleanUpStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
 require:
     - ../tests/fixtures/s2_stages.yml
 
@@ -351,6 +369,7 @@ pipeline:
 cleanup:
   - call: s2::bar
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
 	actual := resources.Cleanup.Stages.Front().Value.(*stages.CommandStage).Command
@@ -359,7 +378,7 @@ cleanup:
 }
 
 func TestParseFromFileWithRequiredParallelStages(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
 require:
     - ../tests/fixtures/s2_stages.yml
 
@@ -369,6 +388,7 @@ pipeline:
         - call: s2::foo
         - call: s2::bar
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
 	assert.Nil(t, err)
@@ -381,7 +401,7 @@ pipeline:
 }
 
 func TestParseFromFileWithAddingFeatureToRequiredStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
 require:
     - ../tests/fixtures/s1_stages.yml
 
@@ -389,6 +409,7 @@ pipeline:
   - call: s1::foo
     directory: /
 `))
+	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
 	assert.NotNil(t, resources)
@@ -396,7 +417,7 @@ pipeline:
 }
 
 func TestParseFromFileWithInvalidOverrideRequiredStage(t *testing.T) {
-	configData := ReadConfigBytes([]byte(`
+	configData, err := ReadConfigBytes([]byte(`
 require:
     - ../tests/fixtures/s1_stages.yml
 
@@ -404,6 +425,7 @@ pipeline:
   - call: s1::foo
     command: echo "hello, world"
 `))
+
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
 	assert.Nil(t, resources)
