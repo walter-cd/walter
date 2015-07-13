@@ -320,8 +320,9 @@ pipeline:
 	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
-	actual := resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command
-	assert.Equal(t, "echo \"hello foo in s2\"", actual)
+	assert.Equal(t, "echo \"hello foo in s2\"", resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).Command)
+	assert.Equal(t, "s2::foo", resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).GetStageName())
+
 	assert.Nil(t, err)
 }
 
@@ -372,8 +373,8 @@ cleanup:
 	assert.Nil(t, err)
 	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
 	resources, err := parser.Parse()
-	actual := resources.Cleanup.Stages.Front().Value.(*stages.CommandStage).Command
-	assert.Equal(t, "echo \"hello bar in s2\"", actual)
+	assert.Equal(t, "echo \"hello bar in s2\"", resources.Cleanup.Stages.Front().Value.(*stages.CommandStage).Command)
+	assert.Equal(t, "s2::bar", resources.Cleanup.Stages.Front().Value.(*stages.CommandStage).GetStageName())
 	assert.Nil(t, err)
 }
 
