@@ -122,8 +122,9 @@ func (self *Parser) Parse() (*pipelines.Resources, error) {
 func (self *Parser) mapRequires(requireList []interface{}) (map[string]map[interface{}]interface{}, error) {
 	requires := make(map[string]map[interface{}]interface{})
 	for _, requireFile := range requireList {
-		log.Info("register require file: " + requireFile.(string))
-		requireData := ReadConfig(requireFile.(string))
+		replacedFilePath := self.EnvVariables.Replace(requireFile.(string))
+		log.Info("register require file: " + replacedFilePath)
+		requireData := ReadConfig(replacedFilePath)
 		self.mapRequire(*requireData, &requires)
 	}
 	return requires, nil
