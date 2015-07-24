@@ -27,6 +27,7 @@ import (
 
 // Slack is a client which reports the pipeline results to the Slack chennel.
 type Slack struct {
+	BaseMessenger      `config:"suppress"`
 	Channel   string   `config:"channel" json:"channel"`
 	UserName  string   `config:"username" json:"username"`
 	IconEmoji string   `config:"icon" json:"icon_emoji,omitempty"`

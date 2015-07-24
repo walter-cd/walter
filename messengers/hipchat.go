@@ -24,6 +24,7 @@ import (
 // HipChat is a client which reports the pipeline results to the HipChat server.
 // The client uses V1 of the HipChat API.
 type HipChat struct {
+	BaseMessenger `config:"suppress"`
 	RoomId string `config:"room_id"`
 	Token  string `config:"token"`
 	From   string `config:"from"`

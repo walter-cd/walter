@@ -50,15 +50,18 @@ type Resources struct {
 // ReportStageResult throw the results of specified stage to the messenger services.
 func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
 	name := stage.GetStageName()
-	self.Reporter.Post(
-		fmt.Sprintf("Stage execution results: %+v, %+v", name, result))
+
+	if !self.Reporter.Contains("result") {
+		self.Reporter.Post(
+			fmt.Sprintf("Stage execution results: %+v, %+v", name, result))
+	}
 
 	if stage.GetStageOpts().ReportingFullOutput {
-		if out := stage.GetOutResult(); len(out) > 0 {
+		if out := stage.GetOutResult(); (len(out) > 0) && (!self.Reporter.Contains("stdout")) {
 			self.Reporter.Post(
 				fmt.Sprintf("[%s] %s", name, stage.GetOutResult()))
 		}
-		if err := stage.GetErrResult(); len(err) > 0 {
+		if err := stage.GetErrResult(); len(err) > 0 && (!self.Reporter.Contains("stderr")) {
 			self.Reporter.Post(
 				fmt.Sprintf("[%s][ERROR] %s", name, stage.GetErrResult()))
 		}

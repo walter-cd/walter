@@ -160,6 +160,34 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
 	assert.Equal(t, "yyyy", messenger.From)
 }
 
+func TestParseConfWithMessengerBlockWithSupress(t *testing.T) {
+	configData, err := ReadConfigBytes([]byte(`
+    messenger:
+           type: hipchat
+           room_id: foobar
+           token: xxxx
+           from: yyyy
+           suppress:
+              - stderr
+              - stdout
+
+    pipeline:
+        - name: command_stage_1
+          type: shell
+          file: ../stages/test_sample.sh
+`))
+	assert.Nil(t, err)
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	result, err := parser.Parse()
+	messenger, ok := result.Reporter.(*messengers.HipChat)
+	assert.Nil(t, err)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "foobar", messenger.RoomId)
+	assert.Equal(t, "xxxx", messenger.Token)
+	assert.Equal(t, "yyyy", messenger.From)
+	assert.Equal(t, 2, len(messenger.Suppress))
+}
+
 func TestParseConfWithInvalidStage(t *testing.T) {
 	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1

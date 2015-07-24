@@ -177,6 +177,13 @@ func (self *Parser) mapMessenger(messengerMap map[interface{}]interface{}) (mess
 				fieldVal := newMessengerValue.Field(i)
 				if fieldVal.Type() == reflect.ValueOf("string").Type() {
 					fieldVal.SetString(self.EnvVariables.Replace(messengerOptVal.(string)))
+				} else if fieldVal.Type().String() == "messengers.BaseMessenger" {
+					elements := messengerOptVal.([]interface{})
+					suppressor := fieldVal.Interface().(messengers.BaseMessenger)
+					for _, element := range elements {
+						suppressor.Suppress = append(suppressor.Suppress, element.(string))
+					}
+					fieldVal.Set(reflect.ValueOf(suppressor))
 				}
 			}
 		}
