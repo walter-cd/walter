@@ -51,19 +51,19 @@ type Resources struct {
 func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
 	name := stage.GetStageName()
 
-	if !self.Reporter.Contains("result") {
+	if !self.Reporter.Suppress("result") {
 		self.Reporter.Post(
-			fmt.Sprintf("Stage execution results: %+v, %+v", name, result))
+			fmt.Sprintf("[%s][RESULT] %+v", name, result))
 	}
 
 	if stage.GetStageOpts().ReportingFullOutput {
-		if out := stage.GetOutResult(); (len(out) > 0) && (!self.Reporter.Contains("stdout")) {
+		if out := stage.GetOutResult(); (len(out) > 0) && (!self.Reporter.Suppress("stdout")) {
 			self.Reporter.Post(
-				fmt.Sprintf("[%s] %s", name, stage.GetOutResult()))
+				fmt.Sprintf("[%s][STDOUT] %s", name, stage.GetOutResult()))
 		}
-		if err := stage.GetErrResult(); len(err) > 0 && (!self.Reporter.Contains("stderr")) {
+		if err := stage.GetErrResult(); len(err) > 0 && (!self.Reporter.Suppress("stderr")) {
 			self.Reporter.Post(
-				fmt.Sprintf("[%s][ERROR] %s", name, stage.GetErrResult()))
+				fmt.Sprintf("[%s][STDERR] %s", name, stage.GetErrResult()))
 		}
 	}
 }

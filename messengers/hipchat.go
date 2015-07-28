@@ -25,9 +25,9 @@ import (
 // The client uses V1 of the HipChat API.
 type HipChat struct {
 	BaseMessenger `config:"suppress"`
-	RoomId string `config:"room_id"`
-	Token  string `config:"token"`
-	From   string `config:"from"`
+	RoomId        string `config:"room_id"`
+	Token         string `config:"token"`
+	From          string `config:"from"`
 }
 
 // TODO: make hipchat api endpoint configurable for on-premises servers

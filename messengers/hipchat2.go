@@ -26,11 +26,11 @@ import (
 // The client uses V2 of the HipChat API.
 type HipChat2 struct {
 	BaseMessenger `config:"suppress"`
-	RoomID  string `config:"room_id"`
-	Token   string `config:"token"`
-	From    string `config:"from"`
-	BaseURL string `config:"base_url"`
-	client  *hipchat.Client
+	RoomID        string `config:"room_id"`
+	Token         string `config:"token"`
+	From          string `config:"from"`
+	BaseURL       string `config:"base_url"`
+	client        *hipchat.Client
 }
 
 // Post sends a new HipChat message using V2 of the API

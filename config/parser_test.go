@@ -185,7 +185,7 @@ func TestParseConfWithMessengerBlockWithSupress(t *testing.T) {
 	assert.Equal(t, "foobar", messenger.RoomId)
 	assert.Equal(t, "xxxx", messenger.Token)
 	assert.Equal(t, "yyyy", messenger.From)
-	assert.Equal(t, 2, len(messenger.Suppress))
+	assert.Equal(t, 2, len(messenger.SuppressFields))
 }
 
 func TestParseConfWithInvalidStage(t *testing.T) {
