@@ -21,6 +21,7 @@ package pipelines
 import (
 	"container/list"
 	"fmt"
+	"strconv"
 
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/services"
@@ -48,12 +49,17 @@ type Resources struct {
 }
 
 // ReportStageResult throw the results of specified stage to the messenger services.
-func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
+func (self *Resources) ReportStageResult(stage stages.Stage, resultStr string) {
 	name := stage.GetStageName()
-
 	if !self.Reporter.Suppress("result") {
-		self.Reporter.Post(
-			fmt.Sprintf("[%s][RESULT] %+v", name, result))
+		result, _ := strconv.ParseBool(resultStr)
+		if result == true {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Succeeded", name))
+		} else {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Failed", name))
+		}
 	}
 
 	if stage.GetStageOpts().ReportingFullOutput {
