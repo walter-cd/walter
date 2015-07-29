@@ -47,11 +47,11 @@ func (self *Slack) Post(message string) bool {
 
 	var color string
 
-	if strings.Contains(message, "] Failed") {
+	if strings.Contains(message, "[RESULT] Failed") {
 		color = "danger"
-	} else if strings.Contains(message, "] Skipped") {
+	} else if strings.Contains(message, "[RESULT] Skipped") {
 		color = "warning"
-	} else {
+	} else if strings.Contains(message, "[RESULT] Succeeded") {
 		color = "good"
 	}
 
