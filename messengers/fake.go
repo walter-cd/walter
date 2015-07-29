@@ -21,6 +21,7 @@ package messengers
 
 // FakeMessenger is a Messenger type used only for testing.
 type FakeMessenger struct {
+	BaseMessenger
 }
 
 func (self *FakeMessenger) Post(messege string) bool {

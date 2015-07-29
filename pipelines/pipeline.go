@@ -48,19 +48,29 @@ type Resources struct {
 }
 
 // ReportStageResult throw the results of specified stage to the messenger services.
-func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
+func (self *Resources) ReportStageResult(stage stages.Stage, resultStr string) {
 	name := stage.GetStageName()
-	self.Reporter.Post(
-		fmt.Sprintf("Stage execution results: %+v, %+v", name, result))
+	if !self.Reporter.Suppress("result") {
+		if resultStr == "true" {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Succeeded", name))
+		} else if resultStr == "skipped" {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Skipped", name))
+		} else {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Failed", name))
+		}
+	}
 
 	if stage.GetStageOpts().ReportingFullOutput {
-		if out := stage.GetOutResult(); len(out) > 0 {
+		if out := stage.GetOutResult(); (len(out) > 0) && (!self.Reporter.Suppress("stdout")) {
 			self.Reporter.Post(
-				fmt.Sprintf("[%s] %s", name, stage.GetOutResult()))
+				fmt.Sprintf("[%s][STDOUT] %s", name, stage.GetOutResult()))
 		}
-		if err := stage.GetErrResult(); len(err) > 0 {
+		if err := stage.GetErrResult(); len(err) > 0 && (!self.Reporter.Suppress("stderr")) {
 			self.Reporter.Post(
-				fmt.Sprintf("[%s][ERROR] %s", name, stage.GetErrResult()))
+				fmt.Sprintf("[%s][STDERR] %s", name, stage.GetErrResult()))
 		}
 	}
 }

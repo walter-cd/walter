@@ -24,6 +24,24 @@ import (
 // services such as Slack or HipChat.
 type Messenger interface {
 	Post(string) bool
+	Suppress(string) bool
+}
+
+type BaseMessenger struct {
+	SuppressFields []string `config:"suppress"`
+}
+
+func (self *BaseMessenger) Post(messege string) bool {
+	return true
+}
+
+func (self *BaseMessenger) Suppress(output_type string) bool {
+	for _, suppress := range self.SuppressFields {
+		if suppress == output_type {
+			return true
+		}
+	}
+	return false
 }
 
 // InitMessenger generates a spefified Messenger client objet.

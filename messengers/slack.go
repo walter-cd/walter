@@ -27,11 +27,12 @@ import (
 
 // Slack is a client which reports the pipeline results to the Slack chennel.
 type Slack struct {
-	Channel   string   `config:"channel" json:"channel"`
-	UserName  string   `config:"username" json:"username"`
-	IconEmoji string   `config:"icon" json:"icon_emoji,omitempty"`
-	IconUrl   string   `config:"icon_url" json:"icon_url,omitempty"`
-	IncomingUrl string `config:"url" json:"-"` // not map to json
+	BaseMessenger `config:"suppress"`
+	Channel       string `config:"channel" json:"channel"`
+	UserName      string `config:"username" json:"username"`
+	IconEmoji     string `config:"icon" json:"icon_emoji,omitempty"`
+	IconUrl       string `config:"icon_url" json:"icon_url,omitempty"`
+	IncomingUrl   string `config:"url" json:"-"` // not map to json
 }
 
 // To avoid the infinite recursion
@@ -46,12 +47,12 @@ func (self *Slack) Post(message string) bool {
 
 	var color string
 
-	if strings.Contains(message, ", true") {
-		color = "good"
-	} else if strings.Contains(message, ", skipped") {
-		color = "warning"
-	} else {
+	if strings.Contains(message, "[RESULT] Failed") {
 		color = "danger"
+	} else if strings.Contains(message, "[RESULT] Skipped") {
+		color = "warning"
+	} else if strings.Contains(message, "[RESULT] Succeeded") {
+		color = "good"
 	}
 
 	attachment := map[string]string{

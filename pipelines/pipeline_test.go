@@ -56,6 +56,10 @@ func (mock *MockMessenger) Post(msg string) bool {
 	return true
 }
 
+func (self *MockMessenger) Suppress(output_type string) bool {
+	return false
+}
+
 func TestReportStageResult(t *testing.T) {
 	mock := &MockMessenger{}
 	p := Resources{
