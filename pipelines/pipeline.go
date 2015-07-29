@@ -21,7 +21,6 @@ package pipelines
 import (
 	"container/list"
 	"fmt"
-	"strconv"
 
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/services"
@@ -52,10 +51,12 @@ type Resources struct {
 func (self *Resources) ReportStageResult(stage stages.Stage, resultStr string) {
 	name := stage.GetStageName()
 	if !self.Reporter.Suppress("result") {
-		result, _ := strconv.ParseBool(resultStr)
-		if result == true {
+		if resultStr == "true" {
 			self.Reporter.Post(
 				fmt.Sprintf("[%s][RESULT] Succeeded", name))
+		} else if resultStr == "skipped" {
+			self.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Skipped", name))
 		} else {
 			self.Reporter.Post(
 				fmt.Sprintf("[%s][RESULT] Failed", name))

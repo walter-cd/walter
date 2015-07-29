@@ -47,12 +47,12 @@ func (self *Slack) Post(message string) bool {
 
 	var color string
 
-	if strings.Contains(message, ", true") {
-		color = "good"
-	} else if strings.Contains(message, ", skipped") {
+	if strings.Contains(message, "] Failed") {
+		color = "danger"
+	} else if strings.Contains(message, "] Skipped") {
 		color = "warning"
 	} else {
-		color = "danger"
+		color = "good"
 	}
 
 	attachment := map[string]string{
