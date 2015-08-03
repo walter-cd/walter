@@ -4,7 +4,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/go-yaml/yaml",
-			"Rev": "1b9791953ba4027efaeb728c7355e542a203be5e"
+			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
 		},
 		{
 			"ImportPath": "github.com/ainoya/glog",
