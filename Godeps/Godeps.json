@@ -3,6 +3,10 @@
 	"GoVersion": "go1.3",
 	"Deps": [
 		{
+			"ImportPath": "github.com/hashicorp/hcl",
+			"Rev": "54864211433d45cb780682431585b3e573b49e4a"
+		},
+		{
 			"ImportPath": "github.com/go-yaml/yaml",
 			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
 		},
