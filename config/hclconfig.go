@@ -35,12 +35,22 @@ type HCL2YMLConverter struct {
 }
 
 //ReadHCLConfig reads the supplied HCL configuration file
-func (converter *HCL2YMLConverter) ReadHCLConfig(configFilePath string) error {
+func (converter *HCL2YMLConverter) ReadHCLConfig(configFilePath string) (*map[interface{}]interface{}, error) {
 
 	//read the supplied file
 	var err error
+
 	converter.hclFile, err = ioutil.ReadFile(configFilePath)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	convertedYaml, err := converter.ConvertHCLConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	return convertedYaml, nil
 
 }
 

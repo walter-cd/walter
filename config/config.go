@@ -48,7 +48,6 @@ func LoadOpts(arguments []string) (*Opts, error) {
 	var mode string
 
 	fs.StringVar(&pipelineFilePath, "c", "./pipeline.yml", "pipeline.yml file")
-	fs.StringVar(&pipelineFilePath, "hcl", "", "the HCL configuration file")
 	fs.BoolVar(&stopOnAnyFailure, "f", false, "Skip execution of subsequent stage after failing to exec the upstream stage.")
 	fs.BoolVar(&printVersion, "v", false, "Print the version information and exit.")
 	fs.StringVar(&threshold, "threshold", "INFO", "Log events at or above this severity are logged.")
@@ -67,6 +66,7 @@ func LoadOpts(arguments []string) (*Opts, error) {
 
 	return &Opts{
 		PipelineFilePath: pipelineFilePath,
+
 		StopOnAnyFailure: stopOnAnyFailure,
 		PrintVersion:     printVersion,
 		Mode:             mode,

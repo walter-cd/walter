@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -38,11 +39,30 @@ type Walter struct {
 
 // New creates a Walter instance.
 func New(opts *config.Opts) (*Walter, error) {
+
+	var configData *map[interface{}]interface{}
+	var err error
+
 	log.Infof("Pipeline file path: \"%s\"", opts.PipelineFilePath)
-	configData, err := config.ReadConfig(opts.PipelineFilePath)
-	if err != nil {
-		log.Warn("failed to read the configuration file")
-		return nil, err
+
+	if strings.HasSuffix(opts.PipelineFilePath, ".hcl") {
+		log.Info("assuming HCL\n")
+		//has an HCL suffix, so parse for HCL
+		hclconverter := &config.HCL2YMLConverter{}
+		configData, err = hclconverter.ReadHCLConfig(opts.PipelineFilePath)
+		if err != nil {
+			log.Warn("failed to read the configuration file (assumed HCL)")
+			return nil, err
+		}
+
+	} else {
+		log.Info("assuming YAML\n")
+		//All other suffixes are assumed to be YAML
+		configData, err = config.ReadConfig(opts.PipelineFilePath)
+		if err != nil {
+			log.Warn("failed to read the configuration file (assumed YAML)")
+			return nil, err
+		}
 	}
 
 	parser := &config.Parser{ConfigData: configData, EnvVariables: config.NewEnvVariables()}
