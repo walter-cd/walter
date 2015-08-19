@@ -133,7 +133,22 @@ func (self *Parser) mapRequires(requireList []interface{}) (map[string]map[inter
 	for _, requireFile := range requireList {
 		replacedFilePath := self.EnvVariables.Replace(requireFile.(string))
 		log.Info("register require file: " + replacedFilePath)
-		requireData, err := ReadConfig(replacedFilePath)
+
+		var err error
+		var requireData *map[interface{}]interface{}
+
+		//based on the suffix, perform the appopriate parse (i.e. YAML or HCL)
+		if strings.HasSuffix(replacedFilePath, ".hcl") {
+			log.Info("assuming required file is HCL\n")
+			//has an HCL suffix, so parse for HCL
+			hclconverter := HCL2YMLConverter{}
+			requireData, err = hclconverter.ReadHCLConfig(replacedFilePath)
+		} else {
+			log.Info("assuming required file is YAML\n")
+			//All other suffixes are assumed to be YAML
+			requireData, err = ReadConfig(replacedFilePath)
+		}
+
 		if err != nil {
 			return nil, err
 		}

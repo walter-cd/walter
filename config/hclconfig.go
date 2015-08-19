@@ -24,6 +24,7 @@ package config
 
 import (
 	"github.com/hashicorp/hcl"
+	//"github.com/recruit-tech/walter/log"
 	"io/ioutil"
 )
 
@@ -80,13 +81,13 @@ func (converter *HCL2YMLConverter) parseHCL() {
 	//is there a pipeline?
 	pipeline, pipelineExists := converter.hclStructure["pipeline"].([]map[string]interface{})
 	if pipelineExists {
-		converter.yamlStructure["pipeline"] = converter.addStages(pipeline)
+		converter.yamlStructure["pipeline"] = converter.addStages(pipeline, false)
 	}
 
 	//is there a cleanup?
 	cleanup, cleanupExists := converter.hclStructure["cleanup"].([]map[string]interface{})
 	if cleanupExists {
-		converter.yamlStructure["cleanup"] = converter.addStages(cleanup)
+		converter.yamlStructure["cleanup"] = converter.addStages(cleanup, false)
 	}
 
 	//Is there a global?
@@ -101,12 +102,36 @@ func (converter *HCL2YMLConverter) parseHCL() {
 			converter.yamlStructure["global"] = globalParams
 		}
 	}
+
+	//Is there a require
+	requiredFiles, requireExists := converter.hclStructure["require"].([]interface{})
+	if requireExists {
+		converter.yamlStructure["require"] = requiredFiles
+	}
+
+	//is there a namespace
+	namespace, namespaceExists := converter.hclStructure["namespace"].(string)
+	if namespaceExists {
+		converter.yamlStructure["namespace"] = namespace
+	}
+
+	//is there a stages
+	stages, stagesExists := converter.hclStructure["stages"].([]map[string]interface{})
+	if stagesExists {
+		converter.yamlStructure["stages"] = converter.addStages(stages, true)
+	}
+
 }
 
-func (converter *HCL2YMLConverter) addStages(stages []map[string]interface{}) []interface{} {
+func (converter *HCL2YMLConverter) addStages(stages []map[string]interface{}, isDef bool) []interface{} {
 	var convertedStages = []interface{}{}
 	for _, value := range stages {
-		for _, stageValue := range value["stage"].([]map[string]interface{}) {
+		//Based on the YAML (which we followed for now) the definition of stages is defined by a Def
+		var searchFor = "stage"
+		if isDef {
+			searchFor = "def"
+		}
+		for _, stageValue := range value[searchFor].([]map[string]interface{}) {
 			var stage = map[interface{}]interface{}{}
 			for stageParamKey, stageParamValue := range stageValue {
 				if stageParamKey != "parallel" {
@@ -114,12 +139,18 @@ func (converter *HCL2YMLConverter) addStages(stages []map[string]interface{}) []
 				} else {
 					//it's a parallel stage so need to add the sub stages recursively
 					//Notice we do NOT suport the deprecated 'run_after' syntax
-					stage["parallel"] = converter.addStages(stageParamValue.([]map[string]interface{}))
+					stage["parallel"] = converter.addStages(stageParamValue.([]map[string]interface{}), isDef)
 				}
 			}
 			//append the converted stage to the yaml pipeline structure
-			convertedStages = append(convertedStages, stage)
-			//converter.yamlStructure[parent] = append(converter.yamlStructure[parent].([]interface{}), stage)
+			if isDef {
+				//it's a definition of a stage, so wrap it up accordingly
+				var def = map[interface{}]interface{}{}
+				def["def"] = stage
+				convertedStages = append(convertedStages, def)
+			} else {
+				convertedStages = append(convertedStages, stage)
+			}
 		}
 	}
 	return convertedStages
