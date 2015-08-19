@@ -95,15 +95,29 @@ func (converter *HCL2YMLConverter) parseHCL() {
 	if globalExists {
 		converter.yamlStructure["global"] = map[interface{}]interface{}{}
 		for _, globalsValue := range global {
-			var globalParams = map[interface{}]interface{}{}
-			for globalKey, globalValue := range globalsValue {
-				globalParams[globalKey] = globalValue
-			}
-			converter.yamlStructure["global"] = globalParams
+			converter.yamlStructure["global"] = converter.addParameters(globalsValue)
 		}
 	}
 
-	//Is there a require
+	//Is there a service?
+	service, serviceExists := converter.hclStructure["service"].([]map[string]interface{})
+	if serviceExists {
+		converter.yamlStructure["service"] = map[interface{}]interface{}{}
+		for _, serviceValue := range service {
+			converter.yamlStructure["service"] = converter.addParameters(serviceValue)
+		}
+	}
+
+	//Is there a messenger?
+	messenger, messengerExists := converter.hclStructure["messenger"].([]map[string]interface{})
+	if messengerExists {
+		converter.yamlStructure["messenger"] = map[interface{}]interface{}{}
+		for _, messengerValue := range messenger {
+			converter.yamlStructure["messenger"] = converter.addParameters(messengerValue)
+		}
+	}
+
+	//Is there a require?
 	requiredFiles, requireExists := converter.hclStructure["require"].([]interface{})
 	if requireExists {
 		converter.yamlStructure["require"] = requiredFiles
@@ -121,6 +135,14 @@ func (converter *HCL2YMLConverter) parseHCL() {
 		converter.yamlStructure["stages"] = converter.addStages(stages, true)
 	}
 
+}
+
+func (converter *HCL2YMLConverter) addParameters(parameters map[string]interface{}) map[interface{}]interface{} {
+	var params = map[interface{}]interface{}{}
+	for paramKey, paramValue := range parameters {
+		params[paramKey] = paramValue
+	}
+	return params
 }
 
 func (converter *HCL2YMLConverter) addStages(stages []map[string]interface{}, isDef bool) []interface{} {
