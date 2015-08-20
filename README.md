@@ -399,7 +399,7 @@ messenger:
 
 HCL
 ```
-message {
+messenger {
   type = "hipchat2"
   base_url = "BASE_URL"
   room_id = "ROOM_ID"
@@ -411,7 +411,7 @@ message {
 JSON
 ```json
 {
-  "message": {
+  "messenger": {
     "type":"hipchat2",
     "base_url":"BASE_URL",
     "room_id":"ROOM_ID",
