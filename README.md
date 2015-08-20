@@ -58,7 +58,9 @@ More specifically, users specify the order of the tasks for the deployment. Each
 
 ## Pipeline setting
 
-The configuration format of Walter is Yaml or [HCL](https://github.com/hashicorp/hcl)(Hashicorp Configuration Language). The yaml configuration file needs to have one pipeline block, which has more than one stage element.
+The configuration format of Walter is Yaml or [HCL](https://github.com/hashicorp/hcl) (Hashicorp Configuration Language) which also supports JSON. Which means you have three ways to configure Walter (YAML, HCL and JSON)!
+
+The configuration file needs to have one pipeline block, which has more than one stage element.
 
 The following is a sample configuration of Walter.
 
@@ -98,6 +100,28 @@ pipeline {
 }
 ```
 
+JSON
+```json
+{
+  "pipeline":{
+    "stage" :{
+      "name":"command_stage_1",
+      "type":"command",
+      "command":"echo 'hello, world'"
+    },
+    "stage":{
+      "name":"command_stage_2",
+      "type":"command",
+      "command":"echo 'hello, world, command_stage_2'"
+    },
+    "stage": {
+      "name":"command_stage_3",
+      "type":"command",
+      "command":"echo 'hello, world, command_stage_3'"
+    }
+  }
+}
+```
 As we see, the pipeline block has three stages and the stage type is command, each of which run **echo** command and has the stage name
 (such as **command_stage_1**). User can name arbitrary name of each stage. The commands are executed with the same order as the pipeline configuration.
 
@@ -174,6 +198,33 @@ pipeline {
 }
 ```
 
+JSON
+```json
+{
+  "pipeline":{
+    "stage" :{
+      "name":"parallel stages",
+      "parallel":{
+        "stage":{
+          "name":"parallel command 1",
+          "type":"command",
+          "command":"parallel command 1"
+        },
+        "stage": {
+          "name":"parallel command 2",
+          "type":"command",
+          "command":"parallel command 2"
+        },
+        "stage": {
+          "name":"parallel command 3",
+          "type":"command",
+          "command":"parallel command 3"
+        }
+      }
+    }
+}
+}
+```
 In the above setting, `parallel command 1`, `parallel command 2` and `parallel command 3` are executed in parallel.
 
 ## Import predefined stages
@@ -196,7 +247,7 @@ pipeline:
 ```
 HCL
 ```
-//Note that an HCL require can reference YAML or HCL files
+//Note that an HCL require can reference YAML or HCL or JSON files
 require = ["conf/mystages.yml",
            "conf/myhclstages.hcl"]
 
@@ -209,6 +260,21 @@ pipeline {
   }
 }
 
+```
+
+JSON
+```json
+{
+  "require":["conf/mystages.yml","conf/myjsonstages.json"],
+  "pipeline":{
+    "stage":{
+      "call":"mypackage::hello"
+    },
+    "stage":{
+      "call":"myjsonpackage::goodbye"
+    }
+  }
+}
 ```
 
 In the above setting, the stages ("mypacakge::hello" and "mypackage::goodbye") which are defined in "mystage.yml" are specified.
@@ -248,6 +314,22 @@ stages {
 }
 ```
 
+JSON
+```json
+{
+  "namespace":"myjsonpackage",
+  "stages":{
+    "def":{
+      "name":"hello",
+      "command":"echo 'May I hel you majesty'"
+    },
+    "def":{
+      "name":"goodbye",
+      "command":"echo 'Goodbye majesty'"
+    }
+  }
+}
+```
 As we see that stages **hello** and **goodbye** are defined in the file.
 
 ## Cleanup pipeline
@@ -280,6 +362,25 @@ cleanup {
   }
 }
 ```
+
+JSON
+```json
+{
+  "pipeline":{
+    "stage" :{
+      "name":"start pipeline",
+      "command":"echo 'pipeline' > log/log.txt"
+    }
+  },
+  "cleanup":{
+    "stage":{
+      "name":"cleanup",
+      "command":"rm log/*"
+    }
+  }
+}
+```
+
 ## Reporting function
 Walter supports to submits the messages to messaging services.
 
@@ -307,6 +408,18 @@ message {
 }
 ```
 
+JSON
+```json
+{
+  "message": {
+    "type":"hipchat2",
+    "base_url":"BASE_URL",
+    "room_id":"ROOM_ID",
+    "token":"TOKEN",
+    "from":"USER_NAME"
+  }
+}
+```
 To report the full output of stage execution to the specified messenger service added with the above setting,
 users add **report_full_output** attribute with **true** into the stage they want to know the command outputs.
 
@@ -337,6 +450,25 @@ pipeline {
     type = "command"
     command = "echo \"hello, world, command_stage_2\""
     // By default, report_full_output is false
+  }
+}
+```
+
+JSON
+```json
+{
+  "pipeline":{
+    "stage":{
+      "name":"command_stage_1",
+      "type":"command",
+      "command":"echo \"hello, world\"",
+      "report_full_output":true
+    },
+    "stage":{
+      "name":"command_stage_2",
+      "type":"command",
+      "command":"echo \"hello, world, command_stage_2\"",
+    }
   }
 }
 ```
@@ -400,6 +532,19 @@ service {
 }
 ```
 
+JSON
+```json
+{
+  "service": {
+    "type":"github",
+    "token":"ADD_YOUR_KEY",
+    "repo":"YOUR_REPOSITORY_NAME",
+    "from":"YOUR_ACCOUNT_OR_GROUP_NAME",
+    "update":"UPDATE_FILE_NAME"
+  }
+}
+```
+
 The following shows the description of each element.
 
 |  Element  | description                                                                                                                          |
@@ -443,5 +588,18 @@ service {
   repo = "my-service-repository"
   from = "service-group"
   update = ".walter"
+}
+```
+
+JSON
+```json
+{
+  "service": {
+    "type":"github",
+    "token":"$GITHUB_TOKEN",
+    "repo":"my-service-repository",
+    "from":"service-group",
+    "update":".walter"
+  }
 }
 ```

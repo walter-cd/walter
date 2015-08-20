@@ -45,8 +45,8 @@ func New(opts *config.Opts) (*Walter, error) {
 
 	log.Infof("Pipeline file path: \"%s\"", opts.PipelineFilePath)
 
-	if strings.HasSuffix(opts.PipelineFilePath, ".hcl") {
-		log.Info("assuming HCL\n")
+	if strings.HasSuffix(opts.PipelineFilePath, ".hcl") || strings.HasSuffix(opts.PipelineFilePath, ".json") {
+		log.Info("assuming HCL or JSON\n")
 		//has an HCL suffix, so parse for HCL
 		hclconverter := &config.HCL2YMLConverter{}
 		configData, err = hclconverter.ReadHCLConfig(opts.PipelineFilePath)

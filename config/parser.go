@@ -138,8 +138,8 @@ func (self *Parser) mapRequires(requireList []interface{}) (map[string]map[inter
 		var requireData *map[interface{}]interface{}
 
 		//based on the suffix, perform the appopriate parse (i.e. YAML or HCL)
-		if strings.HasSuffix(replacedFilePath, ".hcl") {
-			log.Info("assuming required file is HCL\n")
+		if strings.HasSuffix(replacedFilePath, ".hcl") || strings.HasSuffix(replacedFilePath, ".json") {
+			log.Info("assuming required file is HCL or JSON\n")
 			//has an HCL suffix, so parse for HCL
 			hclconverter := HCL2YMLConverter{}
 			requireData, err = hclconverter.ReadHCLConfig(replacedFilePath)
