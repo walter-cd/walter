@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package messengers provides all functionality for the suported messengers
 package messengers
 
 import (
@@ -25,17 +27,18 @@ import (
 // The client uses V1 of the HipChat API.
 type HipChat struct {
 	BaseMessenger `config:"suppress"`
-	RoomId        string `config:"room_id"`
+	RoomID        string `config:"room_id"`
 	Token         string `config:"token"`
 	From          string `config:"from"`
 }
 
+// Post posts a hipchat message
 // TODO: make hipchat api endpoint configurable for on-premises servers
-func (self *HipChat) Post(message string) bool {
-	client := hipchat.Client{AuthToken: self.Token}
+func (hipChat *HipChat) Post(message string) bool {
+	client := hipchat.Client{AuthToken: hipChat.Token}
 	req := hipchat.MessageRequest{
-		RoomId:        self.RoomId,
-		From:          self.From,
+		RoomId:        hipChat.RoomID,
+		From:          hipChat.From,
 		Message:       message,
 		Color:         hipchat.ColorPurple,
 		MessageFormat: hipchat.FormatText,
