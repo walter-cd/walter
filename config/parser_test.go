@@ -155,7 +155,7 @@ func TestParseConfWithMessengerBlock(t *testing.T) {
 	messenger, ok := result.Reporter.(*messengers.HipChat)
 	assert.Nil(t, err)
 	assert.Equal(t, true, ok)
-	assert.Equal(t, "foobar", messenger.RoomId)
+	assert.Equal(t, "foobar", messenger.RoomID)
 	assert.Equal(t, "xxxx", messenger.Token)
 	assert.Equal(t, "yyyy", messenger.From)
 }
@@ -182,7 +182,7 @@ func TestParseConfWithMessengerBlockWithSupress(t *testing.T) {
 	messenger, ok := result.Reporter.(*messengers.HipChat)
 	assert.Nil(t, err)
 	assert.Equal(t, true, ok)
-	assert.Equal(t, "foobar", messenger.RoomId)
+	assert.Equal(t, "foobar", messenger.RoomID)
 	assert.Equal(t, "xxxx", messenger.Token)
 	assert.Equal(t, "yyyy", messenger.From)
 	assert.Equal(t, 2, len(messenger.SuppressFields))
@@ -317,7 +317,7 @@ func TestParseMessengerConfWithEnvVariable(t *testing.T) {
 	messenger, ok := result.Reporter.(*messengers.HipChat)
 	assert.Nil(t, err)
 	assert.Equal(t, true, ok)
-	assert.Equal(t, "foobar", messenger.RoomId)
+	assert.Equal(t, "foobar", messenger.RoomID)
 	assert.Equal(t, "this-token-is-very-secret", messenger.Token)
 	assert.Equal(t, "yyyy", messenger.From)
 }
