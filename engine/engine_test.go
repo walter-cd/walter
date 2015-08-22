@@ -41,12 +41,12 @@ func createShellScriptStage(name string, fileName string) *stages.ShellScriptSta
 	}
 }
 
-func createCommandStageWithOnlyIf(name string, command string, only_if string) *stages.CommandStage {
+func createCommandStageWithOnlyIf(name string, command string, onlyIf string) *stages.CommandStage {
 	in := make(chan stages.Mediator)
 	out := make(chan stages.Mediator)
 	return &stages.CommandStage{
 		Command: command,
-		OnlyIf:  only_if,
+		OnlyIf:  onlyIf,
 		BaseStage: stages.BaseStage{
 			StageName: name,
 			InputCh:   &in,
