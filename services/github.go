@@ -41,7 +41,7 @@ func (githubClient *GitHubClient) GetUpdateFilePath() string {
 	if githubClient.UpdateFile != "" {
 		return githubClient.UpdateFile
 	}
-	return DEFAULT_UPDATE_FILE_NAME
+	return DefaultUpdateFileName
 
 }
 
