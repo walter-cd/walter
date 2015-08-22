@@ -14,6 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Package config defines the configration parameters,
+// and the parser to load configuration file.
 package config
 
 import (
@@ -34,8 +37,8 @@ type EnvVariables struct {
 // NewEnvVariables creates one EnvVariable object.
 func NewEnvVariables() *EnvVariables {
 	envmap := loadEnvMap()
-	regex_str := "[$]([a-zA-Z_]+)"
-	envPattern, _ := regexp.Compile(regex_str)
+	regexStr := "[$]([a-zA-Z_]+)"
+	envPattern, _ := regexp.Compile(regexStr)
 	return &EnvVariables{
 		variables: &envmap,
 		re:        envPattern,
@@ -43,30 +46,31 @@ func NewEnvVariables() *EnvVariables {
 }
 
 // Get returns the value of envionment variable.
-func (self *EnvVariables) Get(vname string) (string, bool) {
-	val, ok := (*self.variables)[vname]
+func (envVariables *EnvVariables) Get(vname string) (string, bool) {
+	val, ok := (*envVariables.variables)[vname]
 	return val, ok
 }
 
 // Add appends the value to specified envionment variable.
-func (self *EnvVariables) Add(key string, value string) {
-	(*self.variables)[key] = value
+func (envVariables *EnvVariables) Add(key string, value string) {
+	(*envVariables.variables)[key] = value
 }
 
-func (self *EnvVariables) Replace(line string) string {
-	ret := (*self.re).ReplaceAllStringFunc(line, self.regexReplace)
+// Replace replaces all environment variables in a line
+func (envVariables *EnvVariables) Replace(line string) string {
+	ret := (*envVariables.re).ReplaceAllStringFunc(line, envVariables.regexReplace)
 	return ret
 }
 
-func (self *EnvVariables) regexReplace(input string) string {
-	matched := (*self.re).FindStringSubmatch(input)
+func (envVariables *EnvVariables) regexReplace(input string) string {
+	matched := (*envVariables.re).FindStringSubmatch(input)
 	if len(matched) == 2 {
-		if replaced := (*self.variables)[matched[1]]; replaced != "" {
+		if replaced := (*envVariables.variables)[matched[1]]; replaced != "" {
 			return replaced
-		} else {
-			log.Warnf("NO environment variable: %s", matched[0])
-			return ""
 		}
+		log.Warnf("NO environment variable: %s", matched[0])
+		return ""
+
 	}
 	return input
 }
