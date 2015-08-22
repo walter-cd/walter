@@ -56,7 +56,7 @@ func (mock *MockMessenger) Post(msg string) bool {
 	return true
 }
 
-func (self *MockMessenger) Suppress(output_type string) bool {
+func (mock *MockMessenger) Suppress(outputType string) bool {
 	return false
 }
 
