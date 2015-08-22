@@ -52,11 +52,13 @@ type BaseStage struct {
 	Opts StageOpts
 }
 
+//StageOpts struct for handing stage outputs
 type StageOpts struct {
 	// Flush all output when the value is true.
 	ReportingFullOutput bool `config:"report_full_output"`
 }
 
+//NewStageOpts creates a new stage output
 func NewStageOpts() *StageOpts {
 	return &StageOpts{
 		ReportingFullOutput: false,
@@ -82,7 +84,7 @@ func (b *BaseStage) GetChildStages() list.List {
 	return b.ChildStages
 }
 
-// Get stage name.
+//GetStageName returns the name of the current stage
 func (b *BaseStage) GetStageName() string {
 	return b.StageName
 }
