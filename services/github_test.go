@@ -17,11 +17,11 @@
 package services
 
 import (
-	"testing"
-	"time"
+	"encoding/json"
 	"io/ioutil"
 	"os"
-	"encoding/json"
+	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -14,20 +14,26 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
+
+//Package services provides the functionality for all supported services (GitHub)
 package services
 
 import "container/list"
 
+//LocalClient struct
 type LocalClient struct{}
 
-func (self *LocalClient) RegisterResult(result Result) error {
+//RegisterResult resgisters the supplied result
+func (localClient *LocalClient) RegisterResult(result Result) error {
 	return nil
 }
 
-func (self *LocalClient) GetCommits(update Update) (*list.List, error) {
+//GetCommits gets the commits for the current update
+func (localClient *LocalClient) GetCommits(update Update) (*list.List, error) {
 	return list.New(), nil
 }
 
-func (self *LocalClient) GetUpdateFilePath() string {
+//GetUpdateFilePath returns the update file path
+func (localClient *LocalClient) GetUpdateFilePath() string {
 	return ""
 }
