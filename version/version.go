@@ -14,8 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package version contains the appication version information
 package version
 
 var (
+	//Version of the application
 	Version = "HEAD"
 )

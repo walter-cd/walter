@@ -14,6 +14,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
  */
+
+//Package walter is the main package for the walter application
 package walter
 
 import (
@@ -71,10 +73,10 @@ func (e *Walter) Run() bool {
 		log.Info("Starting Walter in local mode")
 		result := e.Engine.RunOnce()
 		return result.IsSucceeded()
-	} else {
-		log.Info("Starting Walter in repository service mode")
-		return e.runService()
 	}
+	log.Info("Starting Walter in repository service mode")
+	return e.runService()
+
 }
 
 func (e *Walter) runService() bool {
@@ -102,24 +104,24 @@ func (e *Walter) runService() bool {
 
 	log.Info("Succeeded getting commits")
 	log.Info("Size of commits: " + strconv.Itoa(commits.Len()))
-	has_failed_process := false
+	hasFailedProcess := false
 	for commit := commits.Front(); commit != nil; commit = commit.Next() {
 		commitType := reflect.TypeOf(commit.Value)
 		if commitType.Name() == "RepositoryCommit" {
 			log.Info("Found new repository commit")
 			trunkCommit := commit.Value.(github.RepositoryCommit)
 			if result := e.processTrunkCommit(trunkCommit); result == false {
-				has_failed_process = true
+				hasFailedProcess = true
 			}
 		} else if commitType.Name() == "PullRequest" {
 			log.Info("Found new pull request commit")
 			pullreq := commit.Value.(github.PullRequest)
 			if result := e.processPullRequest(pullreq); result == false {
-				has_failed_process = true
+				hasFailedProcess = true
 			}
 		} else {
 			log.Errorf("Nothing commit type: %s", commitType)
-			has_failed_process = true
+			hasFailedProcess = true
 		}
 	}
 
@@ -132,7 +134,7 @@ func (e *Walter) runService() bool {
 		log.Error("Failed to save update")
 		return false
 	}
-	return !has_failed_process
+	return !hasFailedProcess
 }
 
 func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
@@ -166,15 +168,15 @@ func (e *Walter) processTrunkCommit(commit github.RepositoryCommit) bool {
 				Message: "Succeeded running pipeline...",
 				SHA:     *commit.SHA})
 		return true
-	} else {
-		log.Error("Error reported...")
-		e.Engine.Resources.RepoService.RegisterResult(
-			services.Result{
-				State:   "failure",
-				Message: "Failed running pipleline ...",
-				SHA:     *commit.SHA})
-		return false
 	}
+	log.Error("Error reported...")
+	e.Engine.Resources.RepoService.RegisterResult(
+		services.Result{
+			State:   "failure",
+			Message: "Failed running pipleline ...",
+			SHA:     *commit.SHA})
+	return false
+
 }
 
 func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
@@ -217,13 +219,13 @@ func (e *Walter) processPullRequest(pullrequest github.PullRequest) bool {
 				Message: "Succeeded running pipeline...",
 				SHA:     *pullrequest.Head.SHA})
 		return true
-	} else {
-		log.Error("Error reported...")
-		e.Engine.Resources.RepoService.RegisterResult(
-			services.Result{
-				State:   "failure",
-				Message: "Failed running pipleline ...",
-				SHA:     *pullrequest.Head.SHA})
-		return false
 	}
+	log.Error("Error reported...")
+	e.Engine.Resources.RepoService.RegisterResult(
+		services.Result{
+			State:   "failure",
+			Message: "Failed running pipleline ...",
+			SHA:     *pullrequest.Head.SHA})
+	return false
+
 }
