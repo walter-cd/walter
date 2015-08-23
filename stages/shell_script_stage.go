@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package stages contains functionality for managing stage lifecycle
 package stages
 
 import (
@@ -27,25 +29,25 @@ type ShellScriptStage struct {
 	File string `config:"file"`
 }
 
-func (self *ShellScriptStage) preCheck() bool {
-	self.AddCommandName("sh")
-	self.AddFile(self.File)
-	return self.Validate()
+func (shellScriptStage *ShellScriptStage) preCheck() bool {
+	shellScriptStage.AddCommandName("sh")
+	shellScriptStage.AddFile(shellScriptStage.File)
+	return shellScriptStage.Validate()
 }
 
 // Run exectues specified shell script.
-func (self *ShellScriptStage) Run() bool {
-	log.Infof("[shell] exec: %s", self.BaseStage.StageName)
-	log.Debugf("[shell] specified file: %s\n", self.File)
-	if self.preCheck() == false {
+func (shellScriptStage *ShellScriptStage) Run() bool {
+	log.Infof("[shell] exec: %s", shellScriptStage.BaseStage.StageName)
+	log.Debugf("[shell] specified file: %s\n", shellScriptStage.File)
+	if shellScriptStage.preCheck() == false {
 		log.Infof("failed preCheck before running script...")
 		return false
 	}
-	self.AddCommand("sh " + self.File)
-	return self.CommandStage.Run()
+	shellScriptStage.AddCommand("sh " + shellScriptStage.File)
+	return shellScriptStage.CommandStage.Run()
 }
 
-// Generate one ShellScriptStage object.
+//NewShellScriptStage generate one ShellScriptStage object.
 func NewShellScriptStage() *ShellScriptStage {
 	return &ShellScriptStage{}
 }

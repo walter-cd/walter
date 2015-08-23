@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package stages contains functionality for managing stage lifecycle
 package stages
 
 import (
@@ -39,7 +41,7 @@ type Stage interface {
 	SetErrResult(string)
 }
 
-// Runer contains the Run method which is deined in Stage implemantations.
+// Runner contains the Run method which is deined in Stage implemantations.
 type Runner interface {
 	Run() bool
 }

@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package stages contains functionality for managing stage lifecycle
 package stages
 
 import (
@@ -32,48 +34,48 @@ type CommandStage struct {
 	OnlyIf    string `config:"only_if" is_replace:"false"`
 }
 
-// Get standard output results.
-func (self *CommandStage) GetStdoutResult() string {
-	return self.OutResult
+//GetStdoutResult returns the stdio output from the command.
+func (commandStage *CommandStage) GetStdoutResult() string {
+	return commandStage.OutResult
 }
 
 // Run registered commands.
-func (self *CommandStage) Run() bool {
+func (commandStage *CommandStage) Run() bool {
 	// Check OnlyIf
-	if self.runOnlyIf() == false {
-		log.Warnf("[command] exec: skipped this stage \"%s\", since only_if condition failed", self.BaseStage.StageName)
+	if commandStage.runOnlyIf() == false {
+		log.Warnf("[command] exec: skipped this stage \"%s\", since only_if condition failed", commandStage.BaseStage.StageName)
 		return true
 	}
 
 	// Run command
-	result := self.runCommand()
+	result := commandStage.runCommand()
 	if result == false {
-		log.Errorf("[command] exec: failed stage \"%s\"", self.BaseStage.StageName)
+		log.Errorf("[command] exec: failed stage \"%s\"", commandStage.BaseStage.StageName)
 	}
 	return result
 }
 
-func (self *CommandStage) runOnlyIf() bool {
-	if self.OnlyIf == "" {
+func (commandStage *CommandStage) runOnlyIf() bool {
+	if commandStage.OnlyIf == "" {
 		return true
 	}
-	log.Infof("[command] only_if: found \"only_if\" attribute in stage \"%s\"", self.BaseStage.StageName)
-	cmd := exec.Command("sh", "-c", self.OnlyIf)
-	log.Infof("[command] only_if: %s", self.BaseStage.StageName)
-	log.Debugf("[command] only_if literal: %s", self.OnlyIf)
-	cmd.Dir = self.Directory
-	result, _, _ := execCommand(cmd, "only_if", self.BaseStage.StageName)
+	log.Infof("[command] only_if: found \"only_if\" attribute in stage \"%s\"", commandStage.BaseStage.StageName)
+	cmd := exec.Command("sh", "-c", commandStage.OnlyIf)
+	log.Infof("[command] only_if: %s", commandStage.BaseStage.StageName)
+	log.Debugf("[command] only_if literal: %s", commandStage.OnlyIf)
+	cmd.Dir = commandStage.Directory
+	result, _, _ := execCommand(cmd, "only_if", commandStage.BaseStage.StageName)
 	return result
 }
 
-func (self *CommandStage) runCommand() bool {
-	cmd := exec.Command("sh", "-c", self.Command)
-	log.Infof("[command] exec: %s", self.BaseStage.StageName)
-	log.Debugf("[command] exec command literal: %s", self.Command)
-	cmd.Dir = self.Directory
-	result, outResult, errResult := execCommand(cmd, "exec", self.BaseStage.StageName)
-	self.SetOutResult(*outResult)
-	self.SetErrResult(*errResult)
+func (commandStage *CommandStage) runCommand() bool {
+	cmd := exec.Command("sh", "-c", commandStage.Command)
+	log.Infof("[command] exec: %s", commandStage.BaseStage.StageName)
+	log.Debugf("[command] exec command literal: %s", commandStage.Command)
+	cmd.Dir = commandStage.Directory
+	result, outResult, errResult := execCommand(cmd, "exec", commandStage.BaseStage.StageName)
+	commandStage.SetOutResult(*outResult)
+	commandStage.SetErrResult(*errResult)
 	return result
 }
 
@@ -129,18 +131,18 @@ func copyStream(reader io.Reader, prefix string, name string) string {
 	return buffer.String()
 }
 
-// Register specified command.
-func (self *CommandStage) AddCommand(command string) {
-	self.Command = command
-	self.BaseStage.Runner = self
+//AddCommand registers the specified command.
+func (commandStage *CommandStage) AddCommand(command string) {
+	commandStage.Command = command
+	commandStage.BaseStage.Runner = commandStage
 }
 
-// Set the directory where the command is executed.
-func (self *CommandStage) SetDirectory(directory string) {
-	self.Directory = directory
+//SetDirectory sets the directory where the command is executed.
+func (commandStage *CommandStage) SetDirectory(directory string) {
+	commandStage.Directory = directory
 }
 
-// Create one CommandStage object.
+//NewCommandStage creates one CommandStage object.
 func NewCommandStage() *CommandStage {
 	stage := CommandStage{Directory: "."}
 	return &stage
