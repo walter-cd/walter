@@ -58,11 +58,13 @@ More specifically, users specify the order of the tasks for the deployment. Each
 
 ## Pipeline setting
 
-The configuration format of Walter is Yaml. The yaml configuration file need to have one pipeline block, which has more
-than one stage element.
+The configuration format of Walter is Yaml or [HCL](https://github.com/hashicorp/hcl) (Hashicorp Configuration Language) which also supports JSON. Which means you have three ways to configure Walter (YAML, HCL and JSON)!
+
+The configuration file needs to have one pipeline block, which has more than one stage element.
 
 The following is a sample configuration of Walter.
 
+YAML
 ```yaml
 pipeline:
   - name: command_stage_1
@@ -76,6 +78,50 @@ pipeline:
     command: echo "hello, world, command_stage_3"
 ```
 
+HCL (all files with .hcl prefix are assumed to be of HCL format)
+```
+//The pipeline
+pipeline {
+  stage {
+    name = "command_stage_1"
+    type = "command"
+    command = "echo 'hello, world'"
+  }
+  stage {
+    name = "command_stage_2"
+    type = "command"
+    command = "echo 'hello, world, command_stage_2'"
+  }
+  stage {
+    name = "command_stage_3"
+    type = "command"
+    command = "echo 'hello, world, command_stage_3'"
+  }
+}
+```
+
+JSON
+```json
+{
+  "pipeline":{
+    "stage" :{
+      "name":"command_stage_1",
+      "type":"command",
+      "command":"echo 'hello, world'"
+    },
+    "stage":{
+      "name":"command_stage_2",
+      "type":"command",
+      "command":"echo 'hello, world, command_stage_2'"
+    },
+    "stage": {
+      "name":"command_stage_3",
+      "type":"command",
+      "command":"echo 'hello, world, command_stage_3'"
+    }
+  }
+}
+```
 As we see, the pipeline block has three stages and the stage type is command, each of which run **echo** command and has the stage name
 (such as **command_stage_1**). User can name arbitrary name of each stage. The commands are executed with the same order as the pipeline configuration.
 
@@ -110,6 +156,7 @@ The following is the parameter of Shell script stage.
 
  You can set child stages and run these stages in parallel like this.
 
+YAML
 ```yaml
 pipeline:
   - name: parallel stages
@@ -125,6 +172,59 @@ pipeline:
         command: parallel command 3
 ```
 
+HCL
+```
+pipeline {
+  stage {
+    name = "parallel stages"
+    parallel {
+      stage {
+        name = "parallel command 1"
+        type = "command"
+        command = "parallel command 1"
+      }
+      stage {
+        name = "parallel command 2"
+        type = "command"
+        command = "parallel command 2"
+      }
+      stage {
+        name = "parallel command 3"
+        type = "command"
+        command = "parallel command 3"
+      }
+    }
+  }
+}
+```
+
+JSON
+```json
+{
+  "pipeline":{
+    "stage" :{
+      "name":"parallel stages",
+      "parallel":{
+        "stage":{
+          "name":"parallel command 1",
+          "type":"command",
+          "command":"parallel command 1"
+        },
+        "stage": {
+          "name":"parallel command 2",
+          "type":"command",
+          "command":"parallel command 2"
+        },
+        "stage": {
+          "name":"parallel command 3",
+          "type":"command",
+          "command":"parallel command 3"
+        }
+      }
+    }
+}
+}
+```
 In the above setting, `parallel command 1`, `parallel command 2` and `parallel command 3` are executed in parallel.
 
 ## Import predefined stages
@@ -135,6 +235,7 @@ add the list of file names into the block.
 
 For example, the following example import the stages defined in **conf/mystage.yml**
 
+YAML
 ```yaml
 require:
     - conf/mystages.yml
@@ -143,6 +244,37 @@ pipeline:
   - call: mypackage::hello
   - call: mypackage::goodbye
 
+```
+HCL
+```
+//Note that an HCL require can reference YAML or HCL or JSON files
+require = ["conf/mystages.yml",
+           "conf/myhclstages.hcl"]
+
+pipeline {
+  stage {
+    call = "mypackage::hello"
+  }
+  stage {
+    call = "myhclpackage::goodbye"
+  }
+}
+
+```
+
+JSON
+```json
+{
+  "require":["conf/mystages.yml","conf/myjsonstages.json"],
+  "pipeline":{
+    "stage":{
+      "call":"mypackage::hello"
+    },
+    "stage":{
+      "call":"myjsonpackage::goodbye"
+    }
+  }
+}
 ```
 
 In the above setting, the stages ("mypacakge::hello" and "mypackage::goodbye") which are defined in "mystage.yml" are specified.
@@ -153,6 +285,7 @@ The **stages** block contains the list of stage definitions. We can define the s
 
 For example, the following configuration is the content of conf/mystages.yml imported from the above pipeline configuration file.
 
+YAML
 ```yaml
 namespace: mypackage
 
@@ -165,6 +298,38 @@ stages:
       command: echo "Goobye majesty."
 ```
 
+HCL
+```
+namespace = "myhclpackage"
+
+stages {
+  def {
+    name = "hello"
+    command = "echo 'May I hel you majesty'"
+  }
+  def {
+    name = "goodbye"
+    command = "echo 'Goodbye majesty'"
+  }
+}
+```
+
+JSON
+```json
+{
+  "namespace":"myjsonpackage",
+  "stages":{
+    "def":{
+      "name":"hello",
+      "command":"echo 'May I hel you majesty'"
+    },
+    "def":{
+      "name":"goodbye",
+      "command":"echo 'Goodbye majesty'"
+    }
+  }
+}
+```
 As we see that stages **hello** and **goodbye** are defined in the file.
 
 ## Cleanup pipeline
@@ -172,7 +337,7 @@ As we see that stages **hello** and **goodbye** are defined in the file.
 Walter configuraiton can have one **cleanup** block; cleanup is another pipeline which needs to be executed after a pipeline has either failed or passed.
 In the cleanup block, we can add command or shell script stages. The below example create a log file in pipeline and then cleanup the log file in the cleaup steps.
 
-
+YAML
 ```yaml
 pipeline:
   - name: start pipeline
@@ -182,6 +347,39 @@ cleanup:
     command:  rm log/*
 ```
 
+HCL
+```
+pipeline {
+  stage {
+    name = "start pipeline"
+    command = "echo 'pipeline' > log/log.txt"
+  }
+}
+cleanup {
+  stage {
+    name = "cleanup"
+    command = "rm log/*"
+  }
+}
+```
+
+JSON
+```json
+{
+  "pipeline":{
+    "stage" :{
+      "name":"start pipeline",
+      "command":"echo 'pipeline' > log/log.txt"
+    }
+  },
+  "cleanup":{
+    "stage":{
+      "name":"cleanup",
+      "command":"rm log/*"
+    }
+  }
+}
+```
 
 ## Reporting function
 Walter supports to submits the messages to messaging services.
@@ -189,6 +387,7 @@ Walter supports to submits the messages to messaging services.
 ### Report configuration
 To submit a message, users need to add a **messenger** block into the configuration file. The following is a sample of the yaml block with HipChat.
 
+YAML
 ```yaml
 messenger:
   type: hipchat2
@@ -198,9 +397,33 @@ messenger:
   from: USER_NAME
 ```
 
+HCL
+```
+messenger {
+  type = "hipchat2"
+  base_url = "BASE_URL"
+  room_id = "ROOM_ID"
+  token = "TOKEN"
+  from = "USER_NAME"
+}
+```
+
+JSON
+```json
+{
+  "messenger": {
+    "type":"hipchat2",
+    "base_url":"BASE_URL",
+    "room_id":"ROOM_ID",
+    "token":"TOKEN",
+    "from":"USER_NAME"
+  }
+}
+```
 To report the full output of stage execution to the specified messenger service added with the above setting,
 users add **report_full_output** attribute with **true** into the stage they want to know the command outputs.
 
+YAML
 ```yaml
 pipeline:
   - name: command_stage_1
@@ -211,6 +434,43 @@ pipeline:
     type: command
     command: echo "hello, world, command_stage_2"
     # By default, report_full_output is false
+```
+
+HCL
+```
+pipeline {
+  stage {
+    name = "command_stage_1"
+    type = "command"
+    command = "echo \"hello, world\""
+    report_full_output = true
+  }
+  stage {
+    name = "command_stage_2"
+    type = "command"
+    command = "echo \"hello, world, command_stage_2\""
+    // By default, report_full_output is false
+  }
+}
+```
+
+JSON
+```json
+{
+  "pipeline":{
+    "stage":{
+      "name":"command_stage_1",
+      "type":"command",
+      "command":"echo \"hello, world\"",
+      "report_full_output":true
+    },
+    "stage":{
+      "name":"command_stage_2",
+      "type":"command",
+      "command":"echo \"hello, world, command_stage_2\"",
+    }
+  }
+}
 ```
 
 ### Report types
@@ -251,6 +511,7 @@ Walter provides a coordination function to a project hosting service, GitHub. Sp
 ### Service configuration
 To activate service coordination function, we add a "service" block to the Walter configuration file. "service" block contains several elements (type, token, repo, from, update).
 
+YAML
 ```yaml
 service:
   type: github
@@ -258,6 +519,30 @@ service:
   repo: YOUR_REPOSITORY_NAME
   from: YOUR_ACCOUNT_OR_GROUP_NAME
   update: UPDATE_FILE_NAME
+```
+
+HCL
+```
+service {
+  type = "github"
+  token = "ADD_YOUR_KEY"
+  repo = "YOUR_REPOSITORY_NAME"
+  from = "YOUR_ACCOUNT_OR_GROUP_NAME"
+  update = "UPDATE_FILE_NAME"
+}
+```
+
+JSON
+```json
+{
+  "service": {
+    "type":"github",
+    "token":"ADD_YOUR_KEY",
+    "repo":"YOUR_REPOSITORY_NAME",
+    "from":"YOUR_ACCOUNT_OR_GROUP_NAME",
+    "update":"UPDATE_FILE_NAME"
+  }
+}
 ```
 
 The following shows the description of each element.
@@ -285,6 +570,7 @@ $ENV_NAME
 
 We write the envrionment variable into **ENV_NAME**. The following configuration file specify the GitHub Token by embedding the environment variable, GITHUB_TOKEN.
 
+YAML
 ```yaml
 service:
   type: github
@@ -292,4 +578,28 @@ service:
   repo: my-service-repository
   from: service-group
   update: .walter
+```
+
+HCL
+```
+service {
+  type = "github"
+  token = "$GITHUB_TOKEN"
+  repo = "my-service-repository"
+  from = "service-group"
+  update = ".walter"
+}
+```
+
+JSON
+```json
+{
+  "service": {
+    "type":"github",
+    "token":"$GITHUB_TOKEN",
+    "repo":"my-service-repository",
+    "from":"service-group",
+    "update":".walter"
+  }
+}
 ```

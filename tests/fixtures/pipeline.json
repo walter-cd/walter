@@ -1,0 +1,52 @@
+{
+  "global":{
+    "dummyOpt":true
+  },
+
+"pipeline":{
+  "name":"my-hcl-pipeline",
+
+  "stage" :{
+    "name":"command_stage_1",
+    "type":"command",
+    "command":"echo 'hello, world'",
+    "parallel": {
+      "stage": {
+        "name":"command_stage_2_group_1",
+        "type":"command",
+        "command":"echo 'hello, world, command_stage_2_group_1'"
+      },
+      "stage": {
+        "name":"command_stage_3_group_1",
+        "type":"command",
+        "command":"echo 'hello, world, command_stage_3_group_1'",
+        "parallel":{
+          "stage": {
+            "name":"command_stage_3_group_2",
+            "type":"command",
+            "command":"echo 'hello, world, command_stage_3_group_2'"
+          }
+        }
+      }
+    }
+  },
+  "stage":{
+    "name":"command_stage_4",
+    "type":"command",
+    "command":"echo 'hello, world, stage4' && sleep 1"
+  },
+  "stage": {
+    "name":"command_stage_5",
+    "type":"command",
+    "command":"echo 'hello, world, stage5'"
+  }
+},
+
+"cleanup":{
+  "stage":{
+    "name":"cleanup_stage_1",
+    "type":"command",
+    "command":"echo 'hello cleanup'"
+  }
+}
+}

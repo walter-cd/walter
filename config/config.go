@@ -66,6 +66,7 @@ func LoadOpts(arguments []string) (*Opts, error) {
 
 	return &Opts{
 		PipelineFilePath: pipelineFilePath,
+
 		StopOnAnyFailure: stopOnAnyFailure,
 		PrintVersion:     printVersion,
 		Mode:             mode,
