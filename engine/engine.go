@@ -51,9 +51,9 @@ func (r *Result) IsSucceeded() bool {
 
 // RunOnce executes the pipeline and the cleanup prccedures.
 func (e *Engine) RunOnce() *Result {
-	pipe_result := e.executePipeline(e.Resources.Pipeline, "pipeline")
-	cleanup_result := e.executePipeline(e.Resources.Cleanup, "cleanup")
-	return &Result{Pipeline: &pipe_result, Cleanup: &cleanup_result}
+	pipeResult := e.executePipeline(e.Resources.Pipeline, "pipeline")
+	cleanupResult := e.executePipeline(e.Resources.Cleanup, "cleanup")
+	return &Result{Pipeline: &pipeResult, Cleanup: &cleanupResult}
 }
 
 func (e *Engine) executePipeline(pipeline *pipelines.Pipeline, name string) stages.Mediator {
@@ -68,7 +68,7 @@ func (e *Engine) executePipeline(pipeline *pipelines.Pipeline, name string) stag
 }
 
 func (e *Engine) receiveInputs(inputCh *chan stages.Mediator) []stages.Mediator {
-	mediatorsReceived := make([]stages.Mediator, 0)
+	var mediatorsReceived = make([]stages.Mediator, 0)
 	for {
 		m, ok := <-*inputCh
 		if !ok {
@@ -80,6 +80,7 @@ func (e *Engine) receiveInputs(inputCh *chan stages.Mediator) []stages.Mediator 
 	return mediatorsReceived
 }
 
+// ExecuteStage executes the supplied stage
 func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debug("Receiving input")
 
@@ -175,6 +176,7 @@ func (e *Engine) finalizeMonitorChAfterExecute(mediators []stages.Mediator) {
 	}
 }
 
+//Execute executes a stage using the supplied mediator
 func (e *Engine) Execute(stage stages.Stage, mediator stages.Mediator) stages.Mediator {
 	monitorCh := e.MonitorCh
 	mediator.Type = "start"
@@ -197,7 +199,7 @@ func (e *Engine) Execute(stage stages.Stage, mediator stages.Mediator) stages.Me
 		log.Debugf("outputCh received  %+v\n", receive)
 	}
 
-	receives := make([]stages.Mediator, 0)
+	var receives = make([]stages.Mediator, 0)
 	for {
 		receive := <-*monitorCh
 		receives = append(receives, receive)

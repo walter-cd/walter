@@ -48,50 +48,52 @@ type Resources struct {
 }
 
 // ReportStageResult throw the results of specified stage to the messenger services.
-func (self *Resources) ReportStageResult(stage stages.Stage, resultStr string) {
+func (resources *Resources) ReportStageResult(stage stages.Stage, resultStr string) {
 	name := stage.GetStageName()
-	if !self.Reporter.Suppress("result") {
+	if !resources.Reporter.Suppress("result") {
 		if resultStr == "true" {
-			self.Reporter.Post(
+			resources.Reporter.Post(
 				fmt.Sprintf("[%s][RESULT] Succeeded", name))
 		} else if resultStr == "skipped" {
-			self.Reporter.Post(
+			resources.Reporter.Post(
 				fmt.Sprintf("[%s][RESULT] Skipped", name))
 		} else {
-			self.Reporter.Post(
+			resources.Reporter.Post(
 				fmt.Sprintf("[%s][RESULT] Failed", name))
 		}
 	}
 
 	if stage.GetStageOpts().ReportingFullOutput {
-		if out := stage.GetOutResult(); (len(out) > 0) && (!self.Reporter.Suppress("stdout")) {
-			self.Reporter.Post(
+		if out := stage.GetOutResult(); (len(out) > 0) && (!resources.Reporter.Suppress("stdout")) {
+			resources.Reporter.Post(
 				fmt.Sprintf("[%s][STDOUT] %s", name, stage.GetOutResult()))
 		}
-		if err := stage.GetErrResult(); len(err) > 0 && (!self.Reporter.Suppress("stderr")) {
-			self.Reporter.Post(
+		if err := stage.GetErrResult(); len(err) > 0 && (!resources.Reporter.Suppress("stderr")) {
+			resources.Reporter.Post(
 				fmt.Sprintf("[%s][STDERR] %s", name, stage.GetErrResult()))
 		}
 	}
 }
 
 // AddStage appends specified stage to the pipeline.
-func (self *Pipeline) AddStage(stage stages.Stage) {
-	self.Stages.PushBack(stage)
+func (resources *Pipeline) AddStage(stage stages.Stage) {
+	resources.Stages.PushBack(stage)
 }
 
 // Size returns the number of stages in the pipeline.
-func (self *Pipeline) Size() int {
-	return self.Stages.Len()
+func (resources *Pipeline) Size() int {
+	return resources.Stages.Len()
 }
 
-func (self *Pipeline) Build() {
-	self.buildDeps(&self.Stages)
+//Build builds a pipeline for the current resources
+func (resources *Pipeline) Build() {
+	resources.buildDeps(&resources.Stages)
 }
 
-func (self *Pipeline) buildDeps(stages *list.List) {
+func (resources *Pipeline) buildDeps(stages *list.List) {
 }
 
+//NewPipeline create a new pipeline instance
 func NewPipeline() *Pipeline {
 	return &Pipeline{}
 }

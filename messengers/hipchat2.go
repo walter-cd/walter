@@ -14,12 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package messengers provides all functionality for the suported messengers
 package messengers
 
 import (
+	"net/url"
+
 	"github.com/recruit-tech/walter/log"
 	"github.com/tbruyelle/hipchat-go/hipchat"
-	"net/url"
 )
 
 // HipChat2 is a client which reports the pipeline results to the HipChat server.
@@ -63,11 +66,11 @@ func (hc *HipChat2) newClient() *hipchat.Client {
 		return client
 	}
 
-	base_url, err := url.Parse(hc.BaseURL)
+	baseURL, err := url.Parse(hc.BaseURL)
 	if err != nil {
 		log.Errorf("Invalid Hipchat Base URL...: %s", err.Error())
 		return nil
 	}
-	client.BaseURL = base_url
+	client.BaseURL = baseURL
 	return client
 }
