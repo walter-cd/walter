@@ -83,7 +83,6 @@ func (e *Engine) receiveInputs(inputCh *chan stages.Mediator) []stages.Mediator 
 // ExecuteStage executes the supplied stage
 func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debug("Receiving input")
-
 	mediatorsReceived := e.receiveInputs(stage.GetInputCh())
 
 	log.Debugf("Received input size: %v", len(mediatorsReceived))
@@ -91,18 +90,8 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debugf("Execute as parent: %+v", stage)
 	log.Debugf("Execute as parent name %+v", stage.GetStageName())
 
-	var result string
-	if !e.isUpstreamAnyFailure(mediatorsReceived) || e.Opts.StopOnAnyFailure {
-		result = strconv.FormatBool(stage.(stages.Runner).Run())
-	} else {
-		log.Warnf("Execution is skipped: %v", stage.GetStageName())
-		result = "skipped"
-	}
-	log.Debugf("Stage execution results: %+v, %+v", stage.GetStageName(), result)
-	e.Resources.ReportStageResult(stage, result) //TODO: store the results (stdout, stderr, result) into a special variable
-
 	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.States[stage.GetStageName()] = result
+	mediator.States[stage.GetStageName()] = e.extractResult(stage, mediatorsReceived)
 
 	if childStages := stage.GetChildStages(); childStages.Len() > 0 {
 		log.Debugf("Execute childstage: %v", childStages)
@@ -121,6 +110,19 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	*e.MonitorCh <- mediator
 
 	e.finalizeMonitorChAfterExecute(mediatorsReceived)
+}
+
+func (e *Engine) extractResult(stage stages.Stage, received []stages.Mediator) string {
+	var result string
+	if !e.isUpstreamAnyFailure(received) || e.Opts.StopOnAnyFailure {
+		result = strconv.FormatBool(stage.(stages.Runner).Run())
+	} else {
+		log.Warnf("Execution is skipped: %v", stage.GetStageName())
+		result = "skipped"
+	}
+	e.Resources.ReportStageResult(stage, result) //TODO: store the results (stdout, stderr, result) into a special variable
+	log.Debugf("Stage execution results: %+v, %+v", stage.GetStageName(), result)
+	return result
 }
 
 func (e *Engine) isUpstreamAnyFailure(mediators []stages.Mediator) bool {
