@@ -118,7 +118,7 @@ func (e *Engine) executeStage(stage stages.Stage, received []stages.Mediator) st
 		log.Warnf("Execution is skipped: %v", stage.GetStageName())
 		result = "skipped"
 	}
-	e.Resources.ReportStageResult(stage, result) //TODO: store the results (stdout, stderr, result) into a special variable
+	e.Resources.ReportStageResult(stage, result)
 	log.Debugf("Stage execution results: %+v, %+v", stage.GetStageName(), result)
 	return result
 }
