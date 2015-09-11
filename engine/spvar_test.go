@@ -28,5 +28,5 @@ func TestExtract(t *testing.T) {
 	pipeline.AddStage(createCommandStageWithName("first", "ls -l"))
 	pipeline.AddStage(createCommandStageWithName("second", "ls -la"))
 	spvar := NewSecialVariables(pipeline)
-	spvar.Replace("__RESULT[\"first\"]")
+	spvar.Replace("__RESULT[\"second\"] || __RESULT[\"first\"]")
 }

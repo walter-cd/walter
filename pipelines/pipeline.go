@@ -80,6 +80,27 @@ func (resources *Pipeline) AddStage(stage stages.Stage) {
 	resources.Stages.PushBack(stage)
 }
 
+// GetStageResult returns the result (stdout, stderr, return value) of specified stage.
+func (resources *Pipeline) GetStageResult(name string, stageType string) (string, error) {
+	for stageItem := resources.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
+		stage := stageItem.Value.(stages.Stage)
+		if name != stage.GetStageName() {
+			continue
+		}
+		switch stageType {
+		case "__OUT":
+			return stage.GetErrResult(), nil
+		case "__ERR":
+			return stage.GetOutResult(), nil
+		case "__RESULT":
+			return "0", nil // TODO: fixme
+		default:
+			return "", fmt.Errorf("no specified type: " + stageType)
+		}
+	}
+	return "", fmt.Errorf("no specified stage: " + name)
+}
+
 // Size returns the number of stages in the pipeline.
 func (resources *Pipeline) Size() int {
 	return resources.Stages.Len()

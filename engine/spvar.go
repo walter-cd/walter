@@ -20,7 +20,6 @@
 package engine
 
 import (
-	"container/list"
 	"fmt"
 	"regexp"
 
@@ -36,23 +35,28 @@ type SpecialVariables struct {
 }
 
 // Replace replaces all environment variables in a line
-func (specialVariables *SpecialVariables) Replace(line string) string {
+func (specialVariables *SpecialVariables) Replace(line string) (string, error) {
 	// Search list of start and stop positions of special variables
-	specialVariables.extractPositions(line)
-	// Extract stage names
-	// Extract spacial variable of specified stages
-	return line
-}
-
-func (specialVariables *SpecialVariables) extractPositions(line string) *list.List {
-	ret := list.New()
-	results := (*specialVariables.re).FindAllStringSubmatch(line, -1)
+	results := (*specialVariables.re).FindAllStringSubmatchIndex(line, -1)
 
 	for _, result := range results {
-		fmt.Println("found match")
-		fmt.Println(result)
+		// Extract spacial variable of specified stages
+		value, err := specialVariables.extractStageValue(line, result)
+		if err != nil {
+			return "", err
+		}
+		fmt.Println("found value: " + value)
+
+		// Replace
+
 	}
-	return ret
+	return line, nil
+}
+
+func (specialVariables *SpecialVariables) extractStageValue(line string, pos []int) (string, error) {
+	outType := line[pos[2]:pos[3]]
+	stageName := line[pos[4]:pos[5]]
+	return specialVariables.pipeline.GetStageResult(outType, stageName)
 }
 
 func NewSecialVariables(pipeline *pipelines.Pipeline) *SpecialVariables {
