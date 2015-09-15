@@ -39,6 +39,7 @@ type Stage interface {
 	SetOutResult(string)
 	GetErrResult() string
 	SetErrResult(string)
+	GetReturnValue() bool
 }
 
 // Runner contains the Run method which is deined in Stage implemantations.

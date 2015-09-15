@@ -48,6 +48,9 @@ type BaseStage struct {
 	// Results of stderr flush by the stage.
 	ErrResult string
 
+	// Return value of the stage
+	ReturnValue bool
+
 	// options of the stage.
 	Opts StageOpts
 }
@@ -70,7 +73,8 @@ func (b *BaseStage) Run() bool {
 	if b.Runner == nil {
 		panic("Mast have a child class assigned")
 	}
-	return b.Runner.Run()
+	b.ReturnValue = b.Runner.Run()
+	return b.ReturnValue
 }
 
 // AddChildStage appends one child stage.
@@ -142,4 +146,9 @@ func (b *BaseStage) GetErrResult() string {
 // SetErrResult sets standard error results.
 func (b *BaseStage) SetErrResult(result string) {
 	b.ErrResult = result
+}
+
+// GetReturnValue returns return value of the stage
+func (b *BaseStage) GetReturnValue() bool {
+	return b.ReturnValue
 }

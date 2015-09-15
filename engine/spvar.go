@@ -28,7 +28,6 @@ import (
 // SpecialVariables is a set of variables contains all the results and
 // outputs of previous stages.
 type SpecialVariables struct {
-	// Pipeline
 	pipeline *pipelines.Pipeline
 	re       *regexp.Regexp
 }
