@@ -89,16 +89,16 @@ func (resources *Pipeline) GetStageResult(name string, stageType string) (string
 		}
 		switch stageType {
 		case "__OUT":
-			return stage.GetErrResult(), nil
-		case "__ERR":
 			return stage.GetOutResult(), nil
+		case "__ERR":
+			return stage.GetErrResult(), nil
 		case "__RESULT":
 			return "0", nil // TODO: fixme
 		default:
 			return "", fmt.Errorf("no specified type: " + stageType)
 		}
 	}
-	return "", fmt.Errorf("no specified stage: " + name)
+	return "", fmt.Errorf("no specified stage name: " + name)
 }
 
 // Size returns the number of stages in the pipeline.

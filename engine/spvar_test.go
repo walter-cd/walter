@@ -20,13 +20,16 @@ import (
 	"testing"
 
 	"github.com/recruit-tech/walter/pipelines"
-	// "github.com/stretchr/testify/assert"
+	"github.com/recruit-tech/walter/stages"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExtract(t *testing.T) {
 	pipeline := pipelines.NewPipeline()
-	pipeline.AddStage(createCommandStageWithName("first", "ls -l"))
-	pipeline.AddStage(createCommandStageWithName("second", "ls -la"))
+	pipeline.AddStage(new(stages.StageBuilder).NewStage("command").SetName("first").SetTarget("echo foobar").SetOutResult("foobar").Build())
+	pipeline.AddStage(new(stages.StageBuilder).NewStage("command").SetName("second").SetTarget("echo baz").SetOutResult("baz").Build())
 	spvar := NewSecialVariables(pipeline)
-	spvar.Replace("__RESULT[\"second\"] || __RESULT[\"first\"]")
+	result, err := spvar.Replace("__OUT[\"first\"] || __OUT[\"second\"]")
+	assert.Nil(t, err)
+	assert.Equal(t, "foobar || baz", result)
 }

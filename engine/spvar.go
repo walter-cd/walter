@@ -20,7 +20,6 @@
 package engine
 
 import (
-	"fmt"
 	"regexp"
 
 	"github.com/recruit-tech/walter/pipelines"
@@ -37,18 +36,14 @@ type SpecialVariables struct {
 // Replace replaces all environment variables in a line
 func (specialVariables *SpecialVariables) Replace(line string) (string, error) {
 	// Search list of start and stop positions of special variables
-	results := (*specialVariables.re).FindAllStringSubmatchIndex(line, -1)
 
-	for _, result := range results {
+	for result := (*specialVariables.re).FindStringSubmatchIndex(line); result != nil; result = (*specialVariables.re).FindStringSubmatchIndex(line) {
 		// Extract spacial variable of specified stages
 		value, err := specialVariables.extractStageValue(line, result)
 		if err != nil {
 			return "", err
 		}
-		fmt.Println("found value: " + value)
-
-		// Replace
-
+		line = line[0:result[0]] + value + line[result[1]:]
 	}
 	return line, nil
 }
@@ -56,16 +51,12 @@ func (specialVariables *SpecialVariables) Replace(line string) (string, error) {
 func (specialVariables *SpecialVariables) extractStageValue(line string, pos []int) (string, error) {
 	outType := line[pos[2]:pos[3]]
 	stageName := line[pos[4]:pos[5]]
-	return specialVariables.pipeline.GetStageResult(outType, stageName)
+	return specialVariables.pipeline.GetStageResult(stageName, outType)
 }
 
 func NewSecialVariables(pipeline *pipelines.Pipeline) *SpecialVariables {
 	regexStr := "(__RESULT|__OUT|__ERR)\\[\"([a-zA-Z_]+)\"\\]"
-	pattern, err := regexp.Compile(regexStr)
-	if err != nil {
-		fmt.Println("Failed to compile regex..")
-	}
-
+	pattern, _ := regexp.Compile(regexStr)
 	return &SpecialVariables{
 		pipeline: pipeline,
 		re:       pattern,
