@@ -62,3 +62,24 @@ func TestVoidInput(t *testing.T) {
 	result := envs.Replace("")
 	assert.Equal(t, "", result)
 }
+
+func TestReplaceSpecialVariable(t *testing.T) {
+	envs := NewEnvVariables()
+	envs.ExportSpecialVariable("__OUT[\"first\"]", "foobar")
+	result, _ := envs.Get("__OUT__first__")
+	assert.Equal(t, "foobar", result)
+}
+
+func TestReplaceMultipleSpecialVariables(t *testing.T) {
+	envs := NewEnvVariables()
+	envs.ExportSpecialVariable("__OUT[\"first\"]", "foobar")
+	envs.ExportSpecialVariable("__OUT[\"second\"]", "baz")
+	result := envs.Replace("__OUT[\"first\"] || __OUT[\"second\"]")
+	assert.Equal(t, "foobar || baz", result)
+}
+
+func TestReplaceSpecialVariablesToInnerFomrmat(t *testing.T) {
+	envs := NewEnvVariables()
+	result := envs.ReplaceSpecialVariableInLine("__OUT[\"first\"] || __OUT[\"second\"]")
+	assert.Equal(t, "$__OUT__first__ || $__OUT__second__", result)
+}

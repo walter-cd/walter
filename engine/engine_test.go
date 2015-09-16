@@ -70,6 +70,7 @@ func execute(stage stages.Stage) stages.Mediator {
 		Resources: &pipelines.Resources{
 			Reporter: &messengers.FakeMessenger{},
 		},
+		EnvVariables: config.NewEnvVariables(),
 	}
 
 	go e.ExecuteStage(stage)
@@ -111,8 +112,9 @@ func TestRunOnce(t *testing.T) {
 	resources.Pipeline.AddStage(createCommandStage("echo baz"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		EnvVariables: config.NewEnvVariables(),
 	}
 	result := engine.RunOnce()
 
@@ -131,8 +133,9 @@ func TestRunOnceWithShellScriptStage(t *testing.T) {
 	resources.Pipeline.AddStage(createShellScriptStage("foobar-shell", "../stages/test_sample.sh"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		EnvVariables: config.NewEnvVariables(),
 	}
 	result := engine.RunOnce()
 
@@ -154,9 +157,10 @@ func TestRunOnceWithOptsOffStopOnAnyFailure(t *testing.T) {
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{StopOnAnyFailure: false}
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
-		Opts:      o,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		Opts:         o,
+		EnvVariables: config.NewEnvVariables(),
 	}
 	result := engine.RunOnce()
 
@@ -176,9 +180,10 @@ func TestRunOnceWithOptsOnStopOnAnyFailure(t *testing.T) {
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{StopOnAnyFailure: true}
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
-		Opts:      o,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		Opts:         o,
+		EnvVariables: config.NewEnvVariables(),
 	}
 
 	result := engine.RunOnce()
@@ -201,9 +206,10 @@ func TestRunOnceWithOnlyIfFailure(t *testing.T) {
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{}
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
-		Opts:      o,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		Opts:         o,
+		EnvVariables: config.NewEnvVariables(),
 	}
 	result := engine.RunOnce()
 
@@ -228,9 +234,10 @@ func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
 	monitorCh := make(chan stages.Mediator)
 	o := &config.Opts{}
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
-		Opts:      o,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		Opts:         o,
+		EnvVariables: config.NewEnvVariables(),
 	}
 	result := engine.RunOnce()
 
@@ -257,8 +264,9 @@ func TestRunOnceWithCleanup(t *testing.T) {
 	resources.Pipeline.AddStage(createCommandStage("echo baz"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		EnvVariables: config.NewEnvVariables(),
 	}
 	result := engine.RunOnce()
 	assert.Equal(t, "true", result.Pipeline.States["echo foobar"])
@@ -281,8 +289,9 @@ func TestRunOnceWithFailedCleanup(t *testing.T) {
 	resources.Pipeline.AddStage(createCommandStage("echo baz"))
 	monitorCh := make(chan stages.Mediator)
 	engine := &Engine{
-		Resources: resources,
-		MonitorCh: &monitorCh,
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		EnvVariables: config.NewEnvVariables(),
 	}
 	result := engine.RunOnce()
 	assert.Equal(t, "true", result.Pipeline.States["echo foobar"])

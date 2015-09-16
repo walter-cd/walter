@@ -20,6 +20,7 @@ package engine
 
 import (
 	"container/list"
+	//	"os"
 	"strconv"
 
 	"github.com/recruit-tech/walter/config"
@@ -30,9 +31,10 @@ import (
 
 // Engine executes the its pipeline.
 type Engine struct {
-	Resources *pipelines.Resources
-	MonitorCh *chan stages.Mediator
-	Opts      *config.Opts
+	Resources    *pipelines.Resources
+	MonitorCh    *chan stages.Mediator
+	Opts         *config.Opts
+	EnvVariables *config.EnvVariables
 }
 
 // Result stores the output in pipelines.
@@ -114,6 +116,9 @@ func (e *Engine) executeStage(stage stages.Stage, received []stages.Mediator) st
 	var result string
 	if !e.isUpstreamAnyFailure(received) || e.Opts.StopOnAnyFailure {
 		result = strconv.FormatBool(stage.(stages.Runner).Run())
+		e.EnvVariables.ExportSpecialVariable("__OUT[\""+stage.GetStageName()+"\"]", stage.GetOutResult())
+		e.EnvVariables.ExportSpecialVariable("__ERR[\""+stage.GetStageName()+"\"]", stage.GetErrResult())
+		e.EnvVariables.ExportSpecialVariable("__RESULT[\""+stage.GetStageName()+"\"]", result)
 	} else {
 		log.Warnf("Execution is skipped: %v", stage.GetStageName())
 		result = "skipped"

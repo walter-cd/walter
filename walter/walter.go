@@ -47,7 +47,8 @@ func New(opts *config.Opts) (*Walter, error) {
 		return nil, err
 	}
 
-	parser := &config.Parser{ConfigData: configData, EnvVariables: config.NewEnvVariables()}
+	envs := config.NewEnvVariables()
+	parser := &config.Parser{ConfigData: configData, EnvVariables: envs}
 	resources, err := parser.Parse()
 	if err != nil {
 		log.Warn("failed to parse the configuration")
@@ -55,9 +56,10 @@ func New(opts *config.Opts) (*Walter, error) {
 	}
 	monitorCh := make(chan stages.Mediator)
 	engine := &engine.Engine{
-		Resources: resources,
-		Opts:      opts,
-		MonitorCh: &monitorCh,
+		Resources:    resources,
+		Opts:         opts,
+		MonitorCh:    &monitorCh,
+		EnvVariables: envs,
 	}
 	return &Walter{
 		Opts:   opts,
