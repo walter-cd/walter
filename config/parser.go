@@ -339,7 +339,7 @@ func (parser *Parser) setFieldVal(fieldVal reflect.Value, stageOptVal interface{
 	if isReplace == "true" {
 		fieldVal.SetString(parser.EnvVariables.Replace(stageOptVal.(string)))
 	} else {
-		fieldVal.SetString(parser.EnvVariables.ReplaceSpecialVariableInLine(stageOptVal.(string)))
+		fieldVal.SetString(parser.EnvVariables.ReplaceSpecialVariableToEnvVariable(stageOptVal.(string)))
 	}
 }
 

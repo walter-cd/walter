@@ -63,10 +63,23 @@ func TestVoidInput(t *testing.T) {
 	assert.Equal(t, "", result)
 }
 
-func TestReplaceSpecialVariable(t *testing.T) {
+func TestReplaceSpecialVariableToEnvVariableExpression(t *testing.T) {
 	envs := NewEnvVariables()
 	envs.ExportSpecialVariable("__OUT[\"first\"]", "foobar")
 	result, _ := envs.Get("__OUT__first__")
+	assert.Equal(t, "foobar", result)
+}
+
+func TestReplaceSpecialVariablesToEnvVariableExpression(t *testing.T) {
+	envs := NewEnvVariables()
+	result := envs.ReplaceSpecialVariableToEnvVariable("__OUT[\"first\"] || __OUT[\"second\"]")
+	assert.Equal(t, "$__OUT__first__ || $__OUT__second__", result)
+}
+
+func TestReplaceSpecialVariableCotainingSpace(t *testing.T) {
+	envs := NewEnvVariables()
+	envs.ExportSpecialVariable("__OUT[\"first stage\"]", "foobar")
+	result := envs.Replace("__OUT[\"first stage\"]")
 	assert.Equal(t, "foobar", result)
 }
 
@@ -78,8 +91,10 @@ func TestReplaceMultipleSpecialVariables(t *testing.T) {
 	assert.Equal(t, "foobar || baz", result)
 }
 
-func TestReplaceSpecialVariablesToInnerFomrmat(t *testing.T) {
+func TestExportMultipleSpecialVariablesWithSpaces(t *testing.T) {
 	envs := NewEnvVariables()
-	result := envs.ReplaceSpecialVariableInLine("__OUT[\"first\"] || __OUT[\"second\"]")
-	assert.Equal(t, "$__OUT__first__ || $__OUT__second__", result)
+	envs.ExportSpecialVariable("__OUT[\"first stage\"]", "foobar")
+	envs.ExportSpecialVariable("__OUT[\"second stage\"]", "baz")
+	result := envs.Replace("__OUT[\"first stage\"] || __OUT[\"second stage\"]")
+	assert.Equal(t, "foobar || baz", result)
 }
