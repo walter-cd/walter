@@ -50,7 +50,7 @@ func NewEnvVariables() *EnvVariables {
 
 // Get returns the value of envionment variable.
 func (envVariables *EnvVariables) Get(vname string) (string, bool) {
-	replaced := envVariables.ReplaceSpecialVariable(vname)
+	replaced := envVariables.replaceSpecialVariable(vname)
 	val, ok := (*envVariables.variables)[replaced]
 	return val, ok
 }
@@ -60,9 +60,9 @@ func (envVariables *EnvVariables) Add(key string, value string) {
 	(*envVariables.variables)[key] = value
 }
 
-// Add appends the value to specified envionment variable.
+// ExportSpecialVarible appends the value of special variable as a envionment variable.
 func (envVariables *EnvVariables) ExportSpecialVariable(key string, value string) {
-	replaced := envVariables.ReplaceSpecialVariable(key)
+	replaced := envVariables.replaceSpecialVariable(key)
 	(*envVariables.variables)[replaced] = value
 	os.Setenv(replaced, value) //NOTE: export environment variable
 }
@@ -74,19 +74,7 @@ func (envVariables *EnvVariables) Replace(line string) string {
 	return ret
 }
 
-// Replace Special variable to inner representation
-func (envVariables *EnvVariables) ReplaceSpecialVariable(key string) string {
-	pos := (*envVariables.spPattern).FindStringSubmatchIndex(key)
-	if pos == nil {
-		return key
-	}
-	outType := key[pos[2]:pos[3]]
-	stageName := key[pos[4]:pos[5]]
-	stageName = strings.Replace(stageName, " ", "_", -1)
-	return outType + "__" + stageName + "__"
-}
-
-// Replace Special variables to environment variable representation in the given string
+// Replace only special variables in the given string to environment variable representation
 func (envVariables *EnvVariables) ReplaceSpecialVariableToEnvVariable(line string) string {
 	for result := (*envVariables.spPattern).FindStringSubmatchIndex(line); result != nil; result = (*envVariables.spPattern).FindStringSubmatchIndex(line) {
 		outType := line[result[2]:result[3]]
@@ -95,6 +83,17 @@ func (envVariables *EnvVariables) ReplaceSpecialVariableToEnvVariable(line strin
 		line = line[0:result[0]] + "$" + outType + "__" + stageName + "__" + line[result[1]:]
 	}
 	return line
+}
+
+func (envVariables *EnvVariables) replaceSpecialVariable(key string) string {
+	pos := (*envVariables.spPattern).FindStringSubmatchIndex(key)
+	if pos == nil {
+		return key
+	}
+	outType := key[pos[2]:pos[3]]
+	stageName := key[pos[4]:pos[5]]
+	stageName = strings.Replace(stageName, " ", "_", -1)
+	return outType + "__" + stageName + "__"
 }
 
 func (envVariables *EnvVariables) regexReplace(input string) string {

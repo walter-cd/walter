@@ -21,6 +21,7 @@ package pipelines
 import (
 	"container/list"
 	"fmt"
+	"strconv"
 
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/services"
@@ -93,7 +94,7 @@ func (resources *Pipeline) GetStageResult(name string, stageType string) (string
 		case "__ERR":
 			return stage.GetErrResult(), nil
 		case "__RESULT":
-			return "0", nil // TODO: fixme
+			return strconv.FormatBool(stage.GetReturnValue()), nil
 		default:
 			return "", fmt.Errorf("no specified type: " + stageType)
 		}
