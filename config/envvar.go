@@ -60,7 +60,7 @@ func (envVariables *EnvVariables) Add(key string, value string) {
 	(*envVariables.variables)[key] = value
 }
 
-// ExportSpecialVarible appends the value of special variable as a envionment variable.
+// ExportSpecialVariable appends the value of special variable as a envionment variable.
 func (envVariables *EnvVariables) ExportSpecialVariable(key string, value string) {
 	replaced := envVariables.replaceSpecialVariable(key)
 	(*envVariables.variables)[replaced] = value
@@ -74,7 +74,7 @@ func (envVariables *EnvVariables) Replace(line string) string {
 	return ret
 }
 
-// Replace only special variables in the given string to environment variable representation
+// ReplaceSpecialVariableToEnvVariable only special variables in the given string to environment variable representation
 func (envVariables *EnvVariables) ReplaceSpecialVariableToEnvVariable(line string) string {
 	for result := (*envVariables.spPattern).FindStringSubmatchIndex(line); result != nil; result = (*envVariables.spPattern).FindStringSubmatchIndex(line) {
 		outType := line[result[2]:result[3]]
