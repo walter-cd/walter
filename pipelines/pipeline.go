@@ -21,6 +21,7 @@ package pipelines
 import (
 	"container/list"
 	"fmt"
+	"strconv"
 
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/services"
@@ -78,6 +79,27 @@ func (resources *Resources) ReportStageResult(stage stages.Stage, resultStr stri
 // AddStage appends specified stage to the pipeline.
 func (resources *Pipeline) AddStage(stage stages.Stage) {
 	resources.Stages.PushBack(stage)
+}
+
+// GetStageResult returns the result (stdout, stderr, return value) of specified stage.
+func (resources *Pipeline) GetStageResult(name string, stageType string) (string, error) {
+	for stageItem := resources.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
+		stage := stageItem.Value.(stages.Stage)
+		if name != stage.GetStageName() {
+			continue
+		}
+		switch stageType {
+		case "__OUT":
+			return stage.GetOutResult(), nil
+		case "__ERR":
+			return stage.GetErrResult(), nil
+		case "__RESULT":
+			return strconv.FormatBool(stage.GetReturnValue()), nil
+		default:
+			return "", fmt.Errorf("no specified type: " + stageType)
+		}
+	}
+	return "", fmt.Errorf("no specified stage name: " + name)
 }
 
 // Size returns the number of stages in the pipeline.

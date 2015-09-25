@@ -269,6 +269,38 @@ func TestParseConfWithEnvVariable(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestParseSpecialVariableWithSpace(t *testing.T) {
+	configData, err := ReadConfigBytes([]byte(`pipeline:
+    - name: stage 1
+      command: echo "hello foobar"
+    - name: stage 2
+      command: echo hello __OUT["stage 1"]
+`))
+	assert.Nil(t, err)
+	envs := NewEnvVariables()
+	parser := &Parser{ConfigData: configData, EnvVariables: envs}
+	result, err := parser.Parse()
+	actual := result.Pipeline.Stages.Back().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo hello $__OUT__stage_1__", actual)
+	assert.Nil(t, err)
+}
+
+func TestParseConfWithSpecialVariable(t *testing.T) {
+	configData, err := ReadConfigBytes([]byte(`pipeline:
+    - name: stage_1
+      command: echo "hello foobar"
+    - name: stage_2
+      command: echo hello __OUT["stage_1"]
+`))
+	assert.Nil(t, err)
+	envs := NewEnvVariables()
+	parser := &Parser{ConfigData: configData, EnvVariables: envs}
+	result, err := parser.Parse()
+	actual := result.Pipeline.Stages.Back().Value.(*stages.CommandStage).Command
+	assert.Equal(t, "echo hello $__OUT__stage_1__", actual)
+	assert.Nil(t, err)
+}
+
 func TestParseConfWithEnvVariableInDirectoryAttribute(t *testing.T) {
 	configData, err := ReadConfigBytes([]byte(`pipeline:
     - name: command_stage_1

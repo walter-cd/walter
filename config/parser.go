@@ -177,18 +177,19 @@ func (parser *Parser) mapMessenger(messengerMap map[interface{}]interface{}) (me
 	for i := 0; i < newMessengerType.NumField(); i++ {
 		tagName := newMessengerType.Field(i).Tag.Get("config")
 		for messengerOptKey, messengerOptVal := range messengerMap {
-			if tagName == messengerOptKey {
-				fieldVal := newMessengerValue.Field(i)
-				if fieldVal.Type() == reflect.ValueOf("string").Type() {
-					fieldVal.SetString(parser.EnvVariables.Replace(messengerOptVal.(string)))
-				} else if fieldVal.Type().String() == "messengers.BaseMessenger" {
-					elements := messengerOptVal.([]interface{})
-					suppressor := fieldVal.Interface().(messengers.BaseMessenger)
-					for _, element := range elements {
-						suppressor.SuppressFields = append(suppressor.SuppressFields, element.(string))
-					}
-					fieldVal.Set(reflect.ValueOf(suppressor))
+			if tagName != messengerOptKey {
+				continue
+			}
+			fieldVal := newMessengerValue.Field(i)
+			if fieldVal.Type() == reflect.ValueOf("string").Type() {
+				fieldVal.SetString(parser.EnvVariables.Replace(messengerOptVal.(string)))
+			} else if fieldVal.Type().String() == "messengers.BaseMessenger" {
+				elements := messengerOptVal.([]interface{})
+				suppressor := fieldVal.Interface().(messengers.BaseMessenger)
+				for _, element := range elements {
+					suppressor.SuppressFields = append(suppressor.SuppressFields, element.(string))
 				}
+				fieldVal.Set(reflect.ValueOf(suppressor))
 			}
 		}
 	}
@@ -208,11 +209,12 @@ func (parser *Parser) mapService(serviceMap map[interface{}]interface{}) (servic
 	for i := 0; i < newServiceType.NumField(); i++ {
 		tagName := newServiceType.Field(i).Tag.Get("config")
 		for serviceOptKey, serviceOptVal := range serviceMap {
-			if tagName == serviceOptKey {
-				fieldVal := newServiceValue.Field(i)
-				if fieldVal.Type() == reflect.ValueOf("string").Type() {
-					fieldVal.SetString(parser.EnvVariables.Replace(serviceOptVal.(string)))
-				}
+			if tagName != serviceOptKey {
+				continue
+			}
+			fieldVal := newServiceValue.Field(i)
+			if fieldVal.Type() == reflect.ValueOf("string").Type() {
+				fieldVal.SetString(parser.EnvVariables.Replace(serviceOptVal.(string)))
 			}
 		}
 	}
@@ -263,13 +265,13 @@ func (parser *Parser) mapStage(stageMap map[interface{}]interface{},
 		tagName := newStageType.Field(i).Tag.Get("config")
 		isReplace := newStageType.Field(i).Tag.Get("is_replace")
 		for stageOptKey, stageOptVal := range mergedStageMap {
-			if tagName == stageOptKey {
-				if stageOptVal == nil {
-					log.Warnf("stage option \"%s\" is not specified", stageOptKey)
-				} else {
-					parser.setFieldVal(newStageValue.Field(i), stageOptVal, isReplace)
-				}
+			if tagName != stageOptKey {
+				continue
+			} else if stageOptVal == nil {
+				log.Warnf("stage option \"%s\" is not specified", stageOptKey)
+				continue
 			}
+			parser.setFieldVal(newStageValue.Field(i), stageOptVal, isReplace)
 		}
 	}
 
@@ -294,25 +296,26 @@ func (parser *Parser) mapStage(stageMap map[interface{}]interface{},
 
 func (parser *Parser) extractStage(stageMap map[interface{}]interface{},
 	requiredStages map[string]map[interface{}]interface{}) (map[interface{}]interface{}, error) {
-	if stageMap["call"] != nil {
-		log.Info("detect call")
-		stageName := stageMap["call"].(string)
-		calledMap := requiredStages[stageName]
-		if calledMap == nil {
-			return nil, errors.New(stageName + " is not registerd")
-		}
-		for fieldName, fieldValue := range calledMap {
-			log.Info("fieldName: " + fieldName.(string))
-			if _, ok := stageMap[fieldName]; ok {
-				return nil, errors.New("overriding required stage is forbidden")
-			}
-
-			stageMap[fieldName] = fieldValue
-
-		}
-		log.Info("stageName: " + stageName)
-		stageMap["name"] = stageName
+	if stageMap["call"] == nil {
+		return stageMap, nil
 	}
+
+	// when "call" is applied
+	log.Info("detect call")
+	stageName := stageMap["call"].(string)
+	calledMap := requiredStages[stageName]
+	if calledMap == nil {
+		return nil, errors.New(stageName + " is not registerd")
+	}
+	for fieldName, fieldValue := range calledMap {
+		log.Info("fieldName: " + fieldName.(string))
+		if _, ok := stageMap[fieldName]; ok {
+			return nil, errors.New("overriding required stage is forbidden")
+		}
+		stageMap[fieldName] = fieldValue
+	}
+	log.Info("stage name: " + stageName)
+	stageMap["name"] = stageName
 	return stageMap, nil
 }
 
@@ -329,12 +332,14 @@ func (parser *Parser) initStage(stageMap map[interface{}]interface{}) (stages.St
 }
 
 func (parser *Parser) setFieldVal(fieldVal reflect.Value, stageOptVal interface{}, isReplace string) {
-	if fieldVal.Type() == reflect.ValueOf("string").Type() {
-		if isReplace == "true" {
-			fieldVal.SetString(parser.EnvVariables.Replace(stageOptVal.(string)))
-		} else {
-			fieldVal.SetString(stageOptVal.(string))
-		}
+	if fieldVal.Type() != reflect.ValueOf("string").Type() {
+		log.Error("found non string field value type...")
+		return
+	}
+	if isReplace == "true" {
+		fieldVal.SetString(parser.EnvVariables.Replace(stageOptVal.(string)))
+	} else {
+		fieldVal.SetString(parser.EnvVariables.ReplaceSpecialVariableToEnvVariable(stageOptVal.(string)))
 	}
 }
 
