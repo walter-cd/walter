@@ -39,12 +39,22 @@ go test -v ./messengers -race || exit 1
 go test -i ./services || exit 1
 go test -v ./services -race || exit 1
 
-#go test -i ./tests/functional
-#ETCD_BIN_PATH=$(pwd)/bin/walter go test -v ./tests/functional -race
-
 fmtRes=`gofmt -l $GOFMTPATH`
 if [ "$fmtRes" != "" ]; then
-	echo "Failed to pass golang format checking."
-	echo "Please gofmt modified go files, or run './build --fmt'."
-	exit 1
+    echo "Failed to pass golang format checking."
+    echo "Please gofmt modified go files, or run './build --fmt'."
+    exit 1
+fi
+
+if [ "--lint" = "$1" ]; then
+    for WALTER_SOURCE in $GOFMTPATH
+    do
+	lintRes=`golint $WALTER_SOURCE`
+	if [ "$lintRes" != "" ]; then
+	    echo "Failed to pass source code linting."
+	    echo $lintRes
+	    echo "Please fix the errors."
+	    exit 1
+	fi
+    done
 fi
