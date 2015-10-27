@@ -5,11 +5,7 @@ build:
             name: run test.sh
             code: |-
                 sh ./test.sh
-        - script:
-            name: build binary
-            code: |
-                . ./build
-                goxc -tasks='xc archive' -n walter -bc='linux,!arm windows darwin' -main-dirs-exclude='gopath,Godeps,tests' -d ${WERCKER_OUTPUT_DIR} -build-ldflags "-X ${REPO_PATH}/version.Version \"$(git describe --tags --always --dirty)\""
+
 deploy:
   steps:
     # reference: https://github.com/motemen/ghq/blob/beee539aead9c3940a0c4706357c5753999f6c85/wercker.yml
