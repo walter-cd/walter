@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ORG_PATH="github.com/walter-cd"
+ORG_PATH="github.com/recruit-tech"
 REPO_PATH="${ORG_PATH}/walter"
 
 export GOBIN=${PWD}/bin
@@ -46,4 +46,3 @@ fi
 
 #go install github.com/recruit-tech/walter
 go build -ldflags "-X ${REPO_PATH}/version.Version=\"$(git describe --tags --always --dirty)\" -X ${REPO_PATH}/version.Build=\"$(git --no-pager log -1 --pretty=format:%h)\"" -o bin/walter ${REPO_PATH}
-

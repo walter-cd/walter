@@ -194,10 +194,10 @@ func (e *Engine) Execute(stage stages.Stage, mediator stages.Mediator) stages.Me
 	name := stage.GetStageName()
 	log.Debugf("----- Execute %v start ------\n", name)
 
-	go func(mediator stages.Mediator) {
+	go func() {
 		*stage.GetInputCh() <- mediator
 		close(*stage.GetInputCh())
-	}(mediator)
+	}()
 
 	go e.ExecuteStage(stage)
 	e.waitCloseOutputCh(stage)
