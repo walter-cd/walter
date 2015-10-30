@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ORG_PATH="github.com/walter-cd"
+ORG_PATH="github.com/recruit-tech"
 REPO_PATH="${ORG_PATH}/walter"
 
 export GOBIN=${PWD}/bin
