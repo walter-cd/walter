@@ -142,9 +142,9 @@ func (e *Engine) executeAllChildStages(childStages *list.List, mediator stages.M
 		log.Debugf("Child name %+v\n", childStage.Value.(stages.Stage).GetStageName())
 		childInputCh := *childStage.Value.(stages.Stage).GetInputCh()
 
-		go func(stage stages.Stage) {
-			e.ExecuteStage(stage)
-		}(childStage.Value.(stages.Stage))
+		go func() {
+			e.ExecuteStage(childStage.Value.(stages.Stage))
+		}()
 
 		log.Debugf("Input child: %+v", mediator)
 		childInputCh <- mediator
