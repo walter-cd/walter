@@ -1,0 +1,14 @@
+require:
+    - tests/fixtures/s1_stages.yml
+    - tests/fixtures/s2_stages.yml
+
+pipeline:
+  - name: command_stage_1
+    type: command
+    command: echo "hello, world"
+  - call: s1::foo
+  - call: s2::foo
+  - name: parallel run
+    parallel:
+       - call: s2::bar
+       - call: s2::baz

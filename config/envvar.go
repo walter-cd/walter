@@ -14,6 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// Package config defines the configration parameters,
+// and the parser to load configuration file.
 package config
 
 import (
@@ -27,46 +30,81 @@ import (
 // EnvVariables is a set of environment variables contains all the variables
 // defined when the walter command is executed.
 type EnvVariables struct {
-	variables *map[string]string
-	re        *regexp.Regexp
+	variables  *map[string]string
+	envPattern *regexp.Regexp
+	spPattern  *regexp.Regexp
 }
 
 // NewEnvVariables creates one EnvVariable object.
 func NewEnvVariables() *EnvVariables {
 	envmap := loadEnvMap()
-	regex_str := "[$]([a-zA-Z_]+)"
-	envPattern, _ := regexp.Compile(regex_str)
+	envPattern, _ := regexp.Compile("[$]([a-zA-Z_]+)")
+	spPattern, _ := regexp.Compile("(__RESULT|__OUT|__ERR)\\[\"([a-zA-Z_0-9 ]+)\"\\]")
+
 	return &EnvVariables{
-		variables: &envmap,
-		re:        envPattern,
+		variables:  &envmap,
+		envPattern: envPattern,
+		spPattern:  spPattern,
 	}
 }
 
 // Get returns the value of envionment variable.
-func (self *EnvVariables) Get(vname string) (string, bool) {
-	val, ok := (*self.variables)[vname]
+func (envVariables *EnvVariables) Get(vname string) (string, bool) {
+	replaced := envVariables.replaceSpecialVariable(vname)
+	val, ok := (*envVariables.variables)[replaced]
 	return val, ok
 }
 
 // Add appends the value to specified envionment variable.
-func (self *EnvVariables) Add(key string, value string) {
-	(*self.variables)[key] = value
+func (envVariables *EnvVariables) Add(key string, value string) {
+	(*envVariables.variables)[key] = value
 }
 
-func (self *EnvVariables) Replace(line string) string {
-	ret := (*self.re).ReplaceAllStringFunc(line, self.regexReplace)
+// ExportSpecialVariable appends the value of special variable as a envionment variable.
+func (envVariables *EnvVariables) ExportSpecialVariable(key string, value string) {
+	replaced := envVariables.replaceSpecialVariable(key)
+	(*envVariables.variables)[replaced] = value
+	os.Setenv(replaced, value) //NOTE: export environment variable
+}
+
+// Replace replaces all environment variables in a line
+func (envVariables *EnvVariables) Replace(line string) string {
+	converted := envVariables.ReplaceSpecialVariableToEnvVariable(line)
+	ret := (*envVariables.envPattern).ReplaceAllStringFunc(converted, envVariables.regexReplace)
 	return ret
 }
 
-func (self *EnvVariables) regexReplace(input string) string {
-	matched := (*self.re).FindStringSubmatch(input)
+// ReplaceSpecialVariableToEnvVariable only special variables in the given string to environment variable representation
+func (envVariables *EnvVariables) ReplaceSpecialVariableToEnvVariable(line string) string {
+	for result := (*envVariables.spPattern).FindStringSubmatchIndex(line); result != nil; result = (*envVariables.spPattern).FindStringSubmatchIndex(line) {
+		outType := line[result[2]:result[3]]
+		stageName := line[result[4]:result[5]]
+		stageName = strings.Replace(stageName, " ", "_", -1)
+		line = line[0:result[0]] + "$" + outType + "__" + stageName + "__" + line[result[1]:]
+	}
+	return line
+}
+
+func (envVariables *EnvVariables) replaceSpecialVariable(key string) string {
+	pos := (*envVariables.spPattern).FindStringSubmatchIndex(key)
+	if pos == nil {
+		return key
+	}
+	outType := key[pos[2]:pos[3]]
+	stageName := key[pos[4]:pos[5]]
+	stageName = strings.Replace(stageName, " ", "_", -1)
+	return outType + "__" + stageName + "__"
+}
+
+func (envVariables *EnvVariables) regexReplace(input string) string {
+	matched := (*envVariables.envPattern).FindStringSubmatch(input)
 	if len(matched) == 2 {
-		if replaced := (*self.variables)[matched[1]]; replaced != "" {
+		if replaced := (*envVariables.variables)[matched[1]]; replaced != "" {
 			return replaced
-		} else {
-			log.Warnf("NO environment variable: %s", matched[0])
-			return ""
 		}
+		log.Warnf("NO environment variable: %s", matched[0])
+		return ""
+
 	}
 	return input
 }

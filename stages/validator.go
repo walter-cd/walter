@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package stages contains functionality for managing stage lifecycle
 package stages
 
 import (
@@ -30,9 +32,10 @@ type ResourceValidator struct {
 	command string
 }
 
-func (self *ResourceValidator) Validate() bool {
+//Validate validates if the command can be executed
+func (resourceValidator *ResourceValidator) Validate() bool {
 	// check if files exists
-	for file := self.files.Front(); file != nil; file = file.Next() {
+	for file := resourceValidator.files.Front(); file != nil; file = file.Next() {
 		filePath := file.Value.(string)
 		log.Debugf("checking file: %v", filePath)
 		if _, err := os.Stat(filePath); err == nil {
@@ -43,27 +46,30 @@ func (self *ResourceValidator) Validate() bool {
 		}
 	}
 	// check if command exists
-	if len(self.command) == 0 { // return true when no command is registrated
+	if len(resourceValidator.command) == 0 { // return true when no command is registrated
 		return true
 	}
-	cmd := exec.Command("which", self.command)
+	cmd := exec.Command("which", resourceValidator.command)
 	err := cmd.Run()
 	if err != nil {
-		log.Errorf("command: %v does not exists", self.command)
+		log.Errorf("command: %v does not exists", resourceValidator.command)
 		return false
 	}
 	return true
 }
 
+//AddFile add the suplied file to the validator file list
 // TODO add permission
-func (self *ResourceValidator) AddFile(f string) {
-	self.files.PushBack(f)
+func (resourceValidator *ResourceValidator) AddFile(f string) {
+	resourceValidator.files.PushBack(f)
 }
 
-func (self *ResourceValidator) AddCommandName(c string) {
-	self.command = c
+//AddCommandName adds the command to the validator
+func (resourceValidator *ResourceValidator) AddCommandName(c string) {
+	resourceValidator.command = c
 }
 
+//NewResourceValidator creates a new ResourceValidator
 func NewResourceValidator() *ResourceValidator {
 	validator := ResourceValidator{}
 	return &validator

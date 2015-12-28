@@ -21,6 +21,7 @@ package pipelines
 import (
 	"container/list"
 	"fmt"
+	"strconv"
 
 	"github.com/recruit-tech/walter/messengers"
 	"github.com/recruit-tech/walter/services"
@@ -48,40 +49,73 @@ type Resources struct {
 }
 
 // ReportStageResult throw the results of specified stage to the messenger services.
-func (self *Resources) ReportStageResult(stage stages.Stage, result string) {
+func (resources *Resources) ReportStageResult(stage stages.Stage, resultStr string) {
 	name := stage.GetStageName()
-	self.Reporter.Post(
-		fmt.Sprintf("Stage execution results: %+v, %+v", name, result))
+	if !resources.Reporter.Suppress("result") {
+		if resultStr == "true" {
+			resources.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Succeeded", name))
+		} else if resultStr == "skipped" {
+			resources.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Skipped", name))
+		} else {
+			resources.Reporter.Post(
+				fmt.Sprintf("[%s][RESULT] Failed", name))
+		}
+	}
 
 	if stage.GetStageOpts().ReportingFullOutput {
-		if out := stage.GetOutResult(); len(out) > 0 {
-			self.Reporter.Post(
-				fmt.Sprintf("[%s] %s", name, stage.GetOutResult()))
+		if out := stage.GetOutResult(); (len(out) > 0) && (!resources.Reporter.Suppress("stdout")) {
+			resources.Reporter.Post(
+				fmt.Sprintf("[%s][STDOUT] %s", name, stage.GetOutResult()))
 		}
-		if err := stage.GetErrResult(); len(err) > 0 {
-			self.Reporter.Post(
-				fmt.Sprintf("[%s][ERROR] %s", name, stage.GetErrResult()))
+		if err := stage.GetErrResult(); len(err) > 0 && (!resources.Reporter.Suppress("stderr")) {
+			resources.Reporter.Post(
+				fmt.Sprintf("[%s][STDERR] %s", name, stage.GetErrResult()))
 		}
 	}
 }
 
 // AddStage appends specified stage to the pipeline.
-func (self *Pipeline) AddStage(stage stages.Stage) {
-	self.Stages.PushBack(stage)
+func (resources *Pipeline) AddStage(stage stages.Stage) {
+	resources.Stages.PushBack(stage)
+}
+
+// GetStageResult returns the result (stdout, stderr, return value) of specified stage.
+func (resources *Pipeline) GetStageResult(name string, stageType string) (string, error) {
+	for stageItem := resources.Stages.Front(); stageItem != nil; stageItem = stageItem.Next() {
+		stage := stageItem.Value.(stages.Stage)
+		if name != stage.GetStageName() {
+			continue
+		}
+		switch stageType {
+		case "__OUT":
+			return stage.GetOutResult(), nil
+		case "__ERR":
+			return stage.GetErrResult(), nil
+		case "__RESULT":
+			return strconv.FormatBool(stage.GetReturnValue()), nil
+		default:
+			return "", fmt.Errorf("no specified type: " + stageType)
+		}
+	}
+	return "", fmt.Errorf("no specified stage name: " + name)
 }
 
 // Size returns the number of stages in the pipeline.
-func (self *Pipeline) Size() int {
-	return self.Stages.Len()
+func (resources *Pipeline) Size() int {
+	return resources.Stages.Len()
 }
 
-func (self *Pipeline) Build() {
-	self.buildDeps(&self.Stages)
+//Build builds a pipeline for the current resources
+func (resources *Pipeline) Build() {
+	resources.buildDeps(&resources.Stages)
 }
 
-func (self *Pipeline) buildDeps(stages *list.List) {
+func (resources *Pipeline) buildDeps(stages *list.List) {
 }
 
+//NewPipeline create a new pipeline instance
 func NewPipeline() *Pipeline {
 	return &Pipeline{}
 }

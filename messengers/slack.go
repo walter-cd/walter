@@ -14,44 +14,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package messengers provides all functionality for the suported messengers
 package messengers
 
 import (
 	"encoding/json"
-	"github.com/recruit-tech/walter/log"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/recruit-tech/walter/log"
 )
 
 // Slack is a client which reports the pipeline results to the Slack chennel.
 type Slack struct {
-	Channel   string   `config:"channel" json:"channel"`
-	UserName  string   `config:"username" json:"username"`
-	IconEmoji string   `config:"icon" json:"icon_emoji,omitempty"`
-	IconUrl   string   `config:"icon_url" json:"icon_url,omitempty"`
-	IncomingUrl string `config:"url" json:"-"` // not map to json
+	BaseMessenger `config:"suppress"`
+	Channel       string `config:"channel" json:"channel"`
+	UserName      string `config:"username" json:"username"`
+	IconEmoji     string `config:"icon" json:"icon_emoji,omitempty"`
+	IconURL       string `config:"icon_url" json:"icon_url,omitempty"`
+	IncomingURL   string `config:"url" json:"-"` // not map to json
 }
 
-// To avoid the infinite recursion
+//FakeSlack To avoid the infinite recursion
 // (see http://stackoverflow.com/questions/23045884/can-i-use-marshaljson-to-add-arbitrary-fields-to-a-json-encoding-in-golang)
 type FakeSlack Slack
 
-func (self *Slack) Post(message string) bool {
-	if self.Channel[0] != '#' {
-		log.Infof("Add # to channel name: %s", self.Channel)
-		self.Channel = "#" + self.Channel
+//Post posts a message to slack
+func (slack *Slack) Post(message string) bool {
+	if slack.Channel[0] != '#' {
+		log.Infof("Add # to channel name: %s", slack.Channel)
+		slack.Channel = "#" + slack.Channel
 	}
 
 	var color string
 
-	if strings.Contains(message, ", true") {
-		color = "good"
-	} else if strings.Contains(message, ", skipped") {
-		color = "warning"
-	} else {
+	if strings.Contains(message, "[RESULT] Failed") {
 		color = "danger"
+	} else if strings.Contains(message, "[RESULT] Skipped") {
+		color = "warning"
+	} else if strings.Contains(message, "[RESULT] Succeeded") {
+		color = "good"
 	}
 
 	attachment := map[string]string{
@@ -65,12 +70,12 @@ func (self *Slack) Post(message string) bool {
 		FakeSlack
 		Attachments []map[string]string `json:"attachments"`
 	}{
-		FakeSlack:   FakeSlack(*self),
+		FakeSlack:   FakeSlack(*slack),
 		Attachments: attachments,
 	})
 
 	resp, err := http.PostForm(
-		self.IncomingUrl,
+		slack.IncomingURL,
 		url.Values{"payload": {string(params)}},
 	)
 	defer resp.Body.Close()

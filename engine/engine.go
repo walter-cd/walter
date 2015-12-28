@@ -20,6 +20,7 @@ package engine
 
 import (
 	"container/list"
+	//	"os"
 	"strconv"
 
 	"github.com/recruit-tech/walter/config"
@@ -30,9 +31,10 @@ import (
 
 // Engine executes the its pipeline.
 type Engine struct {
-	Resources *pipelines.Resources
-	MonitorCh *chan stages.Mediator
-	Opts      *config.Opts
+	Resources    *pipelines.Resources
+	MonitorCh    *chan stages.Mediator
+	Opts         *config.Opts
+	EnvVariables *config.EnvVariables
 }
 
 // Result stores the output in pipelines.
@@ -51,9 +53,9 @@ func (r *Result) IsSucceeded() bool {
 
 // RunOnce executes the pipeline and the cleanup prccedures.
 func (e *Engine) RunOnce() *Result {
-	pipe_result := e.executePipeline(e.Resources.Pipeline, "pipeline")
-	cleanup_result := e.executePipeline(e.Resources.Cleanup, "cleanup")
-	return &Result{Pipeline: &pipe_result, Cleanup: &cleanup_result}
+	pipeResult := e.executePipeline(e.Resources.Pipeline, "pipeline")
+	cleanupResult := e.executePipeline(e.Resources.Cleanup, "cleanup")
+	return &Result{Pipeline: &pipeResult, Cleanup: &cleanupResult}
 }
 
 func (e *Engine) executePipeline(pipeline *pipelines.Pipeline, name string) stages.Mediator {
@@ -68,7 +70,7 @@ func (e *Engine) executePipeline(pipeline *pipelines.Pipeline, name string) stag
 }
 
 func (e *Engine) receiveInputs(inputCh *chan stages.Mediator) []stages.Mediator {
-	mediatorsReceived := make([]stages.Mediator, 0)
+	var mediatorsReceived = make([]stages.Mediator, 0)
 	for {
 		m, ok := <-*inputCh
 		if !ok {
@@ -80,9 +82,9 @@ func (e *Engine) receiveInputs(inputCh *chan stages.Mediator) []stages.Mediator 
 	return mediatorsReceived
 }
 
+// ExecuteStage executes the supplied stage
 func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debug("Receiving input")
-
 	mediatorsReceived := e.receiveInputs(stage.GetInputCh())
 
 	log.Debugf("Received input size: %v", len(mediatorsReceived))
@@ -90,36 +92,40 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debugf("Execute as parent: %+v", stage)
 	log.Debugf("Execute as parent name %+v", stage.GetStageName())
 
+	mediator := stages.Mediator{States: make(map[string]string)}
+	mediator.States[stage.GetStageName()] = e.executeStage(stage, mediatorsReceived)
+	e.executeChildStages(&stage, &mediator)
+
+	log.Debugf("Sending output of stage: %+v %v", stage.GetStageName(), mediator)
+	*stage.GetOutputCh() <- mediator
+	close(*stage.GetOutputCh())
+	log.Debugf("Closed output of stage: %+v", stage.GetStageName())
+
+	e.finalizeMonitorChAfterExecute(mediatorsReceived, mediator)
+}
+
+func (e *Engine) executeChildStages(stage *stages.Stage, mediator *stages.Mediator) {
+	if childStages := (*stage).GetChildStages(); childStages.Len() > 0 {
+		log.Debugf("Execute childstage: %v", childStages)
+		e.executeAllChildStages(&childStages, *mediator)
+		e.waitAllChildStages(&childStages, stage)
+	}
+}
+
+func (e *Engine) executeStage(stage stages.Stage, received []stages.Mediator) string {
 	var result string
-	if !e.isUpstreamAnyFailure(mediatorsReceived) || e.Opts.StopOnAnyFailure {
+	if !e.isUpstreamAnyFailure(received) || e.Opts.StopOnAnyFailure {
 		result = strconv.FormatBool(stage.(stages.Runner).Run())
+		e.EnvVariables.ExportSpecialVariable("__OUT[\""+stage.GetStageName()+"\"]", stage.GetOutResult())
+		e.EnvVariables.ExportSpecialVariable("__ERR[\""+stage.GetStageName()+"\"]", stage.GetErrResult())
+		e.EnvVariables.ExportSpecialVariable("__RESULT[\""+stage.GetStageName()+"\"]", result)
 	} else {
 		log.Warnf("Execution is skipped: %v", stage.GetStageName())
 		result = "skipped"
 	}
-	log.Debugf("Stage execution results: %+v, %+v", stage.GetStageName(), result)
 	e.Resources.ReportStageResult(stage, result)
-
-	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.States[stage.GetStageName()] = result
-
-	if childStages := stage.GetChildStages(); childStages.Len() > 0 {
-		log.Debugf("Execute childstage: %v", childStages)
-		e.executeAllChildStages(&childStages, mediator)
-		e.waitAllChildStages(&childStages, &stage)
-	}
-
-	log.Debugf("Sending output of stage: %+v %v", stage.GetStageName(), mediator)
-	*stage.GetOutputCh() <- mediator
-	log.Debugf("Closing output of stage: %+v", stage.GetStageName())
-	close(*stage.GetOutputCh())
-
-	for _, m := range mediatorsReceived {
-		*e.MonitorCh <- m
-	}
-	*e.MonitorCh <- mediator
-
-	e.finalizeMonitorChAfterExecute(mediatorsReceived)
+	log.Debugf("Stage execution results: %+v, %+v", stage.GetStageName(), result)
+	return result
 }
 
 func (e *Engine) isUpstreamAnyFailure(mediators []stages.Mediator) bool {
@@ -136,9 +142,9 @@ func (e *Engine) executeAllChildStages(childStages *list.List, mediator stages.M
 		log.Debugf("Child name %+v\n", childStage.Value.(stages.Stage).GetStageName())
 		childInputCh := *childStage.Value.(stages.Stage).GetInputCh()
 
-		go func(stage stages.Stage) {
-			e.ExecuteStage(stage)
-		}(childStage.Value.(stages.Stage))
+		go func() {
+			e.ExecuteStage(childStage.Value.(stages.Stage))
+		}()
 
 		log.Debugf("Input child: %+v", mediator)
 		childInputCh <- mediator
@@ -165,7 +171,14 @@ func (e *Engine) waitAllChildStages(childStages *list.List, stage *stages.Stage)
 	}
 }
 
-func (e *Engine) finalizeMonitorChAfterExecute(mediators []stages.Mediator) {
+func (e *Engine) finalizeMonitorChAfterExecute(mediators []stages.Mediator, mediator stages.Mediator) {
+	// Append to monitorCh
+	*e.MonitorCh <- mediator
+	for _, m := range mediators {
+		*e.MonitorCh <- m
+	}
+
+	// Set type
 	if mediators[0].Type == "start" {
 		log.Debug("Finalize monitor channel..")
 		mediatorEnd := stages.Mediator{States: make(map[string]string), Type: "end"}
@@ -175,19 +188,23 @@ func (e *Engine) finalizeMonitorChAfterExecute(mediators []stages.Mediator) {
 	}
 }
 
+//Execute executes a stage using the supplied mediator
 func (e *Engine) Execute(stage stages.Stage, mediator stages.Mediator) stages.Mediator {
-	monitorCh := e.MonitorCh
 	mediator.Type = "start"
 	name := stage.GetStageName()
 	log.Debugf("----- Execute %v start ------\n", name)
 
-	go func(mediator stages.Mediator) {
+	go func() {
 		*stage.GetInputCh() <- mediator
 		close(*stage.GetInputCh())
-	}(mediator)
+	}()
 
 	go e.ExecuteStage(stage)
+	e.waitCloseOutputCh(stage)
+	return e.waitMonitorChFinalized(name)
+}
 
+func (e *Engine) waitCloseOutputCh(stage stages.Stage) {
 	for {
 		receive, ok := <-*stage.GetOutputCh()
 		if !ok {
@@ -196,10 +213,12 @@ func (e *Engine) Execute(stage stages.Stage, mediator stages.Mediator) stages.Me
 		}
 		log.Debugf("outputCh received  %+v\n", receive)
 	}
+}
 
-	receives := make([]stages.Mediator, 0)
+func (e *Engine) waitMonitorChFinalized(name string) stages.Mediator {
+	var receives = make([]stages.Mediator, 0)
 	for {
-		receive := <-*monitorCh
+		receive := <-*e.MonitorCh
 		receives = append(receives, receive)
 		if receive.Type == "end" {
 			log.Debugf("monitorCh closed")
@@ -207,7 +226,7 @@ func (e *Engine) Execute(stage stages.Stage, mediator stages.Mediator) stages.Me
 			log.Debugf("----- Execute %v done ------\n\n", name)
 			return e.bindReceives(&receives)
 		}
-		log.Debugf("monitorCh received  %+v\n", receive)
+		log.Debugf("monitorCh received %+v\n", receive)
 	}
 }
 

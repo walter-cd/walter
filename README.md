@@ -9,6 +9,12 @@ Walter
 
 Walter is a tiny deployment pipeline template.
 
+Blogs
+==========
+
+* http://ainoya.io/walter
+* http://walter-cd.net
+
 Overview
 ==========
 
@@ -119,7 +125,47 @@ pipeline:
         command: parallel command 3
 ```
 
-`parallel command 1`, `parallel command 2` and `parallel command 3` are executed in parallel.
+In the above setting, `parallel command 1`, `parallel command 2` and `parallel command 3` are executed in parallel.
+
+## Import predefined stages
+
+Walter provides the feature to import predefined stages in specified files.
+To import stages to pipeline configuration file, we use **require** block and
+add the list of file names into the block.
+
+For example, the following example import the stages defined in **conf/mystage.yml**
+
+```yaml
+require:
+    - conf/mystages.yml
+
+pipeline:
+  - call: mypackage::hello
+  - call: mypackage::goodbye
+
+```
+
+In the above setting, the stages ("mypacakge::hello" and "mypackage::goodbye") which are defined in "mystage.yml" are specified.
+
+The files specified in pipeline configuration file need to have two blocks **namespace** and **stages**.
+In **namespace**, we add the package name, the package name is need to avoid collisions of the stage names in multiple required files.
+The **stages** block contains the list of stage definitions. We can define the stages same as the stages in pipeline configurations.
+
+For example, the following configuration is the content of conf/mystages.yml imported from the above pipeline configuration file.
+
+```yaml
+namespace: mypackage
+
+stages:
+  - def:
+      name: hello
+      command: echo "May I help you majesty!"
+  - def:
+      name: goodbye
+      command: echo "Goobye majesty."
+```
+
+As we see that stages **hello** and **goodbye** are defined in the file.
 
 ## Cleanup pipeline
 
@@ -247,3 +293,27 @@ service:
   from: service-group
   update: .walter
 ```
+
+## Reusing the results from stages
+
+Walter stores the results of preceding stages. The stages can make use of the results of finished stages using the three special
+variables (__OUT, __ERR and __RESULT) in Walter configuration files.
+
+* **__OUT** -  output flushed to standard output 
+* **__ERR** - output flushed to standard error 
+* **__RESULT** - execution result (true or false)
+
+The three variables are maps whose keys are stage names and the value are results of the stages. For example, we want the standard output
+result of the stage named "stage1", we write __OUT["stage1"].
+
+The following is a sample configuration with a specical value.
+
+```yaml
+pipeline:
+  - name: stage_1
+    command: echo "hello world"
+  - name: stage_2
+    command: echo __OUT["stage_1"]
+```
+
+Walter with the above configuraiton outputs "hello world" twice, since the second stage (stage_2) flushes the standard output result of first stage (stage_1).

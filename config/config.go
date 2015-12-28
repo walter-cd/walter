@@ -24,7 +24,6 @@ import (
 	"io/ioutil"
 
 	"github.com/go-yaml/yaml"
-	"github.com/recruit-tech/walter/log"
 )
 
 var (
@@ -45,14 +44,14 @@ func LoadOpts(arguments []string) (*Opts, error) {
 	var stopOnAnyFailure bool
 	var printVersion bool
 	var threshold string
-	var log_dir string
+	var logDir string
 	var mode string
 
 	fs.StringVar(&pipelineFilePath, "c", "./pipeline.yml", "pipeline.yml file")
 	fs.BoolVar(&stopOnAnyFailure, "f", false, "Skip execution of subsequent stage after failing to exec the upstream stage.")
 	fs.BoolVar(&printVersion, "v", false, "Print the version information and exit.")
 	fs.StringVar(&threshold, "threshold", "INFO", "Log events at or above this severity are logged.")
-	fs.StringVar(&log_dir, "log_dir", "", "Log files will be written to this directory.")
+	fs.StringVar(&logDir, "logDir", "", "Log files will be written to this directory.")
 	fs.StringVar(&mode, "mode", "local", "Execution mode (local or service).")
 
 	if err := fs.Parse(arguments); err != nil {
@@ -61,8 +60,8 @@ func LoadOpts(arguments []string) (*Opts, error) {
 
 	flag.CommandLine.Lookup("stderrthreshold").Value.Set(threshold)
 
-	if log_dir != "" {
-		flag.CommandLine.Lookup("log_dir").Value.Set(log_dir)
+	if logDir != "" {
+		flag.CommandLine.Lookup("logDir").Value.Set(logDir)
 	}
 
 	return &Opts{
@@ -73,20 +72,23 @@ func LoadOpts(arguments []string) (*Opts, error) {
 	}, nil
 }
 
-func ReadConfig(configFilePath string) *map[interface{}]interface{} {
+// ReadConfig reads the supplied configuration file and returns the
+// corresponding map or an error.
+func ReadConfig(configFilePath string) (*map[interface{}]interface{}, error) {
 	data, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		log.Errorf("%v \n", err)
+		return nil, err
 	}
-
 	return ReadConfigBytes(data)
 }
 
-func ReadConfigBytes(configSetting []byte) *map[interface{}]interface{} {
+// ReadConfigBytes reads the supplied configuration byte[] and returns the
+// corresponding map or an error.
+func ReadConfigBytes(configSetting []byte) (*map[interface{}]interface{}, error) {
 	configData := make(map[interface{}]interface{})
 	err := yaml.Unmarshal(configSetting, &configData)
 	if err != nil {
-		log.Errorf("error :%v \n", err)
+		return nil, err
 	}
-	return &configData
+	return &configData, nil
 }

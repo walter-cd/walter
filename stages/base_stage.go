@@ -48,15 +48,20 @@ type BaseStage struct {
 	// Results of stderr flush by the stage.
 	ErrResult string
 
+	// Return value of the stage
+	ReturnValue bool
+
 	// options of the stage.
 	Opts StageOpts
 }
 
+//StageOpts struct for handing stage outputs
 type StageOpts struct {
 	// Flush all output when the value is true.
 	ReportingFullOutput bool `config:"report_full_output"`
 }
 
+//NewStageOpts creates a new stage output
 func NewStageOpts() *StageOpts {
 	return &StageOpts{
 		ReportingFullOutput: false,
@@ -68,7 +73,8 @@ func (b *BaseStage) Run() bool {
 	if b.Runner == nil {
 		panic("Mast have a child class assigned")
 	}
-	return b.Runner.Run()
+	b.ReturnValue = b.Runner.Run()
+	return b.ReturnValue
 }
 
 // AddChildStage appends one child stage.
@@ -82,7 +88,7 @@ func (b *BaseStage) GetChildStages() list.List {
 	return b.ChildStages
 }
 
-// Get stage name.
+//GetStageName returns the name of the current stage
 func (b *BaseStage) GetStageName() string {
 	return b.StageName
 }
@@ -140,4 +146,9 @@ func (b *BaseStage) GetErrResult() string {
 // SetErrResult sets standard error results.
 func (b *BaseStage) SetErrResult(result string) {
 	b.ErrResult = result
+}
+
+// GetReturnValue returns return value of the stage
+func (b *BaseStage) GetReturnValue() bool {
+	return b.ReturnValue
 }

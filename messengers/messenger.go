@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+//Package messengers provides all functionality for the suported messengers
 package messengers
 
 import (
@@ -24,6 +26,27 @@ import (
 // services such as Slack or HipChat.
 type Messenger interface {
 	Post(string) bool
+	Suppress(string) bool
+}
+
+//BaseMessenger struct
+type BaseMessenger struct {
+	SuppressFields []string `config:"suppress"`
+}
+
+//Post posts the supplied message
+func (baseMessenger *BaseMessenger) Post(messege string) bool {
+	return true
+}
+
+//Suppress idenitifies if the supplied output type is a suppressed field
+func (baseMessenger *BaseMessenger) Suppress(outputType string) bool {
+	for _, suppress := range baseMessenger.SuppressFields {
+		if suppress == outputType {
+			return true
+		}
+	}
+	return false
 }
 
 // InitMessenger generates a spefified Messenger client objet.
