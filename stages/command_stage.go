@@ -33,6 +33,25 @@ type CommandStage struct {
 	Command   string `config:"command" is_replace:"false"`
 	Directory string `config:"directory" is_replace:"true"`
 	OnlyIf    string `config:"only_if" is_replace:"false"`
+	WaitFor   string `config:"wait_for" is_replace:"true"`
+}
+
+// WaitFor wait until the predefined conditions are satisfied
+type WaitFor struct {
+	Host  string
+	Port  int
+	File  string
+	State string
+	Delay float32
+}
+
+//GetStdoutResult returns the stdio output from the command.
+func (waitFor *WaitFor) Wait() {
+	time.Sleep(100 * time.Millisecond)
+}
+
+func parseWaitFor(waitForStr string) *WaitFor {
+	return &WaitFor{}
 }
 
 //GetStdoutResult returns the stdio output from the command.
@@ -42,6 +61,9 @@ func (commandStage *CommandStage) GetStdoutResult() string {
 
 // Run registered commands.
 func (commandStage *CommandStage) Run() bool {
+	// Check WaitFor
+	commandStage.waitFor()
+
 	// Check OnlyIf
 	if commandStage.runOnlyIf() == false {
 		log.Warnf("[command] exec: skipped this stage \"%s\", since only_if condition failed", commandStage.BaseStage.StageName)
@@ -54,6 +76,14 @@ func (commandStage *CommandStage) Run() bool {
 		log.Errorf("[command] exec: failed stage \"%s\"", commandStage.BaseStage.StageName)
 	}
 	return result
+}
+
+func (commandStage *CommandStage) waitFor() {
+	if commandStage.WaitFor == "" {
+		return
+	}
+	cond := parseWaitFor(commandStage.WaitFor)
+	cond.Wait()
 }
 
 func (commandStage *CommandStage) runOnlyIf() bool {
