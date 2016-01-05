@@ -60,3 +60,7 @@ func TestStdoutRsultOfCommandFromSpecifiedDirectory(t *testing.T) {
 	stage.Run()
 	assert.Contains(t, stage.GetStdoutResult(), "README.md")
 }
+
+func TestParseWaitFor(t *testing.T) {
+	ParseWaitFor("host=localhost port=8983 state=open")
+}

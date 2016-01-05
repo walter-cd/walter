@@ -20,8 +20,11 @@ package stages
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"os/exec"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/walter-cd/walter/log"
@@ -42,7 +45,7 @@ type WaitFor struct {
 	Port  int
 	File  string
 	State string
-	Delay float32
+	Delay float64
 }
 
 //GetStdoutResult returns the stdio output from the command.
@@ -50,8 +53,35 @@ func (waitFor *WaitFor) Wait() {
 	time.Sleep(100 * time.Millisecond)
 }
 
-func parseWaitFor(waitForStr string) *WaitFor {
-	return &WaitFor{}
+func ParseWaitFor(waitForStr string) (*WaitFor, error) {
+	var wait = &WaitFor{}
+	for _, seg := range strings.Split(waitForStr, " ") {
+		kv := strings.Split(seg, "=")
+		if len(kv) != 2 {
+			return nil, errors.New("Given segment does not have two segments: " + seg)
+		}
+		switch kv[0] {
+		case "host":
+			wait.Host = kv[1]
+		case "state":
+			wait.State = kv[1]
+		case "port":
+			v, err := strconv.Atoi("255")
+			if err != nil {
+				return nil, err
+			}
+			wait.Port = v
+		case "delay":
+			v, err := strconv.ParseFloat(kv[1], 64)
+			if err != nil {
+				return nil, err
+			}
+			wait.Delay = v
+		case "file":
+			wait.File = kv[1]
+		}
+	}
+	return wait, nil
 }
 
 //GetStdoutResult returns the stdio output from the command.
@@ -82,7 +112,7 @@ func (commandStage *CommandStage) waitFor() {
 	if commandStage.WaitFor == "" {
 		return
 	}
-	cond := parseWaitFor(commandStage.WaitFor)
+	cond, _ := ParseWaitFor(commandStage.WaitFor) // TODO: error handling
 	cond.Wait()
 }
 
