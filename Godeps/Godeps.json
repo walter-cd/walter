@@ -1,34 +1,61 @@
 {
-	"ImportPath": "github.com/recruit-tech/walter",
+	"ImportPath": ".",
 	"GoVersion": "go1.3",
+	"Packages": [
+		"github.com/go-yaml/yaml",
+		"github.com/ainoya/glog",
+		"github.com/stretchr/testify",
+		"github.com/andybons/hipchat",
+		"github.com/tbruyelle/hipchat-go/hipchat",
+		"github.com/google/go-github/github",
+		"code.google.com/p/goauth2/oauth",
+		"github.com/stretchr/objx",
+		"github.com/google/go-querystring/query"
+	],
 	"Deps": [
 		{
-			"ImportPath": "github.com/go-yaml/yaml",
-			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
+			"ImportPath": "code.google.com/p/goauth2/oauth",
+			"Rev": "afe77d958c70"
 		},
 		{
 			"ImportPath": "github.com/ainoya/glog",
 			"Rev": "20260dceee553e514cce6bdaea44664cc4398759"
 		},
 		{
-			"ImportPath": "github.com/stretchr/testify",
-			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
-		},
-		{
 			"ImportPath": "github.com/andybons/hipchat",
 			"Rev": "08bf65eade11bf8d584e933d01a35c2799c36ff4"
 		},
 		{
-			"ImportPath": "github.com/tbruyelle/hipchat-go/hipchat",
-			"Rev": "7fdd5b2bf90aef87fd0fb5238b0fa72559e11736"
+			"ImportPath": "github.com/go-yaml/yaml",
+			"Rev": "1b9791953ba4027efaeb728c7355e542a203be5e"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
 			"Rev": "1e55bf6be814270d7cc31a60868c4bd89e4e68c0"
 		},
 		{
-			"ImportPath": "code.google.com/p/goauth2/oauth",
-			"Rev": "afe77d958c70"
+			"ImportPath": "github.com/google/go-querystring/query",
+			"Rev": "2a60fc2ba6c19de80291203597d752e9ba58e4c0"
+		},
+		{
+			"ImportPath": "github.com/stretchr/objx",
+			"Rev": "1a9d0bb9f541897e62256577b352fdbc1fb4fd94"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify",
+			"Rev": "de7fcff264cd05cc0c90c509ea789a436a0dd206"
+		},
+		{
+			"ImportPath": "github.com/tbruyelle/hipchat-go/hipchat",
+			"Rev": "7fdd5b2bf90aef87fd0fb5238b0fa72559e11736"
+		},
+		{
+			"ImportPath": "gopkg.in/check.v1",
+			"Rev": "11d3bc7aa68e238947792f30573146a3231fc0f1"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v1",
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
 		}
 	]
 }
