@@ -48,11 +48,15 @@ type WaitFor struct {
 	Delay float64
 }
 
-//GetStdoutResult returns the stdio output from the command.
+//WaitFor wait until the condtions are satisfied
 func (waitFor *WaitFor) Wait() {
-	time.Sleep(100 * time.Millisecond)
+	if waitFor.Delay > 0.0 {
+		time.Sleep(time.Duration(waitFor.Delay) * time.Second)
+		return
+	}
 }
 
+//ParseWaitFor returns the WaitFor instance from given string
 func ParseWaitFor(waitForStr string) (*WaitFor, error) {
 	var wait = &WaitFor{}
 	for _, seg := range strings.Split(waitForStr, " ") {
