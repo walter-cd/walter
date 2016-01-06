@@ -66,7 +66,7 @@ func ParseWaitFor(waitForStr string) (*WaitFor, error) {
 		case "state":
 			wait.State = kv[1]
 		case "port":
-			v, err := strconv.Atoi("255")
+			v, err := strconv.Atoi(kv[1])
 			if err != nil {
 				return nil, err
 			}
@@ -79,6 +79,8 @@ func ParseWaitFor(waitForStr string) (*WaitFor, error) {
 			wait.Delay = v
 		case "file":
 			wait.File = kv[1]
+		default:
+			return nil, errors.New("No wait_for property such as: " + kv[0])
 		}
 	}
 	return wait, nil

@@ -62,5 +62,9 @@ func TestStdoutRsultOfCommandFromSpecifiedDirectory(t *testing.T) {
 }
 
 func TestParseWaitFor(t *testing.T) {
-	ParseWaitFor("host=localhost port=8983 state=open")
+	cond, err := ParseWaitFor("host=localhost port=8983 state=open")
+	assert.Nil(t, err)
+	assert.Equal(t, "localhost", cond.Host)
+	assert.Equal(t, 8983, cond.Port)
+	assert.Equal(t, "open", cond.State)
 }
