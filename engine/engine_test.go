@@ -19,11 +19,11 @@ package engine
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/walter-cd/walter/config"
 	"github.com/walter-cd/walter/messengers"
 	"github.com/walter-cd/walter/pipelines"
 	"github.com/walter-cd/walter/stages"
-	"github.com/stretchr/testify/assert"
 )
 
 func createShellScriptStage(name string, fileName string) *stages.ShellScriptStage {
