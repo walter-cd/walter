@@ -19,8 +19,8 @@ package pipelines
 import (
 	"testing"
 
-	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
+	"github.com/walter-cd/walter/stages"
 )
 
 func createStage(stageType string) stages.Stage {

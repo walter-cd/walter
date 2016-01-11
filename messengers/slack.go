@@ -25,7 +25,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // Slack is a client which reports the pipeline results to the Slack chennel.

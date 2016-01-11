@@ -21,8 +21,8 @@ package messengers
 import (
 	"net/url"
 
-	"github.com/recruit-tech/walter/log"
 	"github.com/tbruyelle/hipchat-go/hipchat"
+	"github.com/walter-cd/walter/log"
 )
 
 // HipChat2 is a client which reports the pipeline results to the HipChat server.

@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ORG_PATH="github.com/recruit-tech"
+ORG_PATH="github.com/walter-cd"
 REPO_PATH="${ORG_PATH}/walter"
 
 export GOBIN=${PWD}/bin
@@ -44,5 +44,5 @@ if [ "--fmt" = "$1" ]; then
     gofmt -s -w -l $GOFMTPATH
 fi
 
-#go install github.com/recruit-tech/walter
+#go install github.com/walter-cd/walter
 go build -ldflags "-X ${REPO_PATH}/version.Version=\"$(git describe --tags --always --dirty)\" -X ${REPO_PATH}/version.Build=\"$(git --no-pager log -1 --pretty=format:%h)\"" -o bin/walter ${REPO_PATH}
