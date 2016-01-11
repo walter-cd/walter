@@ -21,7 +21,7 @@ package messengers
 import (
 	"net/url"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 	"github.com/tbruyelle/hipchat-go/hipchat"
 )
 

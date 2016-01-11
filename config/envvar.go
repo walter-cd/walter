@@ -24,7 +24,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // EnvVariables is a set of environment variables contains all the variables

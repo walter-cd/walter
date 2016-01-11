@@ -21,7 +21,7 @@ package stages
 import (
 	"container/list"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // BaseStage is an abstract struct implemented by the inherited struct that wishes to run somthing

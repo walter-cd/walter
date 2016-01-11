@@ -20,7 +20,7 @@ package messengers
 
 import (
 	"github.com/andybons/hipchat"
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // HipChat is a client which reports the pipeline results to the HipChat server.

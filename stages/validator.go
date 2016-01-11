@@ -23,7 +23,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // ResourceValidator class check if the resources to run the target staget are satisfied.

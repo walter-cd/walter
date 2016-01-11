@@ -19,7 +19,7 @@ package pipelines
 import (
 	"testing"
 
-	"github.com/recruit-tech/walter/stages"
+	"github.com/walter-cd/walter/stages"
 	"github.com/stretchr/testify/assert"
 )
 

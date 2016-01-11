@@ -23,7 +23,7 @@ import (
 	"io"
 	"os/exec"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // CommandStage executes more than one commands.

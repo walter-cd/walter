@@ -19,7 +19,7 @@
 package stages
 
 import (
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // ShellScriptStage executes one shell script file.

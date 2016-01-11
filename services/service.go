@@ -27,7 +27,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 //Service interface
