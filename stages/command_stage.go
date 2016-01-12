@@ -76,6 +76,7 @@ func (commandStage *CommandStage) runCommand() bool {
 	result, outResult, errResult := execCommand(cmd, "exec", commandStage.BaseStage.StageName)
 	commandStage.SetOutResult(*outResult)
 	commandStage.SetErrResult(*errResult)
+	commandStage.SetReturnValue(result)
 	return result
 }
 
