@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"io"
 	"os/exec"
+	"time"
 
 	"github.com/walter-cd/walter/log"
 )
@@ -73,7 +74,9 @@ func (commandStage *CommandStage) runCommand() bool {
 	log.Infof("[command] exec: %s", commandStage.BaseStage.StageName)
 	log.Debugf("[command] exec command literal: %s", commandStage.Command)
 	cmd.Dir = commandStage.Directory
+	commandStage.SetStart(time.Now().Unix())
 	result, outResult, errResult := execCommand(cmd, "exec", commandStage.BaseStage.StageName)
+	commandStage.SetEnd(time.Now().Unix())
 	commandStage.SetOutResult(*outResult)
 	commandStage.SetErrResult(*errResult)
 	commandStage.SetReturnValue(result)
