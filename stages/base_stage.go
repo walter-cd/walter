@@ -152,3 +152,8 @@ func (b *BaseStage) SetErrResult(result string) {
 func (b *BaseStage) GetReturnValue() bool {
 	return b.ReturnValue
 }
+
+// SetReturnValue sets return value of the stage
+func (b *BaseStage) SetReturnValue(value bool) {
+	b.ReturnValue = value
+}
