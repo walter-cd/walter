@@ -22,6 +22,8 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"net"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -50,9 +52,59 @@ type WaitFor struct {
 
 //WaitFor wait until the condtions are satisfied
 func (waitFor *WaitFor) Wait() {
+	// delay
 	if waitFor.Delay > 0.0 {
 		time.Sleep(time.Duration(waitFor.Delay) * time.Second)
 		return
+	}
+
+	// file created
+	if waitFor.File != "" && (waitFor.State == "exist" ||
+		waitFor.State == "start") {
+		for {
+			if isFileExist(waitFor.File) {
+				return
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}
+
+	// file removed
+	if waitFor.File != "" && (waitFor.State == "delete" ||
+		waitFor.State == "stop") {
+		for {
+			if !isFileExist(waitFor.File) {
+				return
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}
+
+	// port
+	if waitFor.Host != "" && waitFor.Port > 0 {
+		for {
+			if isConnect(waitFor.Host, waitFor.Port) {
+				return
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}
+}
+
+func isFileExist(fileName string) bool {
+	_, err := os.Stat(fileName)
+	return !os.IsNotExist(err)
+}
+
+func isConnect(host string, port int) bool {
+	conn, err := net.Dial("tcp", host+strconv.Itoa(port))
+	defer conn.Close()
+	if err != nil {
+		log.Warnf("Connection to " + host + strconv.Itoa(port) + " failed...")
+		return false
+	} else {
+		log.Warnf("Connection to " + host + strconv.Itoa(port) + " succeeded...")
+		return true
 	}
 }
 
