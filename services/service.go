@@ -49,6 +49,7 @@ type Result struct {
 	State   string
 	SHA     string
 	Message string
+	Url     string
 }
 
 // DEFAULT_UPDATE_FILE_NAME is the default file name of status of Walter service.
