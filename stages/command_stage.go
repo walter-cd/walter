@@ -54,6 +54,7 @@ type WaitFor struct {
 func (waitFor *WaitFor) Wait() {
 	// delay
 	if waitFor.Delay > 0.0 {
+		log.Info("Wait specified time: " + strconv.FormatFloat(waitFor.Delay, 'f', 6, 64))
 		time.Sleep(time.Duration(waitFor.Delay) * time.Second)
 		return
 	}
@@ -61,10 +62,13 @@ func (waitFor *WaitFor) Wait() {
 	// file created
 	if waitFor.File != "" && (waitFor.State == "exist" ||
 		waitFor.State == "start") {
+		log.Info("Wait for file: " + waitFor.File + " is created...")
 		for {
 			if isFileExist(waitFor.File) {
+				log.Info("File: " + waitFor.File + " found.")
 				return
-				time.Sleep(100 * time.Millisecond)
+			} else {
+				time.Sleep(10 * time.Millisecond)
 			}
 		}
 	}
@@ -72,10 +76,13 @@ func (waitFor *WaitFor) Wait() {
 	// file removed
 	if waitFor.File != "" && (waitFor.State == "delete" ||
 		waitFor.State == "stop") {
+		log.Info("Wait for file: " + waitFor.File + " is removed...")
 		for {
 			if !isFileExist(waitFor.File) {
+				log.Info("File: " + waitFor.File + " removed.")
 				return
-				time.Sleep(100 * time.Millisecond)
+			} else {
+				time.Sleep(10 * time.Millisecond)
 			}
 		}
 	}
@@ -83,29 +90,32 @@ func (waitFor *WaitFor) Wait() {
 	// port
 	if waitFor.Host != "" && waitFor.Port > 0 {
 		for {
+			log.Info("Checking: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ...")
 			if isConnect(waitFor.Host, waitFor.Port) {
+				log.Info("Port: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ready.")
 				return
-				time.Sleep(100 * time.Millisecond)
+			} else {
+				time.Sleep(10 * time.Millisecond)
 			}
 		}
 	}
 }
 
 func isFileExist(fileName string) bool {
+	log.Info("filename: " + fileName)
 	_, err := os.Stat(fileName)
 	return !os.IsNotExist(err)
 }
 
 func isConnect(host string, port int) bool {
-	conn, err := net.Dial("tcp", host+strconv.Itoa(port))
-	defer conn.Close()
+	conn, err := net.Dial("tcp", host+":"+strconv.Itoa(port))
 	if err != nil {
-		log.Warnf("Connection to " + host + strconv.Itoa(port) + " failed...")
+		log.Info("Connection to " + host + ":" + strconv.Itoa(port) + " failed...")
 		return false
-	} else {
-		log.Warnf("Connection to " + host + strconv.Itoa(port) + " succeeded...")
-		return true
 	}
+	defer conn.Close()
+	log.Info("Connection to " + host + ":" + strconv.Itoa(port) + " succeeded...")
+	return true
 }
 
 //ParseWaitFor returns the WaitFor instance from given string
