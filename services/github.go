@@ -60,7 +60,7 @@ func (githubClient *GitHubClient) RegisterResult(result Result) error {
 		result.SHA,
 		&github.RepoStatus{
 			State:       github.String(result.State),
-			TargetURL:   github.String(""),
+			TargetURL:   github.String(result.Url),
 			Description: github.String(result.Message),
 			Context:     github.String("continuous-integraion/walter"),
 		})
