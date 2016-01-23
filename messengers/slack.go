@@ -43,13 +43,16 @@ type Slack struct {
 type FakeSlack Slack
 
 //Post posts a message to slack
-func (slack *Slack) Post(message string) bool {
+func (slack *Slack) Post(message string, c ...string) bool {
 	if slack.Channel[0] != '#' {
 		log.Infof("Add # to channel name: %s", slack.Channel)
 		slack.Channel = "#" + slack.Channel
 	}
 
 	var color string
+	if len(c) > 0 {
+		color = c[0]
+	}
 
 	if strings.Contains(message, "[RESULT] Failed") {
 		color = "danger"

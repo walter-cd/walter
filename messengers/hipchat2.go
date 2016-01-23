@@ -37,7 +37,7 @@ type HipChat2 struct {
 }
 
 // Post sends a new HipChat message using V2 of the API
-func (hc *HipChat2) Post(message string) bool {
+func (hc *HipChat2) Post(message string, color ...string) bool {
 	if hc.client == nil {
 		hc.client = hc.newClient()
 		if hc.client == nil {

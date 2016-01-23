@@ -25,6 +25,6 @@ type FakeMessenger struct {
 }
 
 //Post just returns true indicating the messages was posted (faked)
-func (fakeMsg *FakeMessenger) Post(messege string) bool {
+func (fakeMsg *FakeMessenger) Post(messege string, color ...string) bool {
 	return true
 }

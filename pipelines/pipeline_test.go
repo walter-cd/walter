@@ -51,7 +51,7 @@ type MockMessenger struct {
 	Posts []string
 }
 
-func (mock *MockMessenger) Post(msg string) bool {
+func (mock *MockMessenger) Post(msg string, color ...string) bool {
 	mock.Posts = append(mock.Posts, msg)
 	return true
 }
