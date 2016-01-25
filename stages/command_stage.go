@@ -115,7 +115,6 @@ func (waitFor *WaitFor) Wait() {
 }
 
 func isFileExist(fileName string) bool {
-	log.Info("filename: " + fileName)
 	_, err := os.Stat(fileName)
 	return !os.IsNotExist(err)
 }
