@@ -317,3 +317,40 @@ pipeline:
 ```
 
 Walter with the above configuraiton outputs "hello world" twice, since the second stage (stage_2) flushes the standard output result of first stage (stage_1).
+
+## Wait running stages until the conditions are satisfied
+
+Walter stage starts imidiately after the previous stage finish, but some stages need to wait for some action such as port is ready or file are created.
+```wait_for``` feature supports the actions which need to be ready before the stages begin.
+
+wait_for is defined as a property of stage.
+
+```yaml
+- pipeline:
+  - name: launch solr
+    command: bin/solr start
+  - name: post data to solr index
+    command: bin/post -d ~/tmp/foobar.js
+    wait_for: host=localhost port=8983 state=open
+```
+
+The **wait_for** property takes the **key** **value** pairs. Key has sevaral variations. The value depends on the key type. The following table shows the supported key value pairs and the description.
+
+
+| Key     | Value (value type)  | Description                                         |
+|:--------|:--------------------|:----------------------------------------------------|
+| delay   | second (float)      | The second to wait after the previous stage finish |
+| port    | port number (int)   | Port number                                         |
+| file    | file name (string)  | File to be created in the previous stages           |
+| host    | host (string)       | IP address or host name                             |
+| state   | state of the other key (string) | Four types of states are supported. The possible value is dependent to the other Keys. |
+
+State values
+--------------
+
+There are seveal **state** values and possible state values are depend on the other key.
+
+| State value       | Description                                         |
+|:------------------|:----------------------------------------------------|
+| exist / ready     | Specified port is ready or file is created.         |
+| delete / absent   | port is not active or file does not exist           |

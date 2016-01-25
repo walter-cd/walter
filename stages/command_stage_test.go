@@ -62,21 +62,21 @@ func TestStdoutRsultOfCommandFromSpecifiedDirectory(t *testing.T) {
 }
 
 func TestParseWaitFor(t *testing.T) {
-	cond, err := ParseWaitFor("host=localhost port=8983 state=open")
+	cond, err := ParseWaitFor("host=localhost port=8983 state=ready")
 	assert.Nil(t, err)
 	assert.Equal(t, "localhost", cond.Host)
 	assert.Equal(t, 8983, cond.Port)
-	assert.Equal(t, "open", cond.State)
+	assert.Equal(t, "ready", cond.State)
 }
 
 func TestParseIllegalWaitForCondition(t *testing.T) {
-	cond, err := ParseWaitFor("host=localhost port=-8983 state=open")
+	cond, err := ParseWaitFor("host=localhost port=-8983 state=ready")
 	assert.Nil(t, cond)
 	assert.NotNil(t, err)
 }
 
 func TestParseDupulicateWaitForTargets(t *testing.T) {
-	cond, err := ParseWaitFor("host=localhost port=8983 File=tmp/foobar.txt state=open")
+	cond, err := ParseWaitFor("host=localhost port=8983 File=tmp/foobar.txt state=ready")
 	assert.Nil(t, cond)
 	assert.NotNil(t, err)
 }
