@@ -50,7 +50,7 @@ type WaitFor struct {
 	Delay float64
 }
 
-//WaitFor wait until the condtions are satisfied
+// WaitFor wait until the condtions are satisfied
 func (waitFor *WaitFor) Wait() {
 	// delay
 	if waitFor.Delay > 0.0 {
@@ -87,15 +87,28 @@ func (waitFor *WaitFor) Wait() {
 		}
 	}
 
-	// port
-	if waitFor.Host != "" && waitFor.Port > 0 {
+	// port open
+	if waitFor.Host != "" && waitFor.Port > 0 && (waitFor.State == "open" || waitFor.State == "start") {
 		for {
 			log.Info("Checking: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ...")
 			if isConnect(waitFor.Host, waitFor.Port) {
-				log.Info("Port: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ready.")
+				log.Info("Port: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " is ready.")
 				return
 			} else {
 				time.Sleep(10 * time.Millisecond)
+			}
+		}
+	}
+
+	// port close
+	if waitFor.Host != "" && waitFor.Port > 0 && (waitFor.State == "close" || waitFor.State == "stop") {
+		for {
+			log.Info("Checking: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ...")
+			if !isConnect(waitFor.Host, waitFor.Port) {
+				time.Sleep(10 * time.Millisecond)
+				return
+			} else {
+				log.Info("Port: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " closed.")
 			}
 		}
 	}
@@ -118,7 +131,7 @@ func isConnect(host string, port int) bool {
 	return true
 }
 
-//ParseWaitFor returns the WaitFor instance from given string
+// ParseWaitFor returns the WaitFor instance from given string
 func ParseWaitFor(waitForStr string) (*WaitFor, error) {
 	var wait = &WaitFor{}
 	for _, seg := range strings.Split(waitForStr, " ") {
@@ -149,7 +162,49 @@ func ParseWaitFor(waitForStr string) (*WaitFor, error) {
 			return nil, errors.New("No wait_for property such as: " + kv[0])
 		}
 	}
-	return wait, nil
+
+	if validateWaitForCondition(wait) {
+		return wait, nil
+	} else {
+		return nil, errors.New("Illegal condition were found")
+	}
+}
+
+func validateWaitForCondition(wait *WaitFor) bool {
+	// check duplicate targets
+	if wait.Port != 0 && wait.File != "" {
+		log.Error("[command] Port and File are not able to be specified at the same time.")
+		return false
+	} else if wait.Port != 0 && wait.Delay > 0.0 {
+		log.Error("[command] Port and Delay are not able to be specified at the same time.")
+		return false
+	} else if wait.File != "" && wait.Delay > 0.0 {
+		log.Error("[command] File and Delay are not able to be specified at the same time.")
+		return false
+	}
+
+	// check illegal conditions
+	if wait.Delay < 0 {
+		log.Error("[command] Delay must be positive.")
+		return false
+	} else if wait.Port < 0 {
+		log.Error("[command] Port must be positive.")
+		return false
+	} else if wait.Port > 0 && wait.Host == "" {
+		log.Error("[command] Host must be specified when port number is specified.")
+		return false
+	}
+
+	// misc checks
+	if wait.Port > 0 && wait.State == "" {
+		log.Error("[command] State must be specified for port.")
+		return false
+	} else if wait.File != "" && wait.State == "" {
+		log.Error("[command] State must be specified for file.")
+		return false
+	}
+
+	return true
 }
 
 //GetStdoutResult returns the stdio output from the command.
