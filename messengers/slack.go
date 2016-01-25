@@ -81,12 +81,11 @@ func (slack *Slack) Post(message string, c ...string) bool {
 		slack.IncomingURL,
 		url.Values{"payload": {string(params)}},
 	)
-	defer resp.Body.Close()
-
 	if err != nil {
 		log.Errorf("Failed post message to Slack...: %s", message)
 		return false
 	}
+	defer resp.Body.Close()
 
 	if body, err := ioutil.ReadAll(resp.Body); err == nil {
 		log.Infof("Slack post result...: %s", body)
