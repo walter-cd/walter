@@ -22,7 +22,7 @@ import (
 	"container/list"
 	"regexp"
 
-	"code.google.com/p/goauth2/oauth"
+	"golang.org/x/oauth2"
 	"github.com/google/go-github/github"
 	"github.com/walter-cd/walter/log"
 )
@@ -47,10 +47,11 @@ func (githubClient *GitHubClient) GetUpdateFilePath() string {
 
 //RegisterResult registers the supplied result
 func (githubClient *GitHubClient) RegisterResult(result Result) error {
-	t := &oauth.Transport{
-		Token: &oauth.Token{AccessToken: githubClient.Token},
-	}
-	client := github.NewClient(t.Client())
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: githubClient.Token},
+	)
+	tc := oauth2.NewClient(oauth2.NoContext, ts)
+	client := github.NewClient(tc)
 
 	log.Info("Submitting result")
 	repositories := client.Repositories
@@ -75,10 +76,11 @@ func (githubClient *GitHubClient) RegisterResult(result Result) error {
 func (githubClient *GitHubClient) GetCommits(update Update) (*list.List, error) {
 	log.Info("getting commits\n")
 	commits := list.New()
-	t := &oauth.Transport{
-		Token: &oauth.Token{AccessToken: githubClient.Token},
-	}
-	client := github.NewClient(t.Client())
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: githubClient.Token},
+	)
+	tc := oauth2.NewClient(oauth2.NoContext, ts)
+	client := github.NewClient(tc)
 
 	// get a list of pull requests with Pull Request API
 	pullreqs, _, err := client.PullRequests.List(
