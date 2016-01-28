@@ -352,5 +352,5 @@ There are seveal **state** values and possible state values are depend on the ot
 
 | State value       | Description                                         |
 |:------------------|:----------------------------------------------------|
-| exist / ready     | Specified port is ready or file is created.         |
-| delete / absent   | port is not active or file does not exist           |
+| present / ready   | Specified port is ready or file is created.         |
+| absent  / unready | port is not active or file does not exist           |
