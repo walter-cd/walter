@@ -326,7 +326,7 @@ Walter stage starts imidiately after the previous stage finish, but some stages 
 wait_for is defined as a property of stage.
 
 ```yaml
-- pipeline:
+pipeline:
   - name: launch solr
     command: bin/solr start
   - name: post data to solr index
