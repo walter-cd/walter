@@ -21,7 +21,7 @@ package stages
 import (
 	"container/list"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // BaseStage is an abstract struct implemented by the inherited struct that wishes to run somthing
@@ -53,6 +53,12 @@ type BaseStage struct {
 
 	// options of the stage.
 	Opts StageOpts
+
+	// Start time of the stage by UNIX time
+	Start int64
+
+	// End time of the stage by UNIX time
+	End int64
 }
 
 //StageOpts struct for handing stage outputs
@@ -151,4 +157,29 @@ func (b *BaseStage) SetErrResult(result string) {
 // GetReturnValue returns return value of the stage
 func (b *BaseStage) GetReturnValue() bool {
 	return b.ReturnValue
+}
+
+// SetReturnValue sets return value of the stage
+func (b *BaseStage) SetReturnValue(value bool) {
+	b.ReturnValue = value
+}
+
+// GetStart returns start time of the stage
+func (b *BaseStage) GetStart() int64 {
+	return b.Start
+}
+
+// SetStart sets start time of the stage
+func (b *BaseStage) SetStart(start int64) {
+	b.Start = start
+}
+
+// GetEnd returns end time of the stage
+func (b *BaseStage) GetEnd() int64 {
+	return b.End
+}
+
+// SetEnd sets start time of the stage
+func (b *BaseStage) SetEnd(end int64) {
+	b.End = end
 }

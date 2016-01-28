@@ -25,11 +25,11 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/recruit-tech/walter/config"
-	"github.com/recruit-tech/walter/engine"
-	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/services"
-	"github.com/recruit-tech/walter/stages"
+	"github.com/walter-cd/walter/config"
+	"github.com/walter-cd/walter/engine"
+	"github.com/walter-cd/walter/log"
+	"github.com/walter-cd/walter/services"
+	"github.com/walter-cd/walter/stages"
 )
 
 // Walter object.

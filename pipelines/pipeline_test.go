@@ -19,8 +19,8 @@ package pipelines
 import (
 	"testing"
 
-	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
+	"github.com/walter-cd/walter/stages"
 )
 
 func createStage(stageType string) stages.Stage {
@@ -51,7 +51,7 @@ type MockMessenger struct {
 	Posts []string
 }
 
-func (mock *MockMessenger) Post(msg string) bool {
+func (mock *MockMessenger) Post(msg string, color ...string) bool {
 	mock.Posts = append(mock.Posts, msg)
 	return true
 }

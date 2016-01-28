@@ -23,10 +23,10 @@ import (
 	//	"os"
 	"strconv"
 
-	"github.com/recruit-tech/walter/config"
-	"github.com/recruit-tech/walter/log"
-	"github.com/recruit-tech/walter/pipelines"
-	"github.com/recruit-tech/walter/stages"
+	"github.com/walter-cd/walter/config"
+	"github.com/walter-cd/walter/log"
+	"github.com/walter-cd/walter/pipelines"
+	"github.com/walter-cd/walter/stages"
 )
 
 // Engine executes the its pipeline.

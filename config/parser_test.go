@@ -19,10 +19,10 @@ package config
 import (
 	"testing"
 
-	"github.com/recruit-tech/walter/messengers"
-	"github.com/recruit-tech/walter/services"
-	"github.com/recruit-tech/walter/stages"
 	"github.com/stretchr/testify/assert"
+	"github.com/walter-cd/walter/messengers"
+	"github.com/walter-cd/walter/services"
+	"github.com/walter-cd/walter/stages"
 )
 
 func TestParseFromFile(t *testing.T) {

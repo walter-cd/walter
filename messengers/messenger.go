@@ -25,7 +25,7 @@ import (
 // Messenger is a interface for notifying the result to the messeging
 // services such as Slack or HipChat.
 type Messenger interface {
-	Post(string) bool
+	Post(string, ...string) bool
 	Suppress(string) bool
 }
 

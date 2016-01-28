@@ -20,7 +20,7 @@ package messengers
 
 import (
 	"github.com/andybons/hipchat"
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // HipChat is a client which reports the pipeline results to the HipChat server.
@@ -34,7 +34,7 @@ type HipChat struct {
 
 // Post posts a hipchat message
 // TODO: make hipchat api endpoint configurable for on-premises servers
-func (hipChat *HipChat) Post(message string) bool {
+func (hipChat *HipChat) Post(message string, color ...string) bool {
 	client := hipchat.Client{AuthToken: hipChat.Token}
 	req := hipchat.MessageRequest{
 		RoomId:        hipChat.RoomID,

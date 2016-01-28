@@ -21,8 +21,8 @@ package messengers
 import (
 	"net/url"
 
-	"github.com/recruit-tech/walter/log"
 	"github.com/tbruyelle/hipchat-go/hipchat"
+	"github.com/walter-cd/walter/log"
 )
 
 // HipChat2 is a client which reports the pipeline results to the HipChat server.
@@ -37,7 +37,7 @@ type HipChat2 struct {
 }
 
 // Post sends a new HipChat message using V2 of the API
-func (hc *HipChat2) Post(message string) bool {
+func (hc *HipChat2) Post(message string, color ...string) bool {
 	if hc.client == nil {
 		hc.client = hc.newClient()
 		if hc.client == nil {

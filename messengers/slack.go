@@ -25,7 +25,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/recruit-tech/walter/log"
+	"github.com/walter-cd/walter/log"
 )
 
 // Slack is a client which reports the pipeline results to the Slack chennel.
@@ -43,13 +43,16 @@ type Slack struct {
 type FakeSlack Slack
 
 //Post posts a message to slack
-func (slack *Slack) Post(message string) bool {
+func (slack *Slack) Post(message string, c ...string) bool {
 	if slack.Channel[0] != '#' {
 		log.Infof("Add # to channel name: %s", slack.Channel)
 		slack.Channel = "#" + slack.Channel
 	}
 
 	var color string
+	if len(c) > 0 {
+		color = c[0]
+	}
 
 	if strings.Contains(message, "[RESULT] Failed") {
 		color = "danger"
@@ -78,12 +81,11 @@ func (slack *Slack) Post(message string) bool {
 		slack.IncomingURL,
 		url.Values{"payload": {string(params)}},
 	)
-	defer resp.Body.Close()
-
 	if err != nil {
 		log.Errorf("Failed post message to Slack...: %s", message)
 		return false
 	}
+	defer resp.Body.Close()
 
 	if body, err := ioutil.ReadAll(resp.Body); err == nil {
 		log.Infof("Slack post result...: %s", body)
