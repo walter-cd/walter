@@ -194,6 +194,12 @@ func validateWaitForCondition(wait *WaitFor) bool {
 		return false
 	}
 
+	// check illegal states
+	if wait.State != "present" && wait.State != "ready" && wait.State != "absent" && wait.State != "unready" {
+		log.Errorf("[command] \"%s\" is an unsupported state", wait.State)
+		return false
+	}
+
 	// misc checks
 	if wait.Port > 0 && wait.State == "" {
 		log.Error("[command] State must be specified for port.")

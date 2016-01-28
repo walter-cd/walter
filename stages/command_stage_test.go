@@ -86,3 +86,9 @@ func TestParseWaitForFileWithoutState(t *testing.T) {
 	assert.Nil(t, cond)
 	assert.NotNil(t, err)
 }
+
+func TestParseIllegalWaitForState(t *testing.T) {
+	cond, err := ParseWaitFor("host=localhost port=8983 File=tmp/foobar.txt state=exist")
+	assert.Nil(t, cond)
+	assert.NotNil(t, err)
+}
