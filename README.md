@@ -331,7 +331,7 @@ pipeline:
     command: bin/solr start
   - name: post data to solr index
     command: bin/post -d ~/tmp/foobar.js
-    wait_for: host=localhost port=8983 state=open
+    wait_for: host=localhost port=8983 state=ready
 ```
 
 The **wait_for** property takes the **key** **value** pairs. Key has sevaral variations. The value depends on the key type. The following table shows the supported key value pairs and the description.
