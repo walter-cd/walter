@@ -60,8 +60,7 @@ func (waitFor *WaitFor) Wait() {
 	}
 
 	// file created
-	if waitFor.File != "" && (waitFor.State == "ready" ||
-		waitFor.State == "present") {
+	if waitFor.File != "" && (waitFor.State == "present" || waitFor.State == "ready") {
 		log.Info("Wait for file: " + waitFor.File + " is created...")
 		for {
 			if isFileExist(waitFor.File) {
@@ -74,8 +73,7 @@ func (waitFor *WaitFor) Wait() {
 	}
 
 	// file removed
-	if waitFor.File != "" && (waitFor.State == "unready" ||
-		waitFor.State == "absent") {
+	if waitFor.File != "" && (waitFor.State == "absent" || waitFor.State == "unready") {
 		log.Info("Wait for file: " + waitFor.File + " is removed...")
 		for {
 			if !isFileExist(waitFor.File) {
@@ -88,7 +86,7 @@ func (waitFor *WaitFor) Wait() {
 	}
 
 	// port open
-	if waitFor.Host != "" && waitFor.Port > 0 && (waitFor.State == "ready" || waitFor.State == "present") {
+	if waitFor.Host != "" && waitFor.Port > 0 && (waitFor.State == "present" || waitFor.State == "ready") {
 		for {
 			log.Info("Checking: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ...")
 			if isConnect(waitFor.Host, waitFor.Port) {
