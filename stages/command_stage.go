@@ -87,10 +87,9 @@ func (waitFor *WaitFor) Wait() {
 
 	// port open
 	if waitFor.Host != "" && waitFor.Port > 0 && (waitFor.State == "present" || waitFor.State == "ready") {
+		log.Info("Wait for port: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " is opened...")
 		for {
-			log.Info("Checking: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ...")
 			if isConnect(waitFor.Host, waitFor.Port) {
-				log.Info("Port: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " is ready.")
 				return
 			} else {
 				time.Sleep(10 * time.Millisecond)
@@ -100,13 +99,13 @@ func (waitFor *WaitFor) Wait() {
 
 	// port close
 	if waitFor.Host != "" && waitFor.Port > 0 && (waitFor.State == "absent" || waitFor.State == "unready") {
+		log.Info("Wait for: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " is closed...")
+
 		for {
-			log.Info("Checking: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " ...")
 			if !isConnect(waitFor.Host, waitFor.Port) {
-				time.Sleep(10 * time.Millisecond)
 				return
 			} else {
-				log.Info("Port: " + waitFor.Host + ":" + strconv.Itoa(waitFor.Port) + " closed.")
+				time.Sleep(10 * time.Millisecond)
 			}
 		}
 	}
@@ -120,11 +119,9 @@ func isFileExist(fileName string) bool {
 func isConnect(host string, port int) bool {
 	conn, err := net.Dial("tcp", host+":"+strconv.Itoa(port))
 	if err != nil {
-		log.Info("Connection to " + host + ":" + strconv.Itoa(port) + " failed...")
 		return false
 	}
 	defer conn.Close()
-	log.Info("Connection to " + host + ":" + strconv.Itoa(port) + " succeeded...")
 	return true
 }
 
