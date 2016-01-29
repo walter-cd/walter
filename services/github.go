@@ -20,11 +20,12 @@ package services
 
 import (
 	"container/list"
+	"net/url"
 	"regexp"
 
-	"golang.org/x/oauth2"
 	"github.com/google/go-github/github"
 	"github.com/walter-cd/walter/log"
+	"golang.org/x/oauth2"
 )
 
 //GitHubClient struct
@@ -34,6 +35,7 @@ type GitHubClient struct {
 	Token        string `config:"token"`
 	UpdateFile   string `config:"update"`
 	TargetBranch string `config:"branch"`
+	BaseUrl      *url.URL
 }
 
 //GetUpdateFilePath returns the update file name
@@ -52,6 +54,10 @@ func (githubClient *GitHubClient) RegisterResult(result Result) error {
 	)
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 	client := github.NewClient(tc)
+
+	if githubClient.BaseUrl != nil {
+		client.BaseURL = githubClient.BaseUrl
+	}
 
 	log.Info("Submitting result")
 	repositories := client.Repositories
