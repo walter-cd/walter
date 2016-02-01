@@ -60,3 +60,35 @@ func TestStdoutRsultOfCommandFromSpecifiedDirectory(t *testing.T) {
 	stage.Run()
 	assert.Contains(t, stage.GetStdoutResult(), "README.md")
 }
+
+func TestParseWaitFor(t *testing.T) {
+	cond, err := ParseWaitFor("host=localhost port=8983 state=ready")
+	assert.Nil(t, err)
+	assert.Equal(t, "localhost", cond.Host)
+	assert.Equal(t, 8983, cond.Port)
+	assert.Equal(t, "ready", cond.State)
+}
+
+func TestParseIllegalWaitForCondition(t *testing.T) {
+	cond, err := ParseWaitFor("host=localhost port=-8983 state=ready")
+	assert.Nil(t, cond)
+	assert.NotNil(t, err)
+}
+
+func TestParseDupulicateWaitForTargets(t *testing.T) {
+	cond, err := ParseWaitFor("host=localhost port=8983 File=tmp/foobar.txt state=ready")
+	assert.Nil(t, cond)
+	assert.NotNil(t, err)
+}
+
+func TestParseWaitForFileWithoutState(t *testing.T) {
+	cond, err := ParseWaitFor("File=tmp/foobar.txt")
+	assert.Nil(t, cond)
+	assert.NotNil(t, err)
+}
+
+func TestParseIllegalWaitForState(t *testing.T) {
+	cond, err := ParseWaitFor("host=localhost port=8983 File=tmp/foobar.txt state=exist")
+	assert.Nil(t, cond)
+	assert.NotNil(t, err)
+}
