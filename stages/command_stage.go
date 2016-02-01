@@ -19,8 +19,10 @@
 package stages
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"os"
@@ -248,7 +250,7 @@ func (commandStage *CommandStage) runOnlyIf() bool {
 	log.Infof("[command] only_if: %s", commandStage.BaseStage.StageName)
 	log.Debugf("[command] only_if literal: %s", commandStage.OnlyIf)
 	cmd.Dir = commandStage.Directory
-	result, _, _ := execCommand(cmd, "only_if", commandStage.BaseStage.StageName)
+	result, _, _, _ := execCommand(cmd, "only_if", commandStage.BaseStage.StageName)
 	return result
 }
 
@@ -258,64 +260,84 @@ func (commandStage *CommandStage) runCommand() bool {
 	log.Debugf("[command] exec command literal: %s", commandStage.Command)
 	cmd.Dir = commandStage.Directory
 	commandStage.SetStart(time.Now().Unix())
-	result, outResult, errResult := execCommand(cmd, "exec", commandStage.BaseStage.StageName)
+	result, outResult, errResult, combinedResult := execCommand(cmd, "exec", commandStage.BaseStage.StageName)
 	commandStage.SetEnd(time.Now().Unix())
 	commandStage.SetOutResult(*outResult)
 	commandStage.SetErrResult(*errResult)
+	commandStage.SetCombinedResult(*combinedResult)
 	commandStage.SetReturnValue(result)
 	return result
 }
 
-func execCommand(cmd *exec.Cmd, prefix string, name string) (bool, *string, *string) {
-	out, err := cmd.StdoutPipe()
-	outE, errE := cmd.StderrPipe()
+func execCommand(cmd *exec.Cmd, prefix string, name string) (bool, *string, *string, *string) {
+	outPipe, err := cmd.StdoutPipe()
 
 	if err != nil {
-		log.Warnf("[command] %s err: %s", prefix, out)
+		log.Warnf("[command] %s err: %s", prefix, outPipe)
 		log.Warnf("[command] %s err: %s", prefix, err)
-		return false, nil, nil
+		return false, nil, nil, nil
 	}
 
-	if errE != nil {
-		log.Warnf("[command] %s err: %s", prefix, outE)
-		log.Warnf("[command] %s err: %s", prefix, errE)
-		return false, nil, nil
-	}
+	errPipe, err := cmd.StderrPipe()
 
-	err = cmd.Start()
 	if err != nil {
+		log.Warnf("[command] %s err: %s", prefix, errPipe)
 		log.Warnf("[command] %s err: %s", prefix, err)
-		return false, nil, nil
+		return false, nil, nil, nil
 	}
-	outResult := copyStream(out, prefix, name)
-	errResult := copyStream(outE, prefix, name)
+
+	var bufout, buferr bytes.Buffer
+
+	outReader := io.TeeReader(outPipe, &bufout)
+	errReader := io.TeeReader(errPipe, &buferr)
+
+	if err = cmd.Start(); err != nil {
+		log.Warnf("[command] %s err: %s", prefix, err)
+		return false, nil, nil, nil
+	}
+
+	var combinedResult string
+
+	out := make(chan string)
+	done := make(chan bool)
+
+	go printOutput(outReader, prefix, name, out, done)
+	go printOutput(errReader, prefix, name, out, done)
+
+	doneCount := 0
+
+loop:
+	for {
+		select {
+		case s := <-out:
+			combinedResult += s
+		case <-done:
+			doneCount++
+			if doneCount > 1 {
+				break loop
+			}
+		}
+	}
 
 	err = cmd.Wait()
+
+	outResult := bufout.String()
+	errResult := buferr.String()
+
 	if err != nil {
 		log.Warnf("[command] %s err: %s", prefix, err)
-		return false, &outResult, &errResult
+		return false, &outResult, &errResult, &combinedResult
 	}
-	return true, &outResult, &errResult
+	return true, &outResult, &errResult, &combinedResult
 }
 
-func copyStream(reader io.Reader, prefix string, name string) string {
-	var err error
-	var n int
-	var buffer bytes.Buffer
-	tmpBuf := make([]byte, 1024)
-	for {
-		if n, err = reader.Read(tmpBuf); err != nil {
-			break
-		}
-		buffer.Write(tmpBuf[0:n])
-		log.Infof("[%s][command] %s output: %s", name, prefix, tmpBuf[0:n])
+func printOutput(r io.Reader, prefix string, name string, out chan string, done chan bool) {
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		log.Infof("[%s][command] %s output: %s", name, prefix, scanner.Text())
+		out <- fmt.Sprintf("%s\n", scanner.Text())
 	}
-	if err == io.EOF {
-		err = nil
-	} else {
-		log.Error("ERROR: " + err.Error())
-	}
-	return buffer.String()
+	done <- true
 }
 
 //AddCommand registers the specified command.

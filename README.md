@@ -297,10 +297,11 @@ service:
 ## Reusing the results from stages
 
 Walter stores the results of preceding stages. The stages can make use of the results of finished stages using the three special
-variables (__OUT, __ERR and __RESULT) in Walter configuration files.
+variables (__OUT, __ERR, __COMBINED and __RESULT) in Walter configuration files.
 
 * **__OUT** -  output flushed to standard output 
 * **__ERR** - output flushed to standard error 
+* **__COMBINED** - combined output of stdout and stderr
 * **__RESULT** - execution result (true or false)
 
 The three variables are maps whose keys are stage names and the value are results of the stages. For example, we want the standard output

@@ -39,6 +39,8 @@ type Stage interface {
 	SetOutResult(string)
 	GetErrResult() string
 	SetErrResult(string)
+	GetCombinedResult() string
+	SetCombinedResult(string)
 	GetReturnValue() bool
 }
 

@@ -118,6 +118,7 @@ func (e *Engine) executeStage(stage stages.Stage, received []stages.Mediator) st
 		result = strconv.FormatBool(stage.(stages.Runner).Run())
 		e.EnvVariables.ExportSpecialVariable("__OUT[\""+stage.GetStageName()+"\"]", stage.GetOutResult())
 		e.EnvVariables.ExportSpecialVariable("__ERR[\""+stage.GetStageName()+"\"]", stage.GetErrResult())
+		e.EnvVariables.ExportSpecialVariable("__COMBINED[\""+stage.GetStageName()+"\"]", stage.GetCombinedResult())
 		e.EnvVariables.ExportSpecialVariable("__RESULT[\""+stage.GetStageName()+"\"]", result)
 	} else {
 		log.Warnf("Execution is skipped: %v", stage.GetStageName())
