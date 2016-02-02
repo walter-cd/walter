@@ -93,6 +93,8 @@ func (resources *Pipeline) GetStageResult(name string, stageType string) (string
 			return stage.GetOutResult(), nil
 		case "__ERR":
 			return stage.GetErrResult(), nil
+		case "__COMBINED":
+			return stage.GetCombinedResult(), nil
 		case "__RESULT":
 			return strconv.FormatBool(stage.GetReturnValue()), nil
 		default:

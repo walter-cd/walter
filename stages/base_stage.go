@@ -48,6 +48,9 @@ type BaseStage struct {
 	// Results of stderr flush by the stage.
 	ErrResult string
 
+	// Results of stdout and stderr combined by the stage
+	CombinedResult string
+
 	// Return value of the stage
 	ReturnValue bool
 
@@ -152,6 +155,16 @@ func (b *BaseStage) GetErrResult() string {
 // SetErrResult sets standard error results.
 func (b *BaseStage) SetErrResult(result string) {
 	b.ErrResult = result
+}
+
+// GetCombinedResult returns stdout and stderr combined results.
+func (b *BaseStage) GetCombinedResult() string {
+	return b.CombinedResult
+}
+
+// SetErrResult sets stdout and stderr combined results.
+func (b *BaseStage) SetCombinedResult(result string) {
+	b.CombinedResult = result
 }
 
 // GetReturnValue returns return value of the stage
