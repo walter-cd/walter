@@ -77,12 +77,12 @@ pipeline:
 ```
 
 As we see, the pipeline block has three stages and the stage type is command, each of which run **echo** command and has the stage name
-(such as **command_stage_1**). User can name arbitrary name of each stage. The commands are executed with the same order as the pipeline configuration.
+(such as **command\_stage\_1**). User can name arbitrary name of each stage. The commands are executed with the same order as the pipeline configuration.
 
 ### Stage setting
 
 Stage in pipeline has three elements, **name**, **type** and **configurations**. configuration elements are optional. The elements of configurations depend on the type.
-For example command_stage type has **command** configuration, which specify the shell command run in the stage.
+For example command\_stage type has **command** configuration, which specify the shell command run in the stage.
 The following is the table on the type and the parameters.
 
 #### Command stage
@@ -199,7 +199,7 @@ messenger:
 ```
 
 To report the full output of stage execution to the specified messenger service added with the above setting,
-users add **report_full_output** attribute with **true** into the stage they want to know the command outputs.
+users add **report\_full\_output** attribute with **true** into the stage they want to know the command outputs.
 
 ```yaml
 pipeline:
@@ -283,7 +283,7 @@ The following is the format of embedding of the environment variables.
 $ENV_NAME
 ```
 
-We write the envrionment variable into **ENV_NAME**. The following configuration file specify the GitHub Token by embedding the environment variable, GITHUB_TOKEN.
+We write the envrionment variable into **ENV\_NAME**. The following configuration file specify the GitHub Token by embedding the environment variable, GITHUB\_TOKEN.
 
 ```yaml
 service:
@@ -297,15 +297,15 @@ service:
 ## Reusing the results from stages
 
 Walter stores the results of preceding stages. The stages can make use of the results of finished stages using the three special
-variables (__OUT, __ERR, __COMBINED and __RESULT) in Walter configuration files.
+variables (**\_\_OUT**, **\_\_ERR**, **\_\_COMBINED** and **\_\_RESULT**) in Walter configuration files.
 
-* **__OUT** -  output flushed to standard output 
-* **__ERR** - output flushed to standard error 
-* **__COMBINED** - combined output of stdout and stderr
-* **__RESULT** - execution result (true or false)
+* **\_\_OUT** -  output flushed to standard output 
+* **\_\_ERR** - output flushed to standard error 
+* **\_\_COMBINED** - combined output of stdout and stderr
+* **\_\_RESULT** - execution result (true or false)
 
 The three variables are maps whose keys are stage names and the value are results of the stages. For example, we want the standard output
-result of the stage named "stage1", we write __OUT["stage1"].
+result of the stage named "stage1", we write **\_\_OUT["stage1"]**.
 
 The following is a sample configuration with a specical value.
 
@@ -317,14 +317,14 @@ pipeline:
     command: echo __OUT["stage_1"]
 ```
 
-Walter with the above configuraiton outputs "hello world" twice, since the second stage (stage_2) flushes the standard output result of first stage (stage_1).
+Walter with the above configuraiton outputs "hello world" twice, since the second stage (stage\_2) flushes the standard output result of first stage (stage\_1).
 
 ## Wait running stages until the conditions are satisfied
 
 Walter stage starts imidiately after the previous stage finish, but some stages need to wait for some action such as port is ready or file are created.
 ```wait_for``` feature supports the actions which need to be ready before the stages begin.
 
-wait_for is defined as a property of stage.
+wait\_for is defined as a property of stage.
 
 ```yaml
 pipeline:
@@ -335,12 +335,12 @@ pipeline:
     wait_for: host=localhost port=8983 state=ready
 ```
 
-The **wait_for** property takes the **key** **value** pairs. Key has sevaral variations. The value depends on the key type. The following table shows the supported key value pairs and the description.
+The **wait\_for** property takes the **key** **value** pairs. Key has several variations. The value depends on the key type. The following table shows the supported key value pairs and the description.
 
 
 | Key     | Value (value type)  | Description                                         |
 |:--------|:--------------------|:----------------------------------------------------|
-| delay   | second (float)      | The second to wait after the previous stage finish |
+| delay   | second (float)      | Seconds to wait after the previous stage finish     |
 | port    | port number (int)   | Port number                                         |
 | file    | file name (string)  | File to be created in the previous stages           |
 | host    | host (string)       | IP address or host name                             |
