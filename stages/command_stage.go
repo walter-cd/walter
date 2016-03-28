@@ -324,6 +324,9 @@ loop:
 	outResult := bufout.String()
 	errResult := buferr.String()
 
+	log.Infof("[%s][command] %s stdout: %s", name, prefix, outResult)
+	log.Infof("[%s][command] %s stderr: %s", name, prefix, errResult)
+
 	if err != nil {
 		log.Warnf("[command] %s err: %s", prefix, err)
 		return false, &outResult, &errResult, &combinedResult
@@ -334,7 +337,6 @@ loop:
 func printOutput(r io.Reader, prefix string, name string, out chan string, done chan bool) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		log.Infof("[%s][command] %s output: %s", name, prefix, scanner.Text())
 		out <- fmt.Sprintf("%s\n", scanner.Text())
 	}
 	done <- true
