@@ -332,10 +332,19 @@ loop:
 }
 
 func printOutput(r io.Reader, prefix string, name string, out chan string, done chan bool) {
-	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		log.Infof("[%s][command] %s output: %s", name, prefix, scanner.Text())
-		out <- fmt.Sprintf("%s\n", scanner.Text())
+	reader := bufio.NewReaderSize(r, 1048576)
+	for {
+		line, _, err := reader.ReadLine()
+
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Error(err.Error())
+			os.Exit(1)
+		}
+
+		log.Infof("[%s][command] %s output: %s", name, prefix, string(line))
+		out <- fmt.Sprintf("%s\n", string(line))
 	}
 	done <- true
 }
