@@ -50,6 +50,10 @@ type Resources struct {
 
 // ReportStageResult throw the results of specified stage to the messenger services.
 func (resources *Resources) ReportStageResult(stage stages.Stage, resultStr string) {
+	if !stage.GetReportFlag() {
+		return
+	}
+
 	name := stage.GetStageName()
 	if !resources.Reporter.Suppress("result") {
 		if resultStr == "true" {
