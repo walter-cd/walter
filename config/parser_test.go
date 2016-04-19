@@ -493,3 +493,20 @@ pipeline:
 	assert.NotNil(t, err)
 	assert.Equal(t, "overriding required stage is forbidden", err.Error())
 }
+
+func TestParseReportFlag(t *testing.T) {
+	configData, err := ReadConfigBytes([]byte(`
+pipeline:
+  - name: report is true
+    report: true
+  - name: report is false
+    report: false
+`))
+
+	parser := &Parser{ConfigData: configData, EnvVariables: NewEnvVariables()}
+	resources, err := parser.Parse()
+	assert.Nil(t, err)
+	assert.NotNil(t, resources)
+	assert.Equal(t, true, resources.Pipeline.Stages.Front().Value.(*stages.CommandStage).GetReportFlag())
+	assert.Equal(t, false, resources.Pipeline.Stages.Back().Value.(*stages.CommandStage).GetReportFlag())
+}

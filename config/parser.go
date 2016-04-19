@@ -253,6 +253,17 @@ func (parser *Parser) mapStage(stageMap map[interface{}]interface{},
 		stage.SetStageName(mergedStageMap["stage_name"].(string))
 	}
 
+	if reportFlag := mergedStageMap["report"]; reportFlag != nil {
+		switch reportFlag.(type) {
+		case bool:
+			stage.SetReportFlag(reportFlag.(bool))
+		default:
+			stage.SetReportFlag(true)
+		}
+	} else {
+		stage.SetReportFlag(true)
+	}
+
 	stageOpts := stages.NewStageOpts()
 	if reportingFullOutput := mergedStageMap["report_full_output"]; reportingFullOutput != nil {
 		stageOpts.ReportingFullOutput = true
