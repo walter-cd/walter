@@ -41,6 +41,8 @@ type Stage interface {
 	SetErrResult(string)
 	GetCombinedResult() string
 	SetCombinedResult(string)
+	GetReportFlag() bool
+	SetReportFlag(bool)
 	GetReturnValue() bool
 }
 
