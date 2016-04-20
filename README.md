@@ -196,6 +196,8 @@ messenger:
   room_id: ROOM_ID
   token: TOKEN
   from: USER_NAME
+  suppress:
+     - stderr
 ```
 
 To report the full output of stage execution to the specified messenger service added with the above setting,
@@ -240,6 +242,30 @@ To activate the report function, we need to specify the properties for messenger
 |:----------------:|:----------------------------------|
 |   channel        |  Channel name                     |
 |   username       |  User name                        |
+
+### Suppress output
+
+Users can suppress the output from stages with **suppress** attribute. **suppress** attribute is a list block. Users add the output types to supress the report to the messenger. There are three output types (**result**, **stdout**, and **stderr**).
+
+|  Property Name   | meaning                                      |
+|:----------------:|:---------------------------------------------|
+|   result         |  Command execution result (true or false)    |
+|   stdout         |  output flushed to standard output           |
+|   stderr         |  output flushed to standard error            |
+
+The following sample suppress output flush to standard output and stage results.
+
+```yaml
+messenger:
+  type: hipchat2
+  base_url: BASE_URL
+  room_id: ROOM_ID
+  token: TOKEN
+  from: USER_NAME
+  suppress:
+     - stdout
+     - result
+```
 
 ## Service coordination
 
