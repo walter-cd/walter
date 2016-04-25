@@ -57,7 +57,7 @@ type BaseStage struct {
 	// options of the stage.
 	Opts StageOpts
 
-	// ReportFlag reports or not with messagers
+	// SuppressAll reports or not with messagers
 	SuppressAll bool `config:"suppress_all"`
 
 	// Start time of the stage by UNIX time
