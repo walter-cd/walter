@@ -57,6 +57,9 @@ type BaseStage struct {
 	// options of the stage.
 	Opts StageOpts
 
+	// SuppressAll reports or not with messagers
+	SuppressAll bool `config:"suppress_all"`
+
 	// Start time of the stage by UNIX time
 	Start int64
 
@@ -162,7 +165,7 @@ func (b *BaseStage) GetCombinedResult() string {
 	return b.CombinedResult
 }
 
-// SetErrResult sets stdout and stderr combined results.
+// SetCombinedResult sets stdout and stderr combined results.
 func (b *BaseStage) SetCombinedResult(result string) {
 	b.CombinedResult = result
 }
@@ -195,4 +198,14 @@ func (b *BaseStage) GetEnd() int64 {
 // SetEnd sets start time of the stage
 func (b *BaseStage) SetEnd(end int64) {
 	b.End = end
+}
+
+// GetSuppressAll returns the report flag
+func (b *BaseStage) GetSuppressAll() bool {
+	return b.SuppressAll
+}
+
+// SetSuppressAll returns the report flag
+func (b *BaseStage) SetSuppressAll(rf bool) {
+	b.SuppressAll = rf
 }

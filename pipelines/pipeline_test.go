@@ -25,6 +25,7 @@ import (
 
 func createStage(stageType string) stages.Stage {
 	stage, _ := stages.InitStage(stageType)
+	stage.SetSuppressAll(false)
 	return stage
 }
 
@@ -96,4 +97,21 @@ func TestReportStageResultWithFullOutput(t *testing.T) {
 	p.ReportStageResult(stage, "true")
 
 	assert.Equal(t, 2, len(mock.Posts))
+}
+
+func TestSuppressAll(t *testing.T) {
+	mock := &MockMessenger{}
+	p := Resources{
+		Reporter: mock,
+	}
+
+	stage := createStage("command")
+	stage.SetSuppressAll(true)
+	stage.SetStageName("Report flag is false")
+	stage.SetOutResult("output")
+
+	p.ReportStageResult(stage, "true")
+
+	assert.Equal(t, 0, len(mock.Posts))
+
 }
