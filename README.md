@@ -96,6 +96,8 @@ The following is the parameter of Command stage.
 |   command      | false      | shell command run in the stage                                              |
 |   only_if      | true       | run specified command on when the condition written in only_if is satisfied |
 |   directory    | true       | the directory where walter runs the specified command                       |
+|   suppress_all | true       | suppress all the report from the stage (default: false)                     |
+
 
 #### Shell script stage
 Shell script stage executes specified shell script file. Users specify Shell script stage adding **shell** in type.
