@@ -58,7 +58,7 @@ type BaseStage struct {
 	Opts StageOpts
 
 	// ReportFlag reports or not with messagers
-	ReportFlag bool `config:"report"`
+	SuppressAll bool `config:"suppress_all"`
 
 	// Start time of the stage by UNIX time
 	Start int64
@@ -200,12 +200,12 @@ func (b *BaseStage) SetEnd(end int64) {
 	b.End = end
 }
 
-// GetReportFlag returns the report flag
-func (b *BaseStage) GetReportFlag() bool {
-	return b.ReportFlag
+// GetSuppressAll returns the report flag
+func (b *BaseStage) GetSuppressAll() bool {
+	return b.SuppressAll
 }
 
-// SetReportFlag returns the report flag
-func (b *BaseStage) SetReportFlag(rf bool) {
-	b.ReportFlag = rf
+// SetSuppressAll returns the report flag
+func (b *BaseStage) SetSuppressAll(rf bool) {
+	b.SuppressAll = rf
 }

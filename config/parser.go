@@ -253,15 +253,15 @@ func (parser *Parser) mapStage(stageMap map[interface{}]interface{},
 		stage.SetStageName(mergedStageMap["stage_name"].(string))
 	}
 
-	if reportFlag := mergedStageMap["report"]; reportFlag != nil {
-		switch reportFlag.(type) {
+	if suppressAll := mergedStageMap["suppress_all"]; suppressAll != nil {
+		switch suppressAll.(type) {
 		case bool:
-			stage.SetReportFlag(reportFlag.(bool))
+			stage.SetSuppressAll(suppressAll.(bool))
 		default:
-			stage.SetReportFlag(true)
+			stage.SetSuppressAll(false)
 		}
 	} else {
-		stage.SetReportFlag(true)
+		stage.SetSuppressAll(false)
 	}
 
 	stageOpts := stages.NewStageOpts()
