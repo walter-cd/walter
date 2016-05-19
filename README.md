@@ -97,7 +97,21 @@ The following is the parameter of Command stage.
 |   only_if      | true       | run specified command on when the condition written in only_if is satisfied |
 |   directory    | true       | the directory where walter runs the specified command                       |
 
+Note that when you specify the condition in **only_if** with square brackets, the string contents are needed
+to be escaped with back slash. The following is the sample of the only_if with square brackets.
+
+```yaml
+pipeline:
+    - name: stage_1
+      command: echo "hello world from stage_1"
+      only_if: "[ \"foo\" = \"foo\" ]"
+    - name: stage_2
+      type: command
+      command: echo "hello world from stage_2"
+```
+
 #### Shell script stage
+
 Shell script stage executes specified shell script file. Users specify Shell script stage adding **shell** in type.
 
 The following is the parameter of Shell script stage.
