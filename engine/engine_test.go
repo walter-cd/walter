@@ -250,6 +250,34 @@ func TestRunOnceWithOnlyIfSuccess(t *testing.T) {
 	assert.Equal(t, true, result.IsSucceeded())
 }
 
+func TestRunOnceWithOnlyIfWithBracketsStyle(t *testing.T) {
+	resources := &pipelines.Resources{
+		Reporter: &messengers.FakeMessenger{},
+		Pipeline: &pipelines.Pipeline{},
+		Cleanup:  &pipelines.Pipeline{},
+	}
+	resources.Pipeline.AddStage(createCommandStageWithOnlyIf("first", "echo first", "[ \"foo\" = \"foo\" ]"))
+	resources.Pipeline.AddStage(createCommandStageWithName("second", "echo second"))
+	resources.Pipeline.AddStage(createCommandStageWithName("third", "echo third"))
+	monitorCh := make(chan stages.Mediator)
+	o := &config.Opts{}
+	engine := &Engine{
+		Resources:    resources,
+		MonitorCh:    &monitorCh,
+		Opts:         o,
+		EnvVariables: config.NewEnvVariables(),
+	}
+	result := engine.RunOnce()
+
+	assert.Equal(t, 3, len(result.Pipeline.States))
+	assert.Equal(t, "true", result.Pipeline.States["first"])
+	assert.Equal(t, "true", result.Pipeline.States["second"])
+	assert.Equal(t, "true", result.Pipeline.States["third"])
+	assert.Equal(t, false, result.Pipeline.IsAnyFailure())
+	assert.Equal(t, false, result.Cleanup.IsAnyFailure())
+	assert.Equal(t, true, result.IsSucceeded())
+}
+
 func TestRunOnceWithCleanup(t *testing.T) {
 	cleanup := &pipelines.Pipeline{}
 	cleanup.AddStage(createCommandStage("echo cleanup"))
