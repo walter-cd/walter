@@ -93,8 +93,7 @@ func (e *Engine) ExecuteStage(stage stages.Stage) {
 	log.Debugf("Execute as parent name %+v", stage.GetStageName())
 
 	mediator := stages.Mediator{States: make(map[string]string)}
-	mediator.States[stage.GetStageName()] = e.executeStage(stage, mediatorsReceived)
-	e.executeChildStages(&stage, &mediator)
+	mediator.States[stage.GetStageName()] = e.executeStage(stage, mediatorsReceived, mediator)
 
 	log.Debugf("Sending output of stage: %+v %v", stage.GetStageName(), mediator)
 	*stage.GetOutputCh() <- mediator
@@ -112,7 +111,7 @@ func (e *Engine) executeChildStages(stage *stages.Stage, mediator *stages.Mediat
 	}
 }
 
-func (e *Engine) executeStage(stage stages.Stage, received []stages.Mediator) string {
+func (e *Engine) executeStage(stage stages.Stage, received []stages.Mediator, mediator stages.Mediator) string {
 	var result string
 	if !e.isUpstreamAnyFailure(received) || e.Opts.StopOnAnyFailure {
 		result = strconv.FormatBool(stage.(stages.Runner).Run())
@@ -120,8 +119,14 @@ func (e *Engine) executeStage(stage stages.Stage, received []stages.Mediator) st
 		e.EnvVariables.ExportSpecialVariable("__ERR[\""+stage.GetStageName()+"\"]", stage.GetErrResult())
 		e.EnvVariables.ExportSpecialVariable("__COMBINED[\""+stage.GetStageName()+"\"]", stage.GetCombinedResult())
 		e.EnvVariables.ExportSpecialVariable("__RESULT[\""+stage.GetStageName()+"\"]", result)
+		e.executeChildStages(&stage, &mediator)
 	} else {
 		log.Warnf("Execution is skipped: %v", stage.GetStageName())
+		if childStages := stage.GetChildStages(); childStages.Len() > 0 {
+			for childStage := childStages.Front(); childStage != nil; childStage = childStage.Next() {
+				log.Warnf("Execution of child stage is skipped: %v", childStage.Value.(stages.Stage).GetStageName())
+			}
+		}
 		result = "skipped"
 	}
 	e.Resources.ReportStageResult(stage, result)
