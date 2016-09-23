@@ -30,7 +30,7 @@ deploy:
     - name: deploy 1
       command: echo "hello world, deploy 1"
   cleanup:
-    - name cleanup
+    - name: cleanup
       command: command for cleanup
 ```
 
