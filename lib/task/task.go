@@ -11,7 +11,8 @@ type Task struct {
 	Command  string
 	Parallel []Task
 	Serial   []Task
-	Stdout   string
+	Stdout   []string
+	Stderr   []string
 }
 
 func (t *Task) Run() error {
@@ -23,23 +24,41 @@ func (t *Task) Run() error {
 		runSerial(t.Serial)
 	}
 
-	if t.Command != "" {
-		cmd := exec.Command("sh", "-c", t.Command)
-
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			return err
-		}
-
-		cmd.Start()
-
-		in := bufio.NewScanner(stdout)
-		for in.Scan() {
-			t.Stdout += in.Text()
-		}
-
-		cmd.Wait()
+	if t.Command == "" {
+		return nil
 	}
+
+	cmd := exec.Command("sh", "-c", t.Command)
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	go func() {
+		scanner := bufio.NewScanner(stdoutPipe)
+		for scanner.Scan() {
+			t.Stdout = append(t.Stdout, scanner.Text())
+		}
+	}()
+
+	go func() {
+		scanner := bufio.NewScanner(stderrPipe)
+		for scanner.Scan() {
+			t.Stderr = append(t.Stderr, scanner.Text())
+		}
+	}()
+
+	cmd.Wait()
 
 	return nil
 }
