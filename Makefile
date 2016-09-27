@@ -13,6 +13,7 @@ deps: setup
 
 test: deps
 	go test $$(glide novendor)
+	go test -race $$(glide novendor)
 
 lint: setup
 	go vet $$(glide novendor)
