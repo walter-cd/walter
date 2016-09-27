@@ -73,8 +73,8 @@ func (t *Task) Run() error {
 		}
 	}()
 
-	cmd.Wait()
 	wg.Wait()
+	cmd.Wait()
 
 	return nil
 }
