@@ -4,15 +4,18 @@ import (
 	"bufio"
 	"os/exec"
 	"sync"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 type Task struct {
-	Name     string
-	Command  string
-	Parallel []Task
-	Serial   []Task
-	Stdout   []string
-	Stderr   []string
+	Name           string
+	Command        string
+	Parallel       []Task
+	Serial         []Task
+	Stdout         []string
+	Stderr         []string
+	CombinedOutput []string
 }
 
 func (t *Task) Run() error {
@@ -44,21 +47,34 @@ func (t *Task) Run() error {
 		return err
 	}
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		scanner := bufio.NewScanner(stdoutPipe)
 		for scanner.Scan() {
-			t.Stdout = append(t.Stdout, scanner.Text())
+			text := scanner.Text()
+			t.Stdout = append(t.Stdout, text)
+			t.CombinedOutput = append(t.CombinedOutput, text)
+			log.Info(text)
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		scanner := bufio.NewScanner(stderrPipe)
 		for scanner.Scan() {
-			t.Stderr = append(t.Stderr, scanner.Text())
+			text := scanner.Text()
+			t.Stderr = append(t.Stderr, text)
+			t.CombinedOutput = append(t.CombinedOutput, text)
+			log.Info(text)
 		}
 	}()
 
 	cmd.Wait()
+	wg.Wait()
 
 	return nil
 }

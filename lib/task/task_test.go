@@ -17,6 +17,10 @@ func TestStdout(t *testing.T) {
 	if !contains(tsk.Stdout, "hello") {
 		t.Fatalf("tsk.Stdout is %s, it does not contain \"hello\"", tsk.Stdout)
 	}
+
+	if !contains(tsk.CombinedOutput, "hello") {
+		t.Fatalf("tsk.CombinedOutput is %s, it does not contain \"hello\"", tsk.CombinedOutput)
+	}
 }
 
 func TestStderr(t *testing.T) {
@@ -30,6 +34,10 @@ func TestStderr(t *testing.T) {
 
 	if !contains(tsk.Stderr, "hello") {
 		t.Fatalf("tsk.Stderr is %s, it does not contain \"hello\"", tsk.Stderr)
+	}
+
+	if !contains(tsk.CombinedOutput, "hello") {
+		t.Fatalf("tsk.CombinedOutput is %s, it does not contain \"hello\"", tsk.CombinedOutput)
 	}
 }
 
