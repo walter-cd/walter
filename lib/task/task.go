@@ -19,8 +19,8 @@ const (
 type Task struct {
 	Name           string
 	Command        string
-	Parallel       []*Task
-	Serial         []*Task
+	Parallel       Parallel
+	Serial         Tasks
 	Stdout         []string
 	Stderr         []string
 	CombinedOutput []string
@@ -28,6 +28,7 @@ type Task struct {
 }
 
 type Tasks []*Task
+type Parallel []*Task
 
 func (tasks Tasks) Run() {
 	failed := false
@@ -46,11 +47,11 @@ func (tasks Tasks) Run() {
 
 func (t *Task) Run() error {
 	if len(t.Parallel) > 0 {
-		runParallel(t.Parallel)
+		t.Parallel.Run()
 	}
 
 	if len(t.Serial) > 0 {
-		runSerial(t.Serial)
+		t.Serial.Run()
 	}
 
 	if t.Command == "" {
@@ -115,7 +116,7 @@ func (t *Task) Run() error {
 	return nil
 }
 
-func runParallel(tasks []*Task) {
+func (tasks Parallel) Run() {
 	var wg sync.WaitGroup
 	for _, t := range tasks {
 		wg.Add(1)
@@ -127,8 +128,4 @@ func runParallel(tasks []*Task) {
 		}(t)
 	}
 	wg.Wait()
-}
-
-func runSerial(tasks Tasks) {
-	tasks.Run()
 }
