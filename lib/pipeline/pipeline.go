@@ -36,12 +36,12 @@ func LoadFromFile(file string) (Pipeline, error) {
 	return Load(data)
 }
 
-func (p Pipeline) Run() {
+func (p *Pipeline) Run() {
 	p.runBuild()
 	p.runDeploy()
 }
 
-func (p Pipeline) runBuild() {
+func (p *Pipeline) runBuild() {
 	for _, t := range p.Build.Tasks {
 		t.Run()
 	}
@@ -51,7 +51,7 @@ func (p Pipeline) runBuild() {
 	}
 }
 
-func (p Pipeline) runDeploy() {
+func (p *Pipeline) runDeploy() {
 	for _, t := range p.Deploy.Tasks {
 		t.Run()
 	}
