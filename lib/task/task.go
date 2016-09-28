@@ -48,10 +48,22 @@ func (tasks Tasks) Run() {
 func (t *Task) Run() error {
 	if len(t.Parallel) > 0 {
 		t.Parallel.Run()
+		t.Status = Succeeded
+		for _, task := range t.Parallel {
+			if task.Status == Failed {
+				t.Status = Failed
+			}
+		}
 	}
 
 	if len(t.Serial) > 0 {
 		t.Serial.Run()
+		t.Status = Succeeded
+		for _, task := range t.Serial {
+			if task.Status == Failed {
+				t.Status = Failed
+			}
+		}
 	}
 
 	if t.Command == "" {
