@@ -3,6 +3,8 @@ package pipeline
 import (
 	"io/ioutil"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/go-yaml/yaml"
 	"github.com/walter-cd/walter/lib/task"
 )
@@ -42,11 +44,15 @@ func (p *Pipeline) Run() {
 }
 
 func (b *Build) Run() {
+	log.Info("Start build phase")
 	b.Tasks.Run()
+	log.Info("Start cleanup phase of build")
 	b.Cleanup.Run()
 }
 
 func (d *Deploy) Run() {
+	log.Info("Start deploy phase")
 	d.Tasks.Run()
+	log.Info("Start cleanup phase of build")
 	d.Cleanup.Run()
 }

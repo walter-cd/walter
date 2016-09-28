@@ -30,11 +30,17 @@ type Task struct {
 type Tasks []*Task
 
 func (tasks Tasks) Run() {
+	failed := false
 	for i, t := range tasks {
-		if i > 0 && tasks[i-1].Status == Failed {
-			break
+		if failed || (i > 0 && tasks[i-1].Status == Failed) {
+			t.Status = Skipped
+			failed = true
+			log.Infof("[%s] Task skipped because previous task failed", t.Name)
+			continue
 		}
+		log.Infof("[%s] Start task", t.Name)
 		t.Run()
+		log.Infof("[%s] End task", t.Name)
 	}
 }
 
@@ -79,7 +85,7 @@ func (t *Task) Run() error {
 			text := scanner.Text()
 			t.Stdout = append(t.Stdout, text)
 			t.CombinedOutput = append(t.CombinedOutput, text)
-			log.Info(text)
+			log.Infof("[%s] %s", t.Name, text)
 		}
 	}()
 
@@ -91,7 +97,7 @@ func (t *Task) Run() error {
 			text := scanner.Text()
 			t.Stderr = append(t.Stderr, text)
 			t.CombinedOutput = append(t.CombinedOutput, text)
-			log.Info(text)
+			log.Infof("[%s] %s", t.Name, text)
 		}
 	}()
 
@@ -102,6 +108,7 @@ func (t *Task) Run() error {
 	if cmd.ProcessState.Success() {
 		t.Status = Succeeded
 	} else {
+		log.Errorf("[%s] Task failed", t.Name)
 		t.Status = Failed
 	}
 
@@ -114,7 +121,9 @@ func runParallel(tasks []*Task) {
 		wg.Add(1)
 		go func(t *Task) {
 			defer wg.Done()
+			log.Infof("[%s] Start task", t.Name)
 			t.Run()
+			log.Infof("[%s] End task", t.Name)
 		}(t)
 	}
 	wg.Wait()
