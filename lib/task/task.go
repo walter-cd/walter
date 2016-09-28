@@ -19,12 +19,23 @@ const (
 type Task struct {
 	Name           string
 	Command        string
-	Parallel       []Task
-	Serial         []Task
+	Parallel       []*Task
+	Serial         []*Task
 	Stdout         []string
 	Stderr         []string
 	CombinedOutput []string
 	Status         int
+}
+
+type Tasks []*Task
+
+func (tasks Tasks) Run() {
+	for i, t := range tasks {
+		if i > 0 && tasks[i-1].Status == Failed {
+			break
+		}
+		t.Run()
+	}
 }
 
 func (t *Task) Run() error {
@@ -97,11 +108,11 @@ func (t *Task) Run() error {
 	return nil
 }
 
-func runParallel(tasks []Task) {
+func runParallel(tasks []*Task) {
 	var wg sync.WaitGroup
 	for _, t := range tasks {
 		wg.Add(1)
-		go func(t Task) {
+		go func(t *Task) {
 			defer wg.Done()
 			t.Run()
 		}(t)
@@ -109,8 +120,6 @@ func runParallel(tasks []Task) {
 	wg.Wait()
 }
 
-func runSerial(tasks []Task) {
-	for _, t := range tasks {
-		t.Run()
-	}
+func runSerial(tasks Tasks) {
+	tasks.Run()
 }

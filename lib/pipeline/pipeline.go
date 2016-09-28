@@ -13,13 +13,13 @@ type Pipeline struct {
 }
 
 type Build struct {
-	Tasks   []task.Task
-	Cleanup []task.Task
+	Tasks   task.Tasks
+	Cleanup task.Tasks
 }
 
 type Deploy struct {
-	Tasks   []task.Task
-	Cleanup []task.Task
+	Tasks   task.Tasks
+	Cleanup task.Tasks
 }
 
 func Load(b []byte) (Pipeline, error) {
@@ -37,26 +37,16 @@ func LoadFromFile(file string) (Pipeline, error) {
 }
 
 func (p *Pipeline) Run() {
-	p.runBuild()
-	p.runDeploy()
+	p.Build.Run()
+	p.Deploy.Run()
 }
 
-func (p *Pipeline) runBuild() {
-	for _, t := range p.Build.Tasks {
-		t.Run()
-	}
-
-	for _, c := range p.Build.Cleanup {
-		c.Run()
-	}
+func (b *Build) Run() {
+	b.Tasks.Run()
+	b.Cleanup.Run()
 }
 
-func (p *Pipeline) runDeploy() {
-	for _, t := range p.Deploy.Tasks {
-		t.Run()
-	}
-
-	for _, c := range p.Deploy.Cleanup {
-		c.Run()
-	}
+func (d *Deploy) Run() {
+	d.Tasks.Run()
+	d.Cleanup.Run()
 }
