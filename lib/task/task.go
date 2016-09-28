@@ -8,6 +8,14 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+const (
+	Running = iota
+	Succeeded
+	Failed
+	Skipped
+	Aborted
+)
+
 type Task struct {
 	Name           string
 	Command        string
@@ -16,6 +24,7 @@ type Task struct {
 	Stdout         []string
 	Stderr         []string
 	CombinedOutput []string
+	Status         int
 }
 
 func (t *Task) Run() error {
@@ -47,6 +56,8 @@ func (t *Task) Run() error {
 		return err
 	}
 
+	t.Status = Running
+
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -74,7 +85,14 @@ func (t *Task) Run() error {
 	}()
 
 	wg.Wait()
+
 	cmd.Wait()
+
+	if cmd.ProcessState.Success() {
+		t.Status = Succeeded
+	} else {
+		t.Status = Failed
+	}
 
 	return nil
 }

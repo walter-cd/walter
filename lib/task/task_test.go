@@ -41,6 +41,26 @@ func TestStderr(t *testing.T) {
 	}
 }
 
+func TestStatuc(t *testing.T) {
+	tsk := Task{Name: "command should succeed", Command: "echo foo"}
+	err := tsk.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tsk.Status != Succeeded {
+		t.Fatal("command not succeeded")
+	}
+
+	tsk = Task{Name: "command should fail", Command: "no_such_command"}
+	err = tsk.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tsk.Status != Failed {
+		t.Fatal("command not failed")
+	}
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if strings.Contains(a, e) {
