@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	Running = iota
+	Init = iota
+	Running
 	Succeeded
 	Failed
 	Skipped
@@ -25,6 +26,7 @@ type Task struct {
 	Stderr         []string
 	CombinedOutput []string
 	Status         int
+	Cmd            *exec.Cmd
 }
 
 type Tasks []*Task
@@ -70,19 +72,19 @@ func (t *Task) Run() error {
 		return nil
 	}
 
-	cmd := exec.Command("sh", "-c", t.Command)
+	t.Cmd = exec.Command("sh", "-c", t.Command)
 
-	stdoutPipe, err := cmd.StdoutPipe()
+	stdoutPipe, err := t.Cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
 
-	stderrPipe, err := cmd.StderrPipe()
+	stderrPipe, err := t.Cmd.StderrPipe()
 	if err != nil {
 		return err
 	}
 
-	if err := cmd.Start(); err != nil {
+	if err := t.Cmd.Start(); err != nil {
 		return err
 	}
 
@@ -116,11 +118,11 @@ func (t *Task) Run() error {
 
 	wg.Wait()
 
-	cmd.Wait()
+	t.Cmd.Wait()
 
-	if cmd.ProcessState.Success() {
+	if t.Cmd.ProcessState.Success() {
 		t.Status = Succeeded
-	} else {
+	} else if t.Status == Running {
 		log.Errorf("[%s] Task failed", t.Name)
 		t.Status = Failed
 	}
@@ -129,6 +131,8 @@ func (t *Task) Run() error {
 }
 
 func (tasks Parallel) Run() {
+	var failed = make(chan struct{})
+
 	var wg sync.WaitGroup
 	for _, t := range tasks {
 		wg.Add(1)
@@ -136,7 +140,23 @@ func (tasks Parallel) Run() {
 			defer wg.Done()
 			log.Infof("[%s] Start task", t.Name)
 			t.Run()
+			if t.Status == Failed {
+				close(failed)
+			}
 			log.Infof("[%s] End task", t.Name)
+		}(t)
+
+		go func(t *Task) {
+			for {
+				select {
+				case <-failed:
+					if t.Cmd != nil {
+						t.Status = Aborted
+						t.Cmd.Process.Kill()
+					}
+					return
+				}
+			}
 		}(t)
 	}
 	wg.Wait()
