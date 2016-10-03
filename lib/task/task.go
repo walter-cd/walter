@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"sync"
 
+	"golang.org/x/net/context"
+
 	log "github.com/Sirupsen/logrus"
 )
 
@@ -32,7 +34,7 @@ type Task struct {
 type Tasks []*Task
 type Parallel []*Task
 
-func (tasks Tasks) Run() {
+func (tasks Tasks) Run(ctx context.Context, cancel context.CancelFunc) {
 	failed := false
 	for i, t := range tasks {
 		if failed || (i > 0 && tasks[i-1].Status == Failed) {
@@ -42,15 +44,18 @@ func (tasks Tasks) Run() {
 			continue
 		}
 		log.Infof("[%s] Start task", t.Name)
-		t.Run()
-		log.Infof("[%s] End task", t.Name)
+		t.Run(ctx, cancel)
+		if t.Status == Succeeded {
+			log.Infof("[%s] End task", t.Name)
+		}
 	}
 }
 
-func (t *Task) Run() error {
+func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	if len(t.Parallel) > 0 {
-		t.Parallel.Run()
+		t.Parallel.Run(ctx, cancel)
 		t.Status = Succeeded
+		// Set Failed to parent task if one of parallel tasks failed
 		for _, task := range t.Parallel {
 			if task.Status == Failed {
 				t.Status = Failed
@@ -59,8 +64,9 @@ func (t *Task) Run() error {
 	}
 
 	if len(t.Serial) > 0 {
-		t.Serial.Run()
+		t.Serial.Run(ctx, cancel)
 		t.Status = Succeeded
+		// Set Failed to parent task if one of serial tasks failed
 		for _, task := range t.Serial {
 			if task.Status == Failed {
 				t.Status = Failed
@@ -93,7 +99,7 @@ func (t *Task) Run() error {
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	go func() {
+	go func(t *Task) {
 		defer wg.Done()
 		scanner := bufio.NewScanner(stdoutPipe)
 		for scanner.Scan() {
@@ -102,10 +108,10 @@ func (t *Task) Run() error {
 			t.CombinedOutput = append(t.CombinedOutput, text)
 			log.Infof("[%s] %s", t.Name, text)
 		}
-	}()
+	}(t)
 
 	wg.Add(1)
-	go func() {
+	go func(t *Task) {
 		defer wg.Done()
 		scanner := bufio.NewScanner(stderrPipe)
 		for scanner.Scan() {
@@ -114,7 +120,21 @@ func (t *Task) Run() error {
 			t.CombinedOutput = append(t.CombinedOutput, text)
 			log.Infof("[%s] %s", t.Name, text)
 		}
-	}()
+	}(t)
+
+	go func(t *Task) {
+		for {
+			select {
+			case <-ctx.Done():
+				if t.Status == Running {
+					t.Status = Aborted
+					t.Cmd.Process.Kill()
+					log.Warnf("[%s] aborted", t.Name)
+				}
+				return
+			}
+		}
+	}(t)
 
 	wg.Wait()
 
@@ -125,37 +145,22 @@ func (t *Task) Run() error {
 	} else if t.Status == Running {
 		log.Errorf("[%s] Task failed", t.Name)
 		t.Status = Failed
+		cancel()
 	}
 
 	return nil
 }
 
-func (tasks Parallel) Run() {
-	var failed = make(chan struct{})
-
+func (tasks Parallel) Run(ctx context.Context, cancel context.CancelFunc) {
 	var wg sync.WaitGroup
 	for _, t := range tasks {
 		wg.Add(1)
 		go func(t *Task) {
 			defer wg.Done()
 			log.Infof("[%s] Start task", t.Name)
-			t.Run()
-			if t.Status == Failed {
-				close(failed)
-			}
-			log.Infof("[%s] End task", t.Name)
-		}(t)
-
-		go func(t *Task) {
-			for {
-				select {
-				case <-failed:
-					if t.Cmd != nil {
-						t.Status = Aborted
-						t.Cmd.Process.Kill()
-					}
-					return
-				}
+			t.Run(ctx, cancel)
+			if t.Status == Succeeded {
+				log.Infof("[%s] End task", t.Name)
 			}
 		}(t)
 	}

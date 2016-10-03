@@ -3,12 +3,16 @@ package task
 import (
 	"strings"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 func TestStdout(t *testing.T) {
 	tsk := Task{Name: "echo", Command: "echo hello"}
 
-	err := tsk.Run()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	err := tsk.Run(ctx, cancel)
 
 	if err != nil {
 		t.Fatal(err)
@@ -26,7 +30,9 @@ func TestStdout(t *testing.T) {
 func TestStderr(t *testing.T) {
 	tsk := Task{Name: "echo", Command: "echo hello 1>&2"}
 
-	err := tsk.Run()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	err := tsk.Run(ctx, cancel)
 
 	if err != nil {
 		t.Fatal(err)
@@ -43,7 +49,9 @@ func TestStderr(t *testing.T) {
 
 func TestStatus(t *testing.T) {
 	tsk := Task{Name: "command should succeed", Command: "echo foo"}
-	err := tsk.Run()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	err := tsk.Run(ctx, cancel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,10 +60,11 @@ func TestStatus(t *testing.T) {
 	}
 
 	tsk = Task{Name: "command should fail", Command: "no_such_command"}
-	err = tsk.Run()
+	err = tsk.Run(ctx, cancel)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if tsk.Status != Failed {
 		t.Fatal("command not failed")
 	}

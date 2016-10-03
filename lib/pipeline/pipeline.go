@@ -3,6 +3,8 @@ package pipeline
 import (
 	"io/ioutil"
 
+	"golang.org/x/net/context"
+
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/go-yaml/yaml"
@@ -40,19 +42,29 @@ func LoadFromFile(file string) (Pipeline, error) {
 
 func (p *Pipeline) Run() {
 	p.Build.Run()
-	p.Deploy.Run()
+	//p.Deploy.Run()
 }
 
 func (b *Build) Run() {
 	log.Info("Start build phase")
-	b.Tasks.Run()
+	buildCtx, buildCancel := context.WithCancel(context.Background())
+	defer buildCancel()
+	b.Tasks.Run(buildCtx, buildCancel)
+
 	log.Info("Start cleanup phase of build")
-	b.Cleanup.Run()
+	cleanupCtx, cleanupCancel := context.WithCancel(context.Background())
+	defer cleanupCancel()
+	b.Cleanup.Run(cleanupCtx, cleanupCancel)
 }
 
 func (d *Deploy) Run() {
 	log.Info("Start deploy phase")
-	d.Tasks.Run()
+	deployCtx, deployCancel := context.WithCancel(context.Background())
+	defer deployCancel()
+	d.Tasks.Run(deployCtx, deployCancel)
+
 	log.Info("Start cleanup phase of build")
-	d.Cleanup.Run()
+	cleanupCtx, cleanupCancel := context.WithCancel(context.Background())
+	defer cleanupCancel()
+	d.Cleanup.Run(cleanupCtx, cleanupCancel)
 }
