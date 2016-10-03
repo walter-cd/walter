@@ -41,7 +41,7 @@ func TestStderr(t *testing.T) {
 	}
 }
 
-func TestStatuc(t *testing.T) {
+func TestStatus(t *testing.T) {
 	tsk := Task{Name: "command should succeed", Command: "echo foo"}
 	err := tsk.Run()
 	if err != nil {
