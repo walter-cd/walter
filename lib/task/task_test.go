@@ -70,6 +70,29 @@ func TestStatus(t *testing.T) {
 	}
 }
 
+func TestSerialTasks(t *testing.T) {
+	t1 := &Task{Name: "foo", Command: "echo foo"}
+	t2 := &Task{Name: "bar", Command: "barbarbar"}
+	t3 := &Task{Name: "baz", Command: "echo baz"}
+
+	tasks := &Tasks{t1, t2, t3}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	tasks.Run(ctx, cancel)
+
+	if t1.Status != Succeeded {
+		t.Fatal("t1 should have succeeded")
+	}
+
+	if t2.Status != Failed {
+		t.Fatal("t2 should have failed")
+	}
+
+	if t3.Status != Skipped {
+		t.Fatalf("t2 should have beed skipped")
+	}
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if strings.Contains(a, e) {
