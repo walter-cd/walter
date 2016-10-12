@@ -22,6 +22,7 @@ const (
 type Task struct {
 	Name           string
 	Command        string
+	Directory      string
 	Parallel       Parallel
 	Serial         Tasks
 	Stdout         []string
@@ -44,7 +45,12 @@ func (tasks Tasks) Run(ctx context.Context, cancel context.CancelFunc) {
 			continue
 		}
 		log.Infof("[%s] Start task", t.Name)
-		t.Run(ctx, cancel)
+
+		err := t.Run(ctx, cancel)
+		if err != nil {
+			log.Errorf("[%s] %s", t.Name, err)
+		}
+
 		if t.Status == Succeeded {
 			log.Infof("[%s] End task", t.Name)
 		}
@@ -80,6 +86,10 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 
 	t.Cmd = exec.Command("sh", "-c", t.Command)
 
+	if t.Directory != "" {
+		t.Cmd.Dir = t.Directory
+	}
+
 	stdoutPipe, err := t.Cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -91,6 +101,7 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	}
 
 	if err := t.Cmd.Start(); err != nil {
+		t.Status = Failed
 		return err
 	}
 
