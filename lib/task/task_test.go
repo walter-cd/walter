@@ -8,7 +8,7 @@ import (
 )
 
 func TestStdout(t *testing.T) {
-	tsk := Task{Name: "echo", Command: "echo hello"}
+	tsk := &Task{Name: "echo", Command: "echo hello"}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -28,7 +28,7 @@ func TestStdout(t *testing.T) {
 }
 
 func TestStderr(t *testing.T) {
-	tsk := Task{Name: "echo", Command: "echo hello 1>&2"}
+	tsk := &Task{Name: "echo", Command: "echo hello 1>&2"}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -48,7 +48,7 @@ func TestStderr(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	tsk := Task{Name: "command should succeed", Command: "echo foo"}
+	tsk := &Task{Name: "command should succeed", Command: "echo foo"}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	err := tsk.Run(ctx, cancel)
@@ -59,7 +59,7 @@ func TestStatus(t *testing.T) {
 		t.Fatal("command not succeeded")
 	}
 
-	tsk = Task{Name: "command should fail", Command: "no_such_command"}
+	tsk = &Task{Name: "command should fail", Command: "no_such_command"}
 	err = tsk.Run(ctx, cancel)
 	if err != nil {
 		t.Fatal(err)
