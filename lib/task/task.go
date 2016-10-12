@@ -129,6 +129,8 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 				if t.Status == Running {
 					t.Status = Aborted
 					t.Cmd.Process.Kill()
+					stdoutPipe.Close()
+					stderrPipe.Close()
 					log.Warnf("[%s] aborted", t.Name)
 				}
 				return
