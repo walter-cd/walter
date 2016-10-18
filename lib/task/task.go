@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os/exec"
 	"sync"
+	"syscall"
 
 	"golang.org/x/net/context"
 
@@ -85,6 +86,7 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	}
 
 	t.Cmd = exec.Command("sh", "-c", t.Command)
+	t.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	if t.Directory != "" {
 		t.Cmd.Dir = t.Directory
@@ -140,8 +142,10 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 				if t.Status == Running {
 					t.Status = Aborted
 					t.Cmd.Process.Kill()
-					stdoutPipe.Close()
-					stderrPipe.Close()
+					pgid, err := syscall.Getpgid(t.Cmd.Process.Pid)
+					if err == nil {
+						syscall.Kill(-pgid, 15)
+					}
 					log.Warnf("[%s] aborted", t.Name)
 				}
 				return
