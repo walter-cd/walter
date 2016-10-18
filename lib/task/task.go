@@ -144,7 +144,7 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 					t.Cmd.Process.Kill()
 					pgid, err := syscall.Getpgid(t.Cmd.Process.Pid)
 					if err == nil {
-						syscall.Kill(-pgid, 15)
+						syscall.Kill(-pgid, syscall.SIGTERM)
 					}
 					log.Warnf("[%s] aborted", t.Name)
 				}
