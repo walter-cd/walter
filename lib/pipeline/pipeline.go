@@ -63,7 +63,7 @@ func (d *Deploy) Run() {
 	defer deployCancel()
 	d.Tasks.Run(deployCtx, deployCancel)
 
-	log.Info("Start cleanup phase of build")
+	log.Info("Start cleanup phase of deploy")
 	cleanupCtx, cleanupCancel := context.WithCancel(context.Background())
 	defer cleanupCancel()
 	d.Cleanup.Run(cleanupCtx, cleanupCancel)
