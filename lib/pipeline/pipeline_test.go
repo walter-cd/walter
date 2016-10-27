@@ -85,6 +85,6 @@ func TestSerialAndParallelTasks(t *testing.T) {
 	}
 
 	if t3.Status != task.Skipped {
-		t.Fatal("t3.should have skipped")
+		t.Fatal("t3 should have skipped")
 	}
 }
