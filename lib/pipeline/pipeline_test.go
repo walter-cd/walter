@@ -69,7 +69,7 @@ func TestSerialAndParallelTasks(t *testing.T) {
 	p.runTasks(ctx, cancel, tasks)
 
 	if p1.Status != task.Aborted {
-		t.Fatal("p1 should have been aborted", p1.Status)
+		t.Fatal("p1 should have been aborted")
 	}
 
 	if p2.Status != task.Failed {
