@@ -9,12 +9,14 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/go-yaml/yaml"
+	"github.com/walter-cd/walter/lib/notify"
 	"github.com/walter-cd/walter/lib/task"
 )
 
 type Pipeline struct {
-	Build  Build
-	Deploy Deploy
+	Build     Build
+	Deploy    Deploy
+	Notifiers []notify.Notifier
 }
 
 type Build struct {
@@ -35,6 +37,8 @@ func Load(b []byte) (Pipeline, error) {
 	if err != nil {
 		return p, err
 	}
+
+	p.Notifiers, err = notify.NewNotifiers(b)
 
 	return p, err
 }
@@ -95,6 +99,9 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 			log.Infof("[%s] End task", t.Name)
 		}
 
+		for _, n := range p.Notifiers {
+			n.Notify(t)
+		}
 	}
 }
 
@@ -108,6 +115,10 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 			t.Run(ctx, cancel)
 			if t.Status == task.Succeeded {
 				log.Infof("[%s] End task", t.Name)
+			}
+
+			for _, n := range p.Notifiers {
+				n.Notify(t)
 			}
 		}(t)
 	}

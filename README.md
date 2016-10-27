@@ -3,7 +3,13 @@
 ## pipeline.yml
 
 ```yaml
-build:
+notify:
+  - type: slack
+    channel: serverspec
+    url: $SLACK_WEBHOOK_URL
+    icon_url: http://example.jp/icon.png
+    username: walter
+
   tasks:
     - name: build 1
       command: echo "hello w"
