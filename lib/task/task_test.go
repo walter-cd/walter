@@ -70,63 +70,6 @@ func TestStatus(t *testing.T) {
 	}
 }
 
-func TestSerialTasks(t *testing.T) {
-	t1 := &Task{Name: "foo", Command: "echo foo"}
-	t2 := &Task{Name: "bar", Command: "barbarbar"}
-	t3 := &Task{Name: "baz", Command: "echo baz"}
-
-	tasks := &Tasks{t1, t2, t3}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	tasks.Run(ctx, cancel)
-
-	if t1.Status != Succeeded {
-		t.Fatal("t1 should have succeeded")
-	}
-
-	if t2.Status != Failed {
-		t.Fatal("t2 should have failed")
-	}
-
-	if t3.Status != Skipped {
-		t.Fatalf("t2 should have beed skipped")
-	}
-}
-
-func TestParallelTasks(t *testing.T) {
-	p1 := &Task{Name: "p1", Command: "sleep 1"}
-	p2 := &Task{Name: "p2", Command: "p2p2p2p2"}
-	p3 := &Task{Name: "p3", Command: "sleep 1"}
-
-	t1 := &Task{Name: "foo", Command: "echo foo"}
-	t2 := &Task{Name: "bar", Parallel: Parallel{p1, p2, p3}}
-	t3 := &Task{Name: "baz", Command: "echo baz"}
-
-	tasks := &Tasks{t1, t2, t3}
-	ctx, cancel := context.WithCancel(context.Background())
-	tasks.Run(ctx, cancel)
-
-	if p1.Status != Aborted {
-		t.Fatal("p1 should have been aborted")
-	}
-
-	if p2.Status != Failed {
-		t.Fatal("p2 should have been failed")
-	}
-
-	if p3.Status != Aborted {
-		t.Fatal("p3 should have been aborted")
-	}
-
-	if t2.Status != Failed {
-		t.Fatal("t2 should have failed")
-	}
-
-	if t3.Status != Skipped {
-		t.Fatal("t3.should have skipped")
-	}
-}
-
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if strings.Contains(a, e) {

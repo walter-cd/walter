@@ -24,8 +24,8 @@ type Task struct {
 	Name           string
 	Command        string
 	Directory      string
-	Parallel       Parallel
-	Serial         Tasks
+	Parallel       []*Task
+	Serial         []*Task
 	Stdout         []string
 	Stderr         []string
 	CombinedOutput []string
@@ -33,54 +33,7 @@ type Task struct {
 	Cmd            *exec.Cmd
 }
 
-type Tasks []*Task
-type Parallel []*Task
-
-func (tasks Tasks) Run(ctx context.Context, cancel context.CancelFunc) {
-	failed := false
-	for i, t := range tasks {
-		if failed || (i > 0 && tasks[i-1].Status == Failed) {
-			t.Status = Skipped
-			failed = true
-			log.Infof("[%s] Task skipped because previous task failed", t.Name)
-			continue
-		}
-		log.Infof("[%s] Start task", t.Name)
-
-		err := t.Run(ctx, cancel)
-		if err != nil {
-			log.Errorf("[%s] %s", t.Name, err)
-		}
-
-		if t.Status == Succeeded {
-			log.Infof("[%s] End task", t.Name)
-		}
-	}
-}
-
 func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
-	if len(t.Parallel) > 0 {
-		t.Parallel.Run(ctx, cancel)
-		t.Status = Succeeded
-		// Set Failed to parent task if one of parallel tasks failed
-		for _, task := range t.Parallel {
-			if task.Status == Failed {
-				t.Status = Failed
-			}
-		}
-	}
-
-	if len(t.Serial) > 0 {
-		t.Serial.Run(ctx, cancel)
-		t.Status = Succeeded
-		// Set Failed to parent task if one of serial tasks failed
-		for _, task := range t.Serial {
-			if task.Status == Failed {
-				t.Status = Failed
-			}
-		}
-	}
-
 	if t.Command == "" {
 		return nil
 	}
@@ -168,6 +121,7 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	return nil
 }
 
+/*
 func (tasks Parallel) Run(ctx context.Context, cancel context.CancelFunc) {
 	var wg sync.WaitGroup
 	for _, t := range tasks {
@@ -183,3 +137,4 @@ func (tasks Parallel) Run(ctx context.Context, cancel context.CancelFunc) {
 	}
 	wg.Wait()
 }
+*/
