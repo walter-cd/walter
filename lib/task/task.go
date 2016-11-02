@@ -2,7 +2,10 @@ package task
 
 import (
 	"bufio"
+	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -42,6 +45,12 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	t.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
 	if t.Directory != "" {
+		re := regexp.MustCompile(`\$[A-Z1-9\-_]+`)
+		matches := re.FindAllString(t.Directory, -1)
+		for _, m := range matches {
+			env := os.Getenv(strings.TrimPrefix(m, "$"))
+			t.Directory = strings.Replace(t.Directory, m, env, -1)
+		}
 		t.Cmd.Dir = t.Directory
 	}
 
