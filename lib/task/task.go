@@ -120,21 +120,3 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 
 	return nil
 }
-
-/*
-func (tasks Parallel) Run(ctx context.Context, cancel context.CancelFunc) {
-	var wg sync.WaitGroup
-	for _, t := range tasks {
-		wg.Add(1)
-		go func(t *Task) {
-			defer wg.Done()
-			log.Infof("[%s] Start task", t.Name)
-			t.Run(ctx, cancel)
-			if t.Status == Succeeded {
-				log.Infof("[%s] End task", t.Name)
-			}
-		}(t)
-	}
-	wg.Wait()
-}
-*/
