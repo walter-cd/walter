@@ -1,6 +1,10 @@
 package notify
 
 import (
+	"os"
+	"regexp"
+	"strings"
+
 	"github.com/go-yaml/yaml"
 	"github.com/walter-cd/walter/lib/task"
 )
@@ -21,6 +25,15 @@ func NewNotifiers(b []byte) ([]Notifier, error) {
 
 	var notifiers []Notifier
 	for _, n := range notify.Notify {
+		re := regexp.MustCompile(`\$[A-Z1-9\-_]+`)
+		for k, v := range n {
+			matches := re.FindAllString(v, -1)
+			for _, m := range matches {
+				env := os.Getenv(strings.TrimPrefix(m, "$"))
+				n[k] = strings.Replace(n[k], m, env, -1)
+			}
+		}
+
 		switch n["type"] {
 		case "slack":
 			notifiers = append(notifiers, NewSlack(n))
