@@ -66,6 +66,9 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 			p.runParallel(ctx, cancel, t.Parallel)
 			t.Status = task.Succeeded
 			for _, child := range t.Parallel {
+				t.Stdout = append(t.Stdout, child.Stdout...)
+				t.Stderr = append(t.Stderr, child.Stderr...)
+				t.CombinedOutput = append(t.CombinedOutput, child.CombinedOutput...)
 				if child.Status == task.Failed {
 					t.Status = task.Failed
 				}

@@ -88,3 +88,36 @@ func TestSerialAndParallelTasks(t *testing.T) {
 		t.Fatal("t3 should have skipped")
 	}
 }
+
+func TestParallelOutput(t *testing.T) {
+	c1 := &task.Task{Name: "c1", Command: "echo a"}
+	c2 := &task.Task{Name: "c2", Command: "echo b 1>&2"}
+	c3 := &task.Task{Name: "c3", Command: "echo c"}
+	c4 := &task.Task{Name: "c1", Command: "echo d 1>&2"}
+	c5 := &task.Task{Name: "c2", Command: "echo e"}
+	c6 := &task.Task{Name: "c3", Command: "echo f 1>&2"}
+
+	parent := &task.Task{Name: "parent", Parallel: Tasks{c1, c2, c3, c4, c5, c6}}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	p := &Pipeline{}
+	p.runTasks(ctx, cancel, Tasks{parent})
+
+	for i, v := range []string{"a", "c", "e"} {
+		if parent.Stdout[i] != v {
+			t.Fatalf("parent.Stdout[%d] should be %s, not %s", i, v, parent.Stdout[i])
+		}
+	}
+
+	for i, v := range []string{"b", "d", "f"} {
+		if parent.Stderr[i] != v {
+			t.Fatalf("parent.Stderr[%d] should be %s, not %s", i, v, parent.Stderr[i])
+		}
+	}
+
+	for i, v := range []string{"a", "b", "c", "d", "e", "f"} {
+		if parent.CombinedOutput[i] != v {
+			t.Fatalf("parent.CombinedOutput[%d] should be %s, not %s", i, v, parent.CombinedOutput[i])
+		}
+	}
+}
