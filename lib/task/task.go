@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"sync"
 	"syscall"
 
 	"golang.org/x/net/context"
@@ -39,6 +40,7 @@ type Task struct {
 type outputHandler struct {
 	writer io.Writer
 	copy   io.Writer
+	mu     *sync.Mutex
 }
 
 func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
@@ -63,8 +65,9 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	t.Stderr = new(bytes.Buffer)
 	t.CombinedOutput = new(bytes.Buffer)
 
-	t.Cmd.Stdout = &outputHandler{t.Stdout, t.CombinedOutput}
-	t.Cmd.Stderr = &outputHandler{t.Stderr, t.CombinedOutput}
+	var mu sync.Mutex
+	t.Cmd.Stdout = &outputHandler{t.Stdout, t.CombinedOutput, &mu}
+	t.Cmd.Stderr = &outputHandler{t.Stderr, t.CombinedOutput, &mu}
 
 	if err := t.Cmd.Start(); err != nil {
 		t.Status = Failed
@@ -107,6 +110,8 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 func (o *outputHandler) Write(b []byte) (int, error) {
 	log.Info(strings.TrimSuffix(string(b), "\n"))
 
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	o.writer.Write(b)
 	o.copy.Write(b)
 
