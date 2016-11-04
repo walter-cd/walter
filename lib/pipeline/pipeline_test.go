@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -104,20 +105,23 @@ func TestParallelOutput(t *testing.T) {
 	p.runTasks(ctx, cancel, Tasks{parent})
 
 	for i, v := range []string{"a", "c", "e"} {
-		if parent.Stdout[i] != v {
-			t.Fatalf("parent.Stdout[%d] should be %s, not %s", i, v, parent.Stdout[i])
+		str := strings.Split(parent.Stdout.String(), "\n")[i]
+		if str != v {
+			t.Fatalf("parent.Stdout should contain %s, not %s", v, str)
 		}
 	}
 
 	for i, v := range []string{"b", "d", "f"} {
-		if parent.Stderr[i] != v {
-			t.Fatalf("parent.Stderr[%d] should be %s, not %s", i, v, parent.Stderr[i])
+		str := strings.Split(parent.Stderr.String(), "\n")[i]
+		if str != v {
+			t.Fatalf("parent.Stderr should contain %s, not %s", v, str)
 		}
 	}
 
 	for i, v := range []string{"a", "b", "c", "d", "e", "f"} {
-		if parent.CombinedOutput[i] != v {
-			t.Fatalf("parent.CombinedOutput[%d] should be %s, not %s", i, v, parent.CombinedOutput[i])
+		str := strings.Split(parent.CombinedOutput.String(), "\n")[i]
+		if str != v {
+			t.Fatalf("parent.CombinedOutput should contain %s, not %s", v, str)
 		}
 	}
 }

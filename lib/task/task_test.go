@@ -1,6 +1,7 @@
 package task
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -70,8 +71,8 @@ func TestStatus(t *testing.T) {
 	}
 }
 
-func contains(s []string, e string) bool {
-	for _, a := range s {
+func contains(buf *bytes.Buffer, e string) bool {
+	for _, a := range strings.Split(buf.String(), "\n") {
 		if strings.Contains(a, e) {
 			return true
 		}

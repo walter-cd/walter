@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"bytes"
 	"io/ioutil"
 	"sync"
 
@@ -65,10 +66,15 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		if len(t.Parallel) > 0 {
 			p.runParallel(ctx, cancel, t.Parallel)
 			t.Status = task.Succeeded
+
+			t.Stdout = new(bytes.Buffer)
+			t.Stderr = new(bytes.Buffer)
+			t.CombinedOutput = new(bytes.Buffer)
+
 			for _, child := range t.Parallel {
-				t.Stdout = append(t.Stdout, child.Stdout...)
-				t.Stderr = append(t.Stderr, child.Stderr...)
-				t.CombinedOutput = append(t.CombinedOutput, child.CombinedOutput...)
+				t.Stdout.Write(child.Stdout.Bytes())
+				t.Stderr.Write(child.Stderr.Bytes())
+				t.CombinedOutput.Write(child.CombinedOutput.Bytes())
 				if child.Status == task.Failed {
 					t.Status = task.Failed
 				}
