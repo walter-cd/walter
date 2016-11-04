@@ -125,3 +125,34 @@ func TestParallelOutput(t *testing.T) {
 		}
 	}
 }
+
+func TestSerialOutput(t *testing.T) {
+	c1 := &task.Task{Name: "c1", Command: "echo a"}
+	c2 := &task.Task{Name: "c2", Command: "echo b 1>&2"}
+	c3 := &task.Task{Name: "c3", Command: "echo c"}
+	c4 := &task.Task{Name: "c1", Command: "echo d 1>&2"}
+	c5 := &task.Task{Name: "c2", Command: "echo e"}
+	c6 := &task.Task{Name: "c3", Command: "echo f && echo g 1>&2"}
+
+	parent := &task.Task{Name: "parent", Serial: Tasks{c1, c2, c3, c4, c5, c6}}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	p := &Pipeline{}
+	p.runTasks(ctx, cancel, Tasks{parent})
+
+	if !strings.Contains(parent.Stdout.String(), "f") {
+		t.Fatal("stdout should contain f")
+	}
+
+	if !strings.Contains(parent.Stderr.String(), "g") {
+		t.Fatal("stderr should contain g")
+	}
+
+	if !strings.Contains(parent.CombinedOutput.String(), "f") {
+		t.Fatal("combined output should contain f")
+	}
+
+	if !strings.Contains(parent.CombinedOutput.String(), "g") {
+		t.Fatal("combined output should contain g")
+	}
+}

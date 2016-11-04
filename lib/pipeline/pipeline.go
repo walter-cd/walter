@@ -89,6 +89,15 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 					t.Status = task.Failed
 				}
 			}
+
+			t.Stdout = new(bytes.Buffer)
+			t.Stderr = new(bytes.Buffer)
+			t.CombinedOutput = new(bytes.Buffer)
+
+			lastTask := t.Serial[len(t.Serial)-1]
+			t.Stdout.Write(lastTask.Stdout.Bytes())
+			t.Stderr.Write(lastTask.Stderr.Bytes())
+			t.CombinedOutput.Write(lastTask.CombinedOutput.Bytes())
 		}
 
 		if failed || (i > 0 && tasks[i-1].Status == task.Failed) {
