@@ -36,9 +36,9 @@ type Task struct {
 	Cmd            *exec.Cmd
 }
 
-type copyWriter struct {
-	original io.Writer
-	copy     io.Writer
+type outputHandler struct {
+	writer io.Writer
+	copy   io.Writer
 }
 
 func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
@@ -63,8 +63,8 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	t.Stderr = new(bytes.Buffer)
 	t.CombinedOutput = new(bytes.Buffer)
 
-	t.Cmd.Stdout = &copyWriter{t.Stdout, t.CombinedOutput}
-	t.Cmd.Stderr = &copyWriter{t.Stderr, t.CombinedOutput}
+	t.Cmd.Stdout = &outputHandler{t.Stdout, t.CombinedOutput}
+	t.Cmd.Stderr = &outputHandler{t.Stderr, t.CombinedOutput}
 
 	if err := t.Cmd.Start(); err != nil {
 		t.Status = Failed
@@ -104,11 +104,11 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 	return nil
 }
 
-func (c *copyWriter) Write(b []byte) (int, error) {
+func (o *outputHandler) Write(b []byte) (int, error) {
 	log.Info(strings.TrimSuffix(string(b), "\n"))
 
-	c.original.Write(b)
-	c.copy.Write(b)
+	o.writer.Write(b)
+	o.copy.Write(b)
 
 	return len(b), nil
 }
