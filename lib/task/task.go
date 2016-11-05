@@ -43,7 +43,7 @@ type outputHandler struct {
 	mu     *sync.Mutex
 }
 
-func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
+func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Task) error {
 	if t.Command == "" {
 		return nil
 	}
@@ -59,6 +59,10 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc) error {
 			t.Directory = strings.Replace(t.Directory, m, env, -1)
 		}
 		t.Cmd.Dir = t.Directory
+	}
+
+	if prevTask != nil {
+		t.Cmd.Stdin = bytes.NewBuffer(prevTask.Stdout.Bytes())
 	}
 
 	t.Stdout = new(bytes.Buffer)

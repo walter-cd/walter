@@ -54,17 +54,21 @@ func LoadFromFile(file string) (Pipeline, error) {
 
 func (p *Pipeline) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
-	p.runTasks(ctx, cancel, p.Build.Tasks)
+	p.runTasks(ctx, cancel, p.Build.Tasks, nil)
 
 	ctx, cancel = context.WithCancel(context.Background())
-	p.runTasks(ctx, cancel, p.Build.Cleanup)
+	p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
 }
 
-func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, tasks Tasks) {
+func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, tasks Tasks, prevTask *task.Task) {
 	failed := false
 	for i, t := range tasks {
+		if i > 0 {
+			prevTask = tasks[i-1]
+		}
+
 		if len(t.Parallel) > 0 {
-			p.runParallel(ctx, cancel, t.Parallel)
+			p.runParallel(ctx, cancel, t.Parallel, prevTask)
 			t.Status = task.Succeeded
 
 			t.Stdout = new(bytes.Buffer)
@@ -82,7 +86,7 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		}
 
 		if len(t.Serial) > 0 {
-			p.runTasks(ctx, cancel, t.Serial)
+			p.runTasks(ctx, cancel, t.Serial, prevTask)
 			t.Status = task.Succeeded
 			for _, child := range t.Serial {
 				if child.Status == task.Failed {
@@ -108,7 +112,7 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		}
 
 		log.Infof("[%s] Start task", t.Name)
-		err := t.Run(ctx, cancel)
+		err := t.Run(ctx, cancel, prevTask)
 		if err != nil {
 			log.Errorf("[%s] %s", t.Name, err)
 		}
@@ -123,14 +127,14 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 	}
 }
 
-func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, tasks Tasks) {
+func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, tasks Tasks, prevTask *task.Task) {
 	var wg sync.WaitGroup
 	for _, t := range tasks {
 		wg.Add(1)
 		go func(t *task.Task) {
 			defer wg.Done()
 			log.Infof("[%s] Start task", t.Name)
-			t.Run(ctx, cancel)
+			t.Run(ctx, cancel, prevTask)
 			if t.Status == task.Succeeded {
 				log.Infof("[%s] End task", t.Name)
 			}

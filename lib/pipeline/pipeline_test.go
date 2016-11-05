@@ -40,7 +40,7 @@ func TestSerialTasks(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	p := &Pipeline{}
-	p.runTasks(ctx, cancel, tasks)
+	p.runTasks(ctx, cancel, tasks, nil)
 
 	if t1.Status != task.Succeeded {
 		t.Fatal("t1 should have succeeded")
@@ -67,7 +67,7 @@ func TestSerialAndParallelTasks(t *testing.T) {
 	tasks := Tasks{t1, t2, t3}
 	ctx, cancel := context.WithCancel(context.Background())
 	p := &Pipeline{}
-	p.runTasks(ctx, cancel, tasks)
+	p.runTasks(ctx, cancel, tasks, nil)
 
 	if p1.Status != task.Aborted {
 		t.Fatal("p1 should have been aborted")
@@ -102,7 +102,7 @@ func TestParallelOutput(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	p := &Pipeline{}
-	p.runTasks(ctx, cancel, Tasks{parent})
+	p.runTasks(ctx, cancel, Tasks{parent}, nil)
 
 	for i, v := range []string{"a", "c", "e"} {
 		str := strings.Split(parent.Stdout.String(), "\n")[i]
@@ -138,7 +138,7 @@ func TestSerialOutput(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	p := &Pipeline{}
-	p.runTasks(ctx, cancel, Tasks{parent})
+	p.runTasks(ctx, cancel, Tasks{parent}, nil)
 
 	if !strings.Contains(parent.Stdout.String(), "f") {
 		t.Fatal("stdout should contain f")
@@ -154,5 +154,94 @@ func TestSerialOutput(t *testing.T) {
 
 	if !strings.Contains(parent.CombinedOutput.String(), "g") {
 		t.Fatal("combined output should contain g")
+	}
+}
+
+func TestPipe(t *testing.T) {
+	t1 := &task.Task{Name: "t1", Command: "echo \"a\nb\""}
+	t2 := &task.Task{Name: "t2", Command: "cat"}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	p := &Pipeline{}
+	p.runTasks(ctx, cancel, Tasks{t1, t2}, nil)
+
+	if !strings.Contains(t2.Stdout.String(), "a") {
+		t.Fatal("t2.Stdout should contain a")
+	}
+
+	if !strings.Contains(t2.Stdout.String(), "b") {
+		t.Fatal("t2.Stdout should contain b")
+	}
+}
+
+func TestPipeOfParallelTasks(t *testing.T) {
+	t1 := &task.Task{Name: "t1", Command: "echo t1"}
+
+	p1 := &task.Task{Name: "p1", Command: "cat"}
+	p2 := &task.Task{Name: "p2", Command: "cat"}
+	p3 := &task.Task{Name: "p3", Command: "echo p3"}
+
+	t2 := &task.Task{Name: "t2", Parallel: Tasks{p1, p2, p3}}
+
+	t3 := &task.Task{Name: "t3", Command: "cat"}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	p := &Pipeline{}
+	p.runTasks(ctx, cancel, Tasks{t1, t2, t3}, nil)
+
+	if !strings.Contains(p1.Stdout.String(), "t1") {
+		t.Fatal("p1.Stdout should contain t1")
+	}
+
+	if !strings.Contains(p2.Stdout.String(), "t1") {
+		t.Fatal("p2.Stdout should contain t1")
+	}
+
+	if !strings.Contains(t2.Stdout.String(), "t1") {
+		t.Fatal("t2.Stdout should contain t1")
+	}
+
+	if !strings.Contains(t2.Stdout.String(), "p3") {
+		t.Fatal("t2.Stdout should contain p3")
+	}
+
+	if !strings.Contains(t3.Stdout.String(), "t1") {
+		t.Fatal("t3.Stdout should contain t1")
+	}
+
+	if !strings.Contains(t3.Stdout.String(), "p3") {
+		t.Fatal("t3.Stdout should contain p3")
+	}
+}
+
+func TestPipeOfSerialTasks(t *testing.T) {
+	t1 := &task.Task{Name: "t1", Command: "echo t1"}
+
+	s1 := &task.Task{Name: "s1", Command: "cat"}
+	s2 := &task.Task{Name: "s2", Command: "cat"}
+	s3 := &task.Task{Name: "s3", Command: "echo s3"}
+
+	t2 := &task.Task{Name: "t2", Serial: Tasks{s1, s2, s3}}
+
+	t3 := &task.Task{Name: "t3", Command: "cat"}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	p := &Pipeline{}
+	p.runTasks(ctx, cancel, Tasks{t1, t2, t3}, nil)
+
+	if !strings.Contains(s1.Stdout.String(), "t1") {
+		t.Fatal("p1.Stdout should contain t1")
+	}
+
+	if !strings.Contains(s2.Stdout.String(), "t1") {
+		t.Fatal("p2.Stdout should contain t1")
+	}
+
+	if !strings.Contains(t2.Stdout.String(), "s3") {
+		t.Fatal("t2.Stdout should contain s3")
+	}
+
+	if !strings.Contains(t3.Stdout.String(), "s3") {
+		t.Fatal("t3.Stdout should contain s3")
 	}
 }
