@@ -61,7 +61,7 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 		t.Cmd.Dir = t.Directory
 	}
 
-	if prevTask != nil {
+	if prevTask != nil && prevTask.Stdout != nil {
 		t.Cmd.Stdin = bytes.NewBuffer(prevTask.Stdout.Bytes())
 	}
 
