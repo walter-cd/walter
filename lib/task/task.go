@@ -49,6 +49,8 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 		return nil
 	}
 
+	log.Infof("[%s] Start task", t.Name)
+
 	t.Cmd = exec.Command("sh", "-c", t.Command)
 	t.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 
@@ -107,6 +109,10 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 		log.Errorf("[%s] Task failed", t.Name)
 		t.Status = Failed
 		cancel()
+	}
+
+	if t.Status == Succeeded {
+		log.Infof("[%s] End task", t.Name)
 	}
 
 	return nil

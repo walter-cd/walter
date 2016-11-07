@@ -108,14 +108,9 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 			continue
 		}
 
-		log.Infof("[%s] Start task", t.Name)
 		err := t.Run(ctx, cancel, prevTask)
 		if err != nil {
 			log.Errorf("[%s] %s", t.Name, err)
-		}
-
-		if t.Status == task.Succeeded {
-			log.Infof("[%s] End task", t.Name)
 		}
 
 		for _, n := range p.Notifiers {
@@ -139,6 +134,8 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 		}
 	}
 
+	log.Infof("[%s] Start task", t.Name)
+
 	var wg sync.WaitGroup
 	for _, t := range tasks {
 		wg.Add(1)
@@ -150,11 +147,7 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 				return
 			}
 
-			log.Infof("[%s] Start task", t.Name)
 			t.Run(ctx, cancel, prevTask)
-			if t.Status == task.Succeeded {
-				log.Infof("[%s] End task", t.Name)
-			}
 
 			for _, n := range p.Notifiers {
 				n.Notify(t)
@@ -177,6 +170,8 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 			t.Status = task.Failed
 		}
 	}
+
+	log.Infof("[%s] End task", t.Name)
 }
 
 func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) {
@@ -192,6 +187,8 @@ func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *
 			tasks = append(tasks, child)
 		}
 	}
+
+	log.Infof("[%s] Start task", t.Name)
 
 	p.runTasks(ctx, cancel, tasks, prevTask)
 	t.Status = task.Succeeded
@@ -209,4 +206,6 @@ func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *
 	t.Stdout.Write(lastTask.Stdout.Bytes())
 	t.Stderr.Write(lastTask.Stderr.Bytes())
 	t.CombinedOutput.Write(lastTask.CombinedOutput.Bytes())
+
+	log.Infof("[%s] End task", t.Name)
 }
