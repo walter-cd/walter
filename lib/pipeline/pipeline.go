@@ -73,22 +73,8 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		}
 
 		if len(t.Serial) > 0 {
-			p.runTasks(ctx, cancel, t.Serial, prevTask)
-			t.Status = task.Succeeded
-			for _, child := range t.Serial {
-				if child.Status == task.Failed {
-					t.Status = task.Failed
-				}
-			}
-
-			t.Stdout = new(bytes.Buffer)
-			t.Stderr = new(bytes.Buffer)
-			t.CombinedOutput = new(bytes.Buffer)
-
-			lastTask := t.Serial[len(t.Serial)-1]
-			t.Stdout.Write(lastTask.Stdout.Bytes())
-			t.Stderr.Write(lastTask.Stderr.Bytes())
-			t.CombinedOutput.Write(lastTask.CombinedOutput.Bytes())
+			p.runSerial(ctx, cancel, t, prevTask)
+			continue
 		}
 
 		if failed || (i > 0 && tasks[i-1].Status == task.Failed) {
@@ -121,12 +107,10 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 		go func(t *task.Task) {
 			defer wg.Done()
 
-			/*
-				if len(t.Serial) > 0 {
-					p.runTasks(ctx, cancel, t.Serial, prevTask)
-					return
-				}
-			*/
+			if len(t.Serial) > 0 {
+				p.runSerial(ctx, cancel, t, prevTask)
+				return
+			}
 
 			log.Infof("[%s] Start task", t.Name)
 			t.Run(ctx, cancel, prevTask)
@@ -155,4 +139,23 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 			t.Status = task.Failed
 		}
 	}
+}
+
+func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) {
+	p.runTasks(ctx, cancel, t.Serial, prevTask)
+	t.Status = task.Succeeded
+	for _, child := range t.Serial {
+		if child.Status == task.Failed {
+			t.Status = task.Failed
+		}
+	}
+
+	t.Stdout = new(bytes.Buffer)
+	t.Stderr = new(bytes.Buffer)
+	t.CombinedOutput = new(bytes.Buffer)
+
+	lastTask := t.Serial[len(t.Serial)-1]
+	t.Stdout.Write(lastTask.Stdout.Bytes())
+	t.Stderr.Write(lastTask.Stderr.Bytes())
+	t.CombinedOutput.Write(lastTask.CombinedOutput.Bytes())
 }
