@@ -35,6 +35,7 @@ type Task struct {
 	CombinedOutput *bytes.Buffer
 	Status         int
 	Cmd            *exec.Cmd
+	Include        string
 }
 
 type outputHandler struct {
