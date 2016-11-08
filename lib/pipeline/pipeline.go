@@ -35,13 +35,19 @@ type Tasks []*task.Task
 func Load(b []byte) (Pipeline, error) {
 	p := Pipeline{}
 	err := yaml.Unmarshal(b, &p)
-	if err != nil {
+	if err == nil {
+		p.Notifiers, err = notify.NewNotifiers(b)
 		return p, err
 	}
 
-	p.Notifiers, err = notify.NewNotifiers(b)
+	t := Tasks{}
+	err = yaml.Unmarshal(b, &t)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	return p, err
+	p.Build.Tasks = t
+	return p, nil
 }
 
 func LoadFromFile(file string) (Pipeline, error) {
