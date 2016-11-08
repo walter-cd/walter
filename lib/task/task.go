@@ -36,6 +36,7 @@ type Task struct {
 	Status         int
 	Cmd            *exec.Cmd
 	Include        string
+	OnlyIf         string `yaml:"only_if"`
 }
 
 type outputHandler struct {
@@ -49,11 +50,6 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 		return nil
 	}
 
-	log.Infof("[%s] Start task", t.Name)
-
-	t.Cmd = exec.Command("sh", "-c", t.Command)
-	t.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-
 	if t.Directory != "" {
 		re := regexp.MustCompile(`\$[A-Z1-9\-_]+`)
 		matches := re.FindAllString(t.Directory, -1)
@@ -61,8 +57,24 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 			env := os.Getenv(strings.TrimPrefix(m, "$"))
 			t.Directory = strings.Replace(t.Directory, m, env, -1)
 		}
-		t.Cmd.Dir = t.Directory
 	}
+
+	if t.OnlyIf != "" {
+		cmd := exec.Command("sh", "-c", t.OnlyIf)
+		cmd.Dir = t.Directory
+		err := cmd.Run()
+
+		if err != nil {
+			log.Warnf("[%s] Skipped because only_if failed: %s", t.Name, err)
+			return nil
+		}
+	}
+
+	log.Infof("[%s] Start task", t.Name)
+
+	t.Cmd = exec.Command("sh", "-c", t.Command)
+	t.Cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	t.Cmd.Dir = t.Directory
 
 	if prevTask != nil && prevTask.Stdout != nil {
 		t.Cmd.Stdin = bytes.NewBuffer(prevTask.Stdout.Bytes())
