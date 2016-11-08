@@ -64,6 +64,12 @@ func (p *Pipeline) Run() {
 
 	ctx, cancel = context.WithCancel(context.Background())
 	p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	p.runTasks(ctx, cancel, p.Deploy.Tasks, nil)
+
+	ctx, cancel = context.WithCancel(context.Background())
+	p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
 }
 
 func includeTasks(file string) (Tasks, error) {
