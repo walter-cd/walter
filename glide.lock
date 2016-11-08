@@ -1,6 +1,16 @@
 hash: a5f68bd6e842ed0caee42204380fec21ed1b698432404200c23221e4a7b35eb8
-updated: 2016-09-23T17:05:04.465107376+09:00
+updated: 2016-11-08T01:02:37.043174215Z
 imports:
 - name: github.com/go-yaml/yaml
   version: 31c299268d302dd0aa9a0dcf765a3d58971ac83f
+- name: github.com/Sirupsen/logrus
+  version: d26492970760ca5d33129d2d799e34be5c4782eb
+- name: golang.org/x/net
+  version: 5d997795f7bb1d2de5edc1f5d64af2562401c82d
+  subpackages:
+  - context
+- name: golang.org/x/sys
+  version: c200b10b5d5e122be351b67af224adc6128af5bf
+  subpackages:
+  - unix
 testImports: []
