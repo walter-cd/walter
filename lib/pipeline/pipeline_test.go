@@ -245,3 +245,34 @@ func TestPipeOfSerialTasks(t *testing.T) {
 		t.Fatal("t3.Stdout should contain s3")
 	}
 }
+
+func TestExitStatus(t *testing.T) {
+	p := &Pipeline{}
+
+	t1 := &task.Task{Command: "echo"}
+	p.Build.Tasks = Tasks{t1}
+	code := p.Run()
+	if code != 0 {
+		t.Fatalf("Exit code should be 0, not %d", code)
+	}
+
+	t2 := &task.Task{Command: "no_such_command"}
+	p.Build.Tasks = Tasks{t2}
+	code = p.Run()
+	if code != 1 {
+		t.Fatalf("Exit code should be 1, not %d", code)
+	}
+
+	p.Build.Tasks = Tasks{&task.Task{Parallel: Tasks{t1, t2}}}
+	code = p.Run()
+	if code != 1 {
+		t.Fatalf("Exit code should be 1, not %d", code)
+	}
+
+	p.Build.Tasks = Tasks{&task.Task{Serial: Tasks{t1, t2}}}
+	code = p.Run()
+	if code != 1 {
+		t.Fatalf("Exit code should be 1, not %d", code)
+	}
+
+}

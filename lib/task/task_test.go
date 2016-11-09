@@ -62,8 +62,8 @@ func TestStatus(t *testing.T) {
 
 	tsk = &Task{Name: "command should fail", Command: "no_such_command"}
 	err = tsk.Run(ctx, cancel, nil)
-	if err != nil {
-		t.Fatal(err)
+	if err == nil {
+		t.Fatal("Task should fail")
 	}
 
 	if tsk.Status != Failed {
