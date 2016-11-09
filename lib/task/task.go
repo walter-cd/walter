@@ -2,7 +2,6 @@ package task
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"os"
 	"os/exec"
@@ -41,7 +40,6 @@ type Task struct {
 }
 
 type outputHandler struct {
-	task   *Task
 	writer io.Writer
 	copy   io.Writer
 	mu     *sync.Mutex
@@ -87,8 +85,8 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 	t.CombinedOutput = new(bytes.Buffer)
 
 	var mu sync.Mutex
-	t.Cmd.Stdout = &outputHandler{t, t.Stdout, t.CombinedOutput, &mu}
-	t.Cmd.Stderr = &outputHandler{t, t.Stderr, t.CombinedOutput, &mu}
+	t.Cmd.Stdout = &outputHandler{t.Stdout, t.CombinedOutput, &mu}
+	t.Cmd.Stderr = &outputHandler{t.Stderr, t.CombinedOutput, &mu}
 
 	if err := t.Cmd.Start(); err != nil {
 		t.Status = Failed
@@ -119,19 +117,21 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 
 	if t.Cmd.ProcessState.Success() {
 		t.Status = Succeeded
-		log.Infof("[%s] End task", t.Name)
-		return nil
 	} else if t.Status == Running {
+		log.Errorf("[%s] Task failed", t.Name)
 		t.Status = Failed
 		cancel()
-		return errors.New("Task failed")
+	}
+
+	if t.Status == Succeeded {
+		log.Infof("[%s] End task", t.Name)
 	}
 
 	return nil
 }
 
 func (o *outputHandler) Write(b []byte) (int, error) {
-	log.Infof("[%s] %s", o.task.Name, strings.TrimSuffix(string(b), "\n"))
+	log.Info(strings.TrimSuffix(string(b), "\n"))
 
 	o.mu.Lock()
 	defer o.mu.Unlock()

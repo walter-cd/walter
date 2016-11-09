@@ -60,54 +60,56 @@ func LoadFromFile(file string) (Pipeline, error) {
 }
 
 func (p *Pipeline) Run() int {
-	buildFailed := false
+	failed := false
+
 	log.Info("Build started")
 	ctx, cancel := context.WithCancel(context.Background())
 	err := p.runTasks(ctx, cancel, p.Build.Tasks, nil)
 	if err != nil {
+		log.Error(err)
 		log.Error("Build failed")
-		buildFailed = true
+		failed = true
 	} else {
 		log.Info("Build succeeded")
 	}
 
-	buildCleanupFailed := false
 	log.Info("Build cleanup started")
 	ctx, cancel = context.WithCancel(context.Background())
 	err = p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
 	if err != nil {
+		log.Error(err)
 		log.Error("Build cleanup failed")
-		buildCleanupFailed = true
+		failed = true
 	} else {
-		log.Info("Build cleanup succeeded")
+		log.Info("Build cleanup failed")
 	}
 
-	if buildFailed || buildCleanupFailed {
+	if failed {
 		return 1
 	}
 
-	deployFailed := false
 	log.Info("Deploy started")
 	ctx, cancel = context.WithCancel(context.Background())
 	err = p.runTasks(ctx, cancel, p.Deploy.Tasks, nil)
 	if err != nil {
+		log.Error(err)
 		log.Error("Deploy failed")
-		deployFailed = true
+		failed = true
 	} else {
 		log.Info("Deploy succeeded")
 	}
 
-	deployCleanupFailed := false
 	ctx, cancel = context.WithCancel(context.Background())
 	err = p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
 	if err != nil {
+		log.Error(err)
 		log.Error("Deploy cleanup failed")
-		deployCleanupFailed = true
+		failed = true
 	} else {
 		log.Info("Deploy cleanup succeeded")
 	}
 
-	if deployFailed || deployCleanupFailed {
+	if failed {
 		return 1
 	}
 
@@ -147,18 +149,12 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		}
 
 		if len(t.Parallel) > 0 {
-			err := p.runParallel(ctx, cancel, t, prevTask)
-			if err != nil {
-				failed = true
-			}
+			p.runParallel(ctx, cancel, t, prevTask)
 			continue
 		}
 
 		if len(t.Serial) > 0 {
-			err := p.runSerial(ctx, cancel, t, prevTask)
-			if err != nil {
-				failed = true
-			}
+			p.runSerial(ctx, cancel, t, prevTask)
 			continue
 		}
 
@@ -172,7 +168,6 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		err := t.Run(ctx, cancel, prevTask)
 		if err != nil {
 			log.Errorf("[%s] %s", t.Name, err)
-			failed = true
 		}
 
 		for _, n := range p.Notifiers {
@@ -181,13 +176,13 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 	}
 
 	if failed {
-		return errors.New("One of tasks failed")
+		return errors.New("One of the tasks failed")
 	}
 
 	return nil
 }
 
-func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) error {
+func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) {
 
 	var tasks Tasks
 	for _, child := range t.Parallel {
@@ -215,10 +210,7 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 				return
 			}
 
-			err := t.Run(ctx, cancel, prevTask)
-			if err != nil {
-				log.Errorf("[%s] %s", t.Name, err)
-			}
+			t.Run(ctx, cancel, prevTask)
 
 			for _, n := range p.Notifiers {
 				n.Notify(t)
@@ -242,16 +234,10 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 		}
 	}
 
-	if t.Status == task.Failed {
-		return errors.New("One of parallel tasks failed")
-	} else {
-		log.Infof("[%s] End task", t.Name)
-	}
-
-	return nil
+	log.Infof("[%s] End task", t.Name)
 }
 
-func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) error {
+func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) {
 	var tasks Tasks
 	for _, child := range t.Serial {
 		if child.Include != "" {
@@ -284,11 +270,5 @@ func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *
 	t.Stderr.Write(lastTask.Stderr.Bytes())
 	t.CombinedOutput.Write(lastTask.CombinedOutput.Bytes())
 
-	if t.Status == task.Failed {
-		return errors.New("One of serial tasks failed")
-	} else {
-		log.Infof("[%s] End task", t.Name)
-	}
-
-	return nil
+	log.Infof("[%s] End task", t.Name)
 }
