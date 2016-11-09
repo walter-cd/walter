@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -20,5 +21,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p.Run()
+	os.Exit(p.Run())
 }

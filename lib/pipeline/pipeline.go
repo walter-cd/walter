@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"sync"
 
@@ -43,7 +44,7 @@ func Load(b []byte) (Pipeline, error) {
 	t := Tasks{}
 	err = yaml.Unmarshal(b, &t)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 
 	p.Build.Tasks = t
@@ -58,18 +59,61 @@ func LoadFromFile(file string) (Pipeline, error) {
 	return Load(data)
 }
 
-func (p *Pipeline) Run() {
+func (p *Pipeline) Run() int {
+	failed := false
+
+	log.Info("Build started")
 	ctx, cancel := context.WithCancel(context.Background())
-	p.runTasks(ctx, cancel, p.Build.Tasks, nil)
+	err := p.runTasks(ctx, cancel, p.Build.Tasks, nil)
+	if err != nil {
+		log.Error(err)
+		log.Error("Build failed")
+		failed = true
+	} else {
+		log.Info("Build succeeded")
+	}
+
+	log.Info("Build cleanup started")
+	ctx, cancel = context.WithCancel(context.Background())
+	err = p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
+	if err != nil {
+		log.Error(err)
+		log.Error("Build cleanup failed")
+		failed = true
+	} else {
+		log.Info("Build cleanup failed")
+	}
+
+	if failed {
+		return 1
+	}
+
+	log.Info("Deploy started")
+	ctx, cancel = context.WithCancel(context.Background())
+	err = p.runTasks(ctx, cancel, p.Deploy.Tasks, nil)
+	if err != nil {
+		log.Error(err)
+		log.Error("Deploy failed")
+		failed = true
+	} else {
+		log.Info("Deploy succeeded")
+	}
 
 	ctx, cancel = context.WithCancel(context.Background())
-	p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
+	err = p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
+	if err != nil {
+		log.Error(err)
+		log.Error("Deploy cleanup failed")
+		failed = true
+	} else {
+		log.Info("Deploy cleanup succeeded")
+	}
 
-	ctx, cancel = context.WithCancel(context.Background())
-	p.runTasks(ctx, cancel, p.Deploy.Tasks, nil)
+	if failed {
+		return 1
+	}
 
-	ctx, cancel = context.WithCancel(context.Background())
-	p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
+	return 0
 }
 
 func includeTasks(file string) (Tasks, error) {
@@ -87,7 +131,7 @@ func includeTasks(file string) (Tasks, error) {
 	return tasks, err
 }
 
-func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, tasks Tasks, prevTask *task.Task) {
+func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, tasks Tasks, prevTask *task.Task) error {
 	failed := false
 	for i, t := range tasks {
 		if i > 0 {
@@ -97,7 +141,8 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		if t.Include != "" {
 			include, err := includeTasks(t.Include)
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err)
+				return err
 			}
 			p.runTasks(ctx, cancel, include, prevTask)
 			continue
@@ -116,7 +161,7 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		if failed || (i > 0 && tasks[i-1].Status == task.Failed) {
 			t.Status = task.Skipped
 			failed = true
-			log.Infof("[%s] Task skipped because previous task failed", t.Name)
+			log.Warnf("[%s] Task skipped because previous task failed", t.Name)
 			continue
 		}
 
@@ -129,6 +174,12 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 			n.Notify(t)
 		}
 	}
+
+	if failed {
+		return errors.New("One of the tasks failed")
+	}
+
+	return nil
 }
 
 func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) {
@@ -138,7 +189,7 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 		if child.Include != "" {
 			include, err := includeTasks(child.Include)
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err)
 			}
 			tasks = append(tasks, include...)
 		} else {
@@ -192,7 +243,7 @@ func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *
 		if child.Include != "" {
 			include, err := includeTasks(child.Include)
 			if err != nil {
-				log.Fatal(err)
+				log.Error(err)
 			}
 			tasks = append(tasks, include...)
 		} else {
