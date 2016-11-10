@@ -261,7 +261,7 @@ func TestExitStatusFail(t *testing.T) {
 	t1 := &task.Task{Command: "no_such_command"}
 	p.Build.Tasks = Tasks{t1}
 	code := p.Run()
-	if code != 0 {
+	if code != 1 {
 		t.Fatalf("Exit code should be 1, not %d", code)
 	}
 }
