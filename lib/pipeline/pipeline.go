@@ -163,6 +163,7 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 
 		err := t.Run(ctx, cancel, prevTask)
 		if err != nil {
+			failed = true
 			log.Errorf("[%s] %s", t.Name, err)
 		}
 

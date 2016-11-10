@@ -2,6 +2,7 @@ package task
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"os"
 	"os/exec"
@@ -118,9 +119,9 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 	if t.Cmd.ProcessState.Success() {
 		t.Status = Succeeded
 	} else if t.Status == Running {
-		log.Errorf("[%s] Task failed", t.Name)
 		t.Status = Failed
 		cancel()
+		return errors.New("Task failed")
 	}
 
 	if t.Status == Succeeded {
