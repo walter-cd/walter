@@ -145,12 +145,18 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 		}
 
 		if len(t.Parallel) > 0 {
-			p.runParallel(ctx, cancel, t, prevTask)
+			err := p.runParallel(ctx, cancel, t, prevTask)
+			if err != nil {
+				failed = true
+			}
 			continue
 		}
 
 		if len(t.Serial) > 0 {
-			p.runSerial(ctx, cancel, t, prevTask)
+			err := p.runSerial(ctx, cancel, t, prevTask)
+			if err != nil {
+				failed = true
+			}
 			continue
 		}
 
@@ -179,7 +185,7 @@ func (p *Pipeline) runTasks(ctx context.Context, cancel context.CancelFunc, task
 	return nil
 }
 
-func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) {
+func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) error {
 
 	var tasks Tasks
 	for _, child := range t.Parallel {
@@ -231,10 +237,15 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 		}
 	}
 
-	log.Infof("[%s] End task", t.Name)
+	if t.Status == task.Failed {
+		return errors.New("One of parallel tasks failed")
+	} else {
+		log.Infof("[%s] End task", t.Name)
+		return nil
+	}
 }
 
-func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) {
+func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *task.Task, prevTask *task.Task) error {
 	var tasks Tasks
 	for _, child := range t.Serial {
 		if child.Include != "" {
@@ -267,5 +278,10 @@ func (p *Pipeline) runSerial(ctx context.Context, cancel context.CancelFunc, t *
 	t.Stderr.Write(lastTask.Stderr.Bytes())
 	t.CombinedOutput.Write(lastTask.CombinedOutput.Bytes())
 
-	log.Infof("[%s] End task", t.Name)
+	if t.Status == task.Failed {
+		return errors.New("One of serial tasks failed")
+	} else {
+		log.Infof("[%s] End task", t.Name)
+		return nil
+	}
 }
