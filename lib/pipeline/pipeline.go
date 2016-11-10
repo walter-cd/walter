@@ -66,7 +66,6 @@ func (p *Pipeline) Run() int {
 	ctx, cancel := context.WithCancel(context.Background())
 	err := p.runTasks(ctx, cancel, p.Build.Tasks, nil)
 	if err != nil {
-		log.Error(err)
 		log.Error("Build failed")
 		failed = true
 	} else {
@@ -77,11 +76,10 @@ func (p *Pipeline) Run() int {
 	ctx, cancel = context.WithCancel(context.Background())
 	err = p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
 	if err != nil {
-		log.Error(err)
 		log.Error("Build cleanup failed")
 		failed = true
 	} else {
-		log.Info("Build cleanup failed")
+		log.Info("Build cleanup succeeded")
 	}
 
 	if failed {
@@ -92,7 +90,6 @@ func (p *Pipeline) Run() int {
 	ctx, cancel = context.WithCancel(context.Background())
 	err = p.runTasks(ctx, cancel, p.Deploy.Tasks, nil)
 	if err != nil {
-		log.Error(err)
 		log.Error("Deploy failed")
 		failed = true
 	} else {
@@ -102,7 +99,6 @@ func (p *Pipeline) Run() int {
 	ctx, cancel = context.WithCancel(context.Background())
 	err = p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
 	if err != nil {
-		log.Error(err)
 		log.Error("Deploy cleanup failed")
 		failed = true
 	} else {
