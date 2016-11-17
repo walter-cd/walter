@@ -2,6 +2,9 @@ package task
 
 import (
 	"errors"
+	"fmt"
+	"net"
+	"strconv"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -28,13 +31,52 @@ func (w *WaitFor) wait(t *Task) {
 	switch {
 	case w.Delay > 0.0:
 		w.waitForDelay(t)
+	case w.Port > 0:
+		w.waitForPort(t)
+	case w.File != "":
+		w.waitForFile(t)
 	}
 }
 
 func (w *WaitFor) waitForDelay(t *Task) {
-	log.Infof("[%s]", t.Name)
+	log.Infof("[%s] wait_for: %f seconds delay", t.Name, w.Delay)
 	time.Sleep(time.Duration(w.Delay) * time.Second)
 	return
+}
+
+func (w *WaitFor) waitForPort(t *Task) {
+	log.Infof("[%s] wait_for: %s:%d %s", t.Name, w.Host, w.Port, w.State)
+	if w.State == "ready" || w.State == "present" {
+		for {
+			if connected(w.Host, w.Port) {
+				return
+			} else {
+				time.Sleep(10 * time.Millisecond)
+			}
+		}
+	}
+
+	if w.State == "unready" || w.State == "absent" {
+		for {
+			if !connected(w.Host, w.Port) {
+				return
+			} else {
+				time.Sleep(10 * time.Millisecond)
+			}
+		}
+	}
+}
+
+func connected(host string, port int) bool {
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%s", host, strconv.Itoa(port)))
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+	return true
+}
+
+func (w *WaitFor) waitForFile(t *Task) {
 }
 
 func (w *WaitFor) validate() error {
