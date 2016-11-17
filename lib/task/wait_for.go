@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"time"
 
@@ -77,6 +78,31 @@ func connected(host string, port int) bool {
 }
 
 func (w *WaitFor) waitForFile(t *Task) {
+	log.Infof("[%s] wait_for: file %s %s", t.Name, w.File, w.State)
+	if w.State == "ready" || w.State == "present" {
+		for {
+			if isExist(w.File) {
+				return
+			} else {
+				time.Sleep(10 * time.Millisecond)
+			}
+		}
+	}
+
+	if w.State == "unready" || w.State == "absent" {
+		for {
+			if !isExist(w.File) {
+				return
+			} else {
+				time.Sleep(10 * time.Millisecond)
+			}
+		}
+	}
+}
+
+func isExist(file string) bool {
+	_, err := os.Stat(file)
+	return err == nil
 }
 
 func (w *WaitFor) validate() error {
