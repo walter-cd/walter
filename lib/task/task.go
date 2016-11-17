@@ -37,10 +37,12 @@ type Task struct {
 	Status         int
 	Cmd            *exec.Cmd
 	Include        string
-	OnlyIf         string `yaml:"only_if"`
+	OnlyIf         string   `yaml:"only_if"`
+	WaitFor        *WaitFor `yaml:"wait_for"`
 }
 
 type outputHandler struct {
+	task   *Task
 	writer io.Writer
 	copy   io.Writer
 	mu     *sync.Mutex
@@ -71,6 +73,13 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 		}
 	}
 
+	if t.WaitFor != nil {
+		err := t.wait()
+		if err != nil {
+			return err
+		}
+	}
+
 	log.Infof("[%s] Start task", t.Name)
 
 	t.Cmd = exec.Command("sh", "-c", t.Command)
@@ -86,8 +95,8 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 	t.CombinedOutput = new(bytes.Buffer)
 
 	var mu sync.Mutex
-	t.Cmd.Stdout = &outputHandler{t.Stdout, t.CombinedOutput, &mu}
-	t.Cmd.Stderr = &outputHandler{t.Stderr, t.CombinedOutput, &mu}
+	t.Cmd.Stdout = &outputHandler{t, t.Stdout, t.CombinedOutput, &mu}
+	t.Cmd.Stderr = &outputHandler{t, t.Stderr, t.CombinedOutput, &mu}
 
 	if err := t.Cmd.Start(); err != nil {
 		t.Status = Failed
@@ -132,7 +141,7 @@ func (t *Task) Run(ctx context.Context, cancel context.CancelFunc, prevTask *Tas
 }
 
 func (o *outputHandler) Write(b []byte) (int, error) {
-	log.Info(strings.TrimSuffix(string(b), "\n"))
+	log.Infof("[%s] %s", o.task.Name, strings.TrimSuffix(string(b), "\n"))
 
 	o.mu.Lock()
 	defer o.mu.Unlock()
