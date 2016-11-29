@@ -1,17 +1,18 @@
 NAME := walter
-VERSION := $(shell git describe --tags --abbrev=0)
+VERSION := $(shell grep 'Version string' version.go | sed -E 's/.*"(.+)"$$/\1/')
 REVISION := $(shell git rev-parse --short HEAD)
-LDFLAGS := -X 'main.version=$(VERSION)' -X 'main.revision=$(REVISION)'
+LDFLAGS := -X 'main.GitCommit=$(REVISION)'
 
 setup:
 	go get github.com/Masterminds/glide
 	go get github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
+	go get github.com/mitchellh/gox
 
 deps: setup
 	glide install
 
-test: deps
+test: deps lint
 	go test $$(glide novendor)
 	go test -race $$(glide novendor)
 
@@ -24,8 +25,16 @@ lint: setup
 fmt: setup
 	goimports -w $$(glide nv -x)
 
-build: test
+build: deps
 	go build -ldflags "$(LDFLAGS)" -o bin/$(NAME)
 
 clean:
+	rm $(GOPATH)/bin/$(NAME)
 	rm bin/$(NAME)
+
+package: deps
+	@sh -c "'$(CURDIR)/scripts/package.sh'"
+
+ghr:
+	ghr -u walter-cd $(VERSION) pkg/dist/$(VERSION)
+

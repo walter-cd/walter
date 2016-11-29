@@ -1,14 +1,28 @@
 hash: a5f68bd6e842ed0caee42204380fec21ed1b698432404200c23221e4a7b35eb8
-updated: 2016-11-08T01:02:37.043174215Z
+updated: 2016-11-29T11:51:00.292205511+09:00
 imports:
 - name: github.com/go-yaml/yaml
   version: 31c299268d302dd0aa9a0dcf765a3d58971ac83f
+- name: github.com/google/go-github
+  version: 2ae0bbb4f91336db239c582fe96deb8e9e6d43df
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
+  subpackages:
+  - query
+- name: github.com/hashicorp/go-version
+  version: e96d3840402619007766590ecea8dd7af1292276
 - name: github.com/Sirupsen/logrus
   version: d26492970760ca5d33129d2d799e34be5c4782eb
+- name: github.com/tcnksm/go-latest
+  version: 79c2c6c7fa60f1bd7e1f204606aae7b9082f7304
 - name: golang.org/x/net
   version: 5d997795f7bb1d2de5edc1f5d64af2562401c82d
   subpackages:
   - context
+  - html
+  - html/atom
 - name: golang.org/x/sys
   version: c200b10b5d5e122be351b67af224adc6128af5bf
   subpackages:
