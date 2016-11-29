@@ -59,54 +59,58 @@ func LoadFromFile(file string) (Pipeline, error) {
 	return Load(data)
 }
 
-func (p *Pipeline) Run() int {
+func (p *Pipeline) Run(build, deploy bool) int {
 	failed := false
 
-	log.Info("Build started")
-	ctx, cancel := context.WithCancel(context.Background())
-	err := p.runTasks(ctx, cancel, p.Build.Tasks, nil)
-	if err != nil {
-		log.Error("Build failed")
-		failed = true
-	} else {
-		log.Info("Build succeeded")
+	if build {
+		log.Info("Build started")
+		ctx, cancel := context.WithCancel(context.Background())
+		err := p.runTasks(ctx, cancel, p.Build.Tasks, nil)
+		if err != nil {
+			log.Error("Build failed")
+			failed = true
+		} else {
+			log.Info("Build succeeded")
+		}
+
+		log.Info("Build cleanup started")
+		ctx, cancel = context.WithCancel(context.Background())
+		err = p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
+		if err != nil {
+			log.Error("Build cleanup failed")
+			failed = true
+		} else {
+			log.Info("Build cleanup succeeded")
+		}
+
+		if failed {
+			return 1
+		}
 	}
 
-	log.Info("Build cleanup started")
-	ctx, cancel = context.WithCancel(context.Background())
-	err = p.runTasks(ctx, cancel, p.Build.Cleanup, nil)
-	if err != nil {
-		log.Error("Build cleanup failed")
-		failed = true
-	} else {
-		log.Info("Build cleanup succeeded")
-	}
+	if deploy {
+		log.Info("Deploy started")
+		ctx, cancel := context.WithCancel(context.Background())
+		err := p.runTasks(ctx, cancel, p.Deploy.Tasks, nil)
+		if err != nil {
+			log.Error("Deploy failed")
+			failed = true
+		} else {
+			log.Info("Deploy succeeded")
+		}
 
-	if failed {
-		return 1
-	}
+		ctx, cancel = context.WithCancel(context.Background())
+		err = p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
+		if err != nil {
+			log.Error("Deploy cleanup failed")
+			failed = true
+		} else {
+			log.Info("Deploy cleanup succeeded")
+		}
 
-	log.Info("Deploy started")
-	ctx, cancel = context.WithCancel(context.Background())
-	err = p.runTasks(ctx, cancel, p.Deploy.Tasks, nil)
-	if err != nil {
-		log.Error("Deploy failed")
-		failed = true
-	} else {
-		log.Info("Deploy succeeded")
-	}
-
-	ctx, cancel = context.WithCancel(context.Background())
-	err = p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
-	if err != nil {
-		log.Error("Deploy cleanup failed")
-		failed = true
-	} else {
-		log.Info("Deploy cleanup succeeded")
-	}
-
-	if failed {
-		return 1
+		if failed {
+			return 1
+		}
 	}
 
 	return 0
