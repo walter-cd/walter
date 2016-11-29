@@ -14,7 +14,7 @@ import (
 const Name = "walter"
 
 // Version is application version
-const Version string = "v2.0.0beta1"
+const Version string = "v2.0.0.beta1"
 
 // GitCommit describes latest commit hash.
 // This is automatically extracted by git describe --always.
