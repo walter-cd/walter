@@ -19,8 +19,8 @@ func main() {
 		deploy     bool
 	)
 
-	flag.StringVar(&configFile, "c", defaultConfigFile, "file which define pipeline")
-	flag.BoolVar(&version, "v", false, "print version string")
+	flag.StringVar(&configFile, "config", defaultConfigFile, "file which define pipeline")
+	flag.BoolVar(&version, "version", false, "print version string")
 	flag.BoolVar(&build, "build", false, "run build")
 	flag.BoolVar(&deploy, "deploy", false, "run deploy")
 
