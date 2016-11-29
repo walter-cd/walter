@@ -6,7 +6,7 @@ DIR=$(cd $(dirname ${0})/.. && pwd)
 cd ${DIR}
 
 VERSION=$(grep "const Version " version.go | sed -E 's/.*"(.+)"$/\1/')
-REPO="ghr"
+REPO="walter"
 
 # Run Compile
 ./scripts/compile.sh
