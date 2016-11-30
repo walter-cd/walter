@@ -95,6 +95,105 @@ INFO[0000] Deploy cleanup succeeded
 
 That's it.
 
+----
+
+Other features
+==============
+
+Environment variables
+---------------------
+
+You can use environment variables.
+
+```yaml
+deploy:
+  tasks:
+    - name: release files
+      command: ghr -token $GITHUB_TOKEN $VERSION pkg/dist/$VERSION
+```
+
+
+Working directory
+-----------------
+
+You can specify a working directory of a task.
+
+```yaml
+build:
+  tasks:
+    - name: aaaa
+      command: aaa
+      directory: /tmp
+```
+
+Stdin pipeline
+--------------
+
+Tasks get stdout of a previous task through a pipe.
+
+```yaml
+build:
+  tasks:
+    - name: setup build
+      command: echo "setting up"
+    - name: run build
+      command: cat
+```
+
+The second "run build" task outputs "setting up".
+
+
+Parallel tasks
+--------------
+
+You can define parallel tasks.
+
+```yaml
+build:
+   tasks:
+     - name: parallel tasks
+       paralle:
+           - name: task 1
+             command: echo task 1
+           - name: task 2
+             command: echo task 2
+           - name: task 3
+             command: echo task 3
+```
+
+You can also mix serial tasks in parallel tasks.
+
+```yaml
+build:
+   tasks:
+     - name: parallel tasks
+       parallel:
+           - name: task 1
+             command: echo task 1
+           - name: task 2
+             serial:
+               - name: task 2-1
+                 command: echo task 2-1
+               - name: task 2-2
+                 command: echo task 2-2
+           - name: task 3
+             command: echo task 3
+```
+
+   
+Include
+-------
+
+
+Notification
+------------
+
+----
+
+Changes in v2
+=============
+
+
 
 ----
 
