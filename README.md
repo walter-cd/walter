@@ -121,8 +121,8 @@ You can specify a working directory of a task.
 ```yaml
 build:
   tasks:
-    - name: aaaa
-      command: aaa
+    - name: list files under /tmp
+      command: ls
       directory: /tmp
 ```
 
