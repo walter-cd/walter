@@ -9,6 +9,8 @@ Walter
 
 Walter is a tiny deployment pipeline tool.
 
+----
+
 Blogs
 =====
 
@@ -16,10 +18,14 @@ Blogs
 * http://walter-cd.net
 
 
+----
+
 Overview
 ========
 
 Walter is a simple command line tool that automates build, test and deployment of applications or servers.
+
+----
 
 Getting Started
 ===============
@@ -89,6 +95,8 @@ INFO[0000] Deploy cleanup succeeded
 
 That's it.
 
+
+----
 
 Contributing
 ============
