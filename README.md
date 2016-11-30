@@ -126,8 +126,8 @@ build:
       directory: /tmp
 ```
 
-Stdin pipeline
---------------
+Get stdout of a previous task
+-----------------------------
 
 Tasks get stdout of a previous task through a pipe.
 
