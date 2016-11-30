@@ -99,6 +99,7 @@ func (p *Pipeline) Run(build, deploy bool) int {
 			log.Info("Deploy succeeded")
 		}
 
+		log.Info("Deploy cleanup started")
 		ctx, cancel = context.WithCancel(context.Background())
 		err = p.runTasks(ctx, cancel, p.Deploy.Cleanup, nil)
 		if err != nil {
