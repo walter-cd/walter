@@ -250,6 +250,19 @@ Available keys and values are these:
 Notification
 ------------
 
+Walter supports notification of task results to Slack.
+
+```yaml
+notify:
+  - type: slack
+    channel: serverspec
+    url: $SLACK_WEBHOOK_URL
+    icon_url: http://example.jp/walter.jpg
+    username: walter
+```
+
+Other services(ex. HipChat) are not supported currently.
+
 ----
 
 Changes in v2
