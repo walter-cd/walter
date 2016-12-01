@@ -181,8 +181,71 @@ build:
 ```
 
    
-Include
--------
+Split pipeline definitions and include them
+-------------------------------------------
+
+You can split pipeline definitions in other files and include them.
+
+**pipeline.yml**
+
+```yaml
+build:
+  tasks:
+    - include: task1.yml
+    - include: task2.yml
+```
+
+**task1.yml**
+
+```yaml
+- name: task1
+  command: echo task1
+```
+
+**task2.yaml**
+
+```yaml
+- name: task2
+  command: echo task2
+```
+
+You can also run single definition file.
+
+```
+$ walter -build -config task2.yml
+```
+
+
+Wait for some conditions
+------------------------
+
+You can make tasks wait for some conditions.
+
+```yaml
+build:
+  tasks:
+    - name: launch solr
+      command: bin/solr start
+    - name: post data to solr index
+      command: bin/post -d ~/tmp/foobar.js
+      wait_for:
+        host: localhost
+        port: 8983
+        state: ready
+```
+
+Available keys and values are these:
+
+
+| Key     | Value (value type)  | Description                                         |
+|:--------|:--------------------|:----------------------------------------------------|
+| delay   | second (float)      | Seconds to wait after the previous stage finish     |
+| host    | host (string)       | IP address or host name                             |
+| port    | port number (int)   | Port number                                         |
+| file    | file name (string)  | File name|
+
+| state   | state of the other key (string) | Two types(present/ready or absent/unready) of states are supported. |
+
 
 
 Notification
