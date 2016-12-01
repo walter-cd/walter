@@ -243,7 +243,6 @@ Available keys and values are these:
 | host    | host (string)       | IP address or host name                             |
 | port    | port number (int)   | Port number                                         |
 | file    | file name (string)  | File name|
-
 | state   | state of the other key (string) | Two types(present/ready or absent/unready) of states are supported. |
 
 

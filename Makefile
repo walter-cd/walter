@@ -36,5 +36,5 @@ package: deps
 	@sh -c "'$(CURDIR)/scripts/package.sh'"
 
 ghr:
-	ghr -prerlease -u walter-cd $(VERSION) pkg/dist/$(VERSION)
+	ghr -u walter-cd $(VERSION) pkg/dist/$(VERSION)
 

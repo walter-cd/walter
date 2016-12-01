@@ -51,5 +51,5 @@ Vagrant.configure("2") do |config|
     apt-get install -y docker-engine
   EOF
 
-   config.vm.synced_folder '.', '/home/vagrant/src/github.com/walter-cd/walter'
+  # config.vm.synced_folder '.', '/home/vagrant/src/github.com/walter-cd/walter'
 end
