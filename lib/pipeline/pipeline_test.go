@@ -250,7 +250,7 @@ func TestExitStatusSuccess(t *testing.T) {
 	p := &Pipeline{}
 	t1 := &task.Task{Command: "echo"}
 	p.Build.Tasks = Tasks{t1}
-	code := p.Run()
+	code := p.Run(true, true)
 	if code != 0 {
 		t.Fatalf("Exit code should be 0, not %d", code)
 	}
@@ -260,7 +260,7 @@ func TestExitStatusFail(t *testing.T) {
 	p := &Pipeline{}
 	t1 := &task.Task{Command: "no_such_command"}
 	p.Build.Tasks = Tasks{t1}
-	code := p.Run()
+	code := p.Run(true, true)
 	if code != 1 {
 		t.Fatalf("Exit code should be 1, not %d", code)
 	}
@@ -272,7 +272,7 @@ func TestExitStatusParallel(t *testing.T) {
 
 	p := &Pipeline{}
 	p.Build.Tasks = Tasks{&task.Task{Parallel: Tasks{t1, t2}}}
-	code := p.Run()
+	code := p.Run(true, true)
 	if code != 1 {
 		t.Fatalf("Exit code should be 1, not %d", code)
 	}
@@ -284,7 +284,7 @@ func TestExitStatusSerial(t *testing.T) {
 
 	p := &Pipeline{}
 	p.Build.Tasks = Tasks{&task.Task{Serial: Tasks{t1, t2}}}
-	code := p.Run()
+	code := p.Run(true, true)
 	if code != 1 {
 		t.Fatalf("Exit code should be 1, not %d", code)
 	}

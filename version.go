@@ -22,6 +22,7 @@ var GitCommit string
 
 const defaultCheckTimeout = 2 * time.Second
 
+// OutputVersion display version number
 func OutputVersion() string {
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "%s version %s", Name, Version)
