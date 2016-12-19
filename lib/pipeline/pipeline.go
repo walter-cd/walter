@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"os"
+	"regexp"
+	"strings"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -118,6 +121,13 @@ func (p *Pipeline) Run(build, deploy bool) int {
 }
 
 func includeTasks(file string) (Tasks, error) {
+	re := regexp.MustCompile(`\$[A-Z1-9\-_]+`)
+	matches := re.FindAllString(file, -1)
+	for _, m := range matches {
+		env := os.Getenv(strings.TrimPrefix(m, "$"))
+		file = strings.Replace(file, m, env, -1)
+	}
+
 	data, err := ioutil.ReadFile(file)
 	tasks := Tasks{}
 	if err != nil {
