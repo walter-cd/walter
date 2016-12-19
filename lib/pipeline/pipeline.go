@@ -198,6 +198,7 @@ func (p *Pipeline) runParallel(ctx context.Context, cancel context.CancelFunc, t
 			include, err := includeTasks(child.Include)
 			if err != nil {
 				log.Error(err)
+				return err
 			}
 			tasks = append(tasks, include...)
 		} else {

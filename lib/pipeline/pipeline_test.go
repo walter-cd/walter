@@ -289,3 +289,18 @@ func TestExitStatusSerial(t *testing.T) {
 		t.Fatalf("Exit code should be 1, not %d", code)
 	}
 }
+
+func TestIncludeInParallel(t *testing.T) {
+	tsk := &task.Task{
+		Name:     "test include files in parallel task",
+		Parallel: []*task.Task{&task.Task{Include: "foo.yml"}},
+	}
+
+	p := &Pipeline{}
+	p.Build.Tasks = Tasks{tsk}
+
+	code := p.Run(true, true)
+	if code != 1 {
+		t.Fatalf("Exit code should be 1, not %d", code)
+	}
+}
