@@ -126,6 +126,18 @@ build:
       directory: /tmp
 ```
 
+Conditions to run tasks
+----------
+
+```yaml
+build:
+  tasks:
+    - name: list files under /tmp
+      command: ls
+      only_if: test -d /tmp
+```
+
+
 Get stdout of a previous task
 -----------------------------
 
@@ -268,6 +280,156 @@ Other services(ex. HipChat) are not supported currently.
 Changes in v2
 =============
 
+
+Pipeline definition format
+--------------------------
+
+Pipeline definition in v1:
+
+```yaml
+pipeline:
+  - name: setup build
+    type: command
+    command: echo "setting up ..."
+  - name: run build
+    type: command
+    command: echo "building ..."
+cleanup:
+  - name: cleanup build
+    type: command
+    command: echo "cleanup build ..."
+
+```
+
+In v2:
+
+```yaml
+build:
+  tasks:
+    - name: setup build
+      command: echo "setting up ..."
+    - name: run build
+      command: echo "building ..."
+  cleanup:
+    - name: cleanup build
+      command: echo "cleanup build ..."
+```
+
+Separate build and deploy phase
+-------------------------------
+
+You can separate build and deploy phases in v2:
+
+```yaml
+build:
+  tasks:
+    - name: setup build
+      command: echo "setting up ..."
+    - name: run build
+      command: echo "building ..."
+  cleanup:
+    - name: cleanup build
+      command: echo "cleanup build ..."
+
+deploy:
+  tasks:
+    - name: run deploy
+      command: echo "deploying ..."
+  cleanup:
+    - name: cleanup
+      command: echo "cleanup deploy ..."
+```
+
+You can run both phases at once or each phase separately.
+
+```
+# Run build and deploy phases
+$ walter -build -deploy
+
+# Run build phase only
+$ walter -build
+
+# Run deploy phase only
+$ walter -deploy
+```
+
+Format of wait_for
+------------------
+
+You must define parameters for `wait_for` in one line in v1:
+
+```yaml
+pipeline:
+  - name: launch solr
+    command: bin/solr start
+  - name: post data to solr index
+    command: bin/post -d ~/tmp/foobar.js
+    wait_for: host=localhost port=8983 state=ready
+```
+
+In v2, you must define parameters for `wait_for` with mapping of yaml.
+
+```
+build:
+  tasks:
+    - name: launch solr
+      command: bin/solr start
+    - name: post data to solr index
+      command: bin/post -d ~/tmp/foobar.js
+      wait_for:
+        host: localhost
+        port: 8983
+        state: ready
+```
+
+
+Definition of notification
+--------------------------
+
+In v1:
+
+```yaml
+messenger:
+  type: slack
+  channel: serverspec
+  url: $SLACK_WEBHOOK_URL
+  icon_url: http://example.jp/walter.jpg
+  username: walter
+```
+
+In v2:
+
+```yaml
+notify:
+  - type: slack
+    channel: serverspec
+    url: $SLACK_WEBHOOK_URL
+    icon_url: http://example.jp/walter.jpg
+    username: walter
+```
+
+The key `messenger` was changed to `notify` and you can define multiple notification definitions in v2.
+
+
+Special variables
+-----------------
+
+Special variables like `__OUT`, `__ERR`, `__COMBINED` and `__RESULT` are obsoleted in v2.
+
+Tasks get stdout of a previous task through a pipe.
+
+```yaml
+build:
+  tasks:
+    - name: setup build
+      command: echo "setting up"
+    - name: run build
+      command: cat
+```
+
+The second "run build" task outputs "setting up".
+
+I think this is suffient for defining pipelines. Special variables bring complexity for pipelines.
 
 
 ----
