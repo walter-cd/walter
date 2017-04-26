@@ -164,7 +164,7 @@ You can define parallel tasks.
 build:
    tasks:
      - name: parallel tasks
-       paralle:
+       parallel:
            - name: task 1
              command: echo task 1
            - name: task 2
