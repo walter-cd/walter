@@ -37,7 +37,7 @@ How to install
 Get a binary file from [GitHub Releases](https://github.com/walter-cd/walter/releases) and place it in `$PATH`.
 
 
-Wrirte your pipeline
+Writing your pipeline
 --------------------
 
 Write your command pipeline in `pipeline.yml`.
